@@ -8,7 +8,7 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath> <!-- 可省略 -->
     </parent>
-    <groupId>com.litian</groupId>
+
     <artifactId>fp-follow</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>fp-follow</name>

@@ -9,7 +9,6 @@
 		<relativePath>../pom.xml</relativePath> <!-- 可省略 -->
 	</parent>
 
-	<groupId>com.litian</groupId>
 	<artifactId>fp-account</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>fp-account</name>
