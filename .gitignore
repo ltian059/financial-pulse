@@ -47,3 +47,6 @@ build/
 **/mvnw*
 /fp-account/.mvn/wrapper/maven-wrapper.properties
 /fp-content/.mvn/wrapper/maven-wrapper.properties
+/fp-content/src/main/resources/application-dev.yml
+/fp-account/src/main/resources/application-dev.yml
+/fp-follow/src/main/resources/application-dev.yml

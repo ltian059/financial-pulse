@@ -1,0 +1,78 @@
+package com.fp.account.service.impl;
+
+import com.fp.account.entity.Account;
+import com.fp.account.repository.AccountRepository;
+import com.fp.account.service.AccountService;
+import com.fp.api.FollowServiceAPI;
+import com.fp.dto.account.AccountDTO;
+import com.fp.vo.account.CreateAccountVO;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class AccountServiceImpl implements AccountService {
+    @Autowired
+    private  AccountRepository accountRepository;
+    @Autowired
+    private  PasswordEncoder passwordEncoder;
+    @Autowired
+    private WebClient followWebClient;
+
+    @Override
+    public void createAccount(CreateAccountVO accountVO) {
+        // Convert AccountDTO to Account entity
+        String encryptedPassword = passwordEncoder.encode(accountVO.getPassword());
+        Account account = Account.builder()
+                .name(accountVO.getName())
+                .email(accountVO.getEmail())
+                .encryptedPassword(encryptedPassword)
+                .verified(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+        //set default values
+        accountRepository.save(account);
+    }
+
+    @Override
+    public Optional<Account> getAccountByEmail(String email) {
+        return accountRepository.findByEmail(email);
+    }
+
+    @Override
+    @Transactional
+    public void updateVerificationStatus(Long id, boolean verified) {
+        Optional<Account> byId = accountRepository.findAccountById(id);
+        if(byId.isPresent()){
+            byId.get().setVerified(verified);
+        }
+    }
+
+    @Override
+    public Optional<Account> getAccountById(Long id) {
+        return accountRepository.findAccountById(id);
+    }
+
+    @Override
+    public Long getFollowerCountById(Long id) {
+        //TODO implement logic to get follower count
+        return followWebClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(FollowServiceAPI.GET_FOLLOWER_COUNT_BY_ACCOUNT_ID.getPath())
+                        .queryParam("accountId", id)
+                        .build()
+                )
+                .retrieve()
+                .bodyToMono(Long.class)
+                .block(); // Blocking call to get the follower count
+
+    }
+
+}

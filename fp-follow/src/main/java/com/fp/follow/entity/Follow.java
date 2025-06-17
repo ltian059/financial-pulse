@@ -1,0 +1,24 @@
+package com.fp.follow.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "follows")
+@IdClass(FollowId.class) // Use composite key for followerId and followeeId
+public class Follow {
+    @Id
+    private Long followerId;
+
+    @Id
+    private Long followeeId;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+}
+
