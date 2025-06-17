@@ -1,4 +1,4 @@
-package com.fp.vo.account;
+package com.fp.common.vo.account;
 
 import lombok.Data;
 

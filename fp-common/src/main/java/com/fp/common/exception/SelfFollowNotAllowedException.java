@@ -1,4 +1,4 @@
-package com.fp.exception;
+package com.fp.common.exception;
 
 public class SelfFollowNotAllowedException extends BaseException{
     public SelfFollowNotAllowedException() {

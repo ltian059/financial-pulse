@@ -2,10 +2,8 @@ package com.fp.account.service;
 
 
 import com.fp.account.entity.Account;
-import com.fp.dto.account.AccountDTO;
-import com.fp.vo.account.CreateAccountVO;
+import com.fp.common.vo.account.CreateAccountVO;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface AccountService {

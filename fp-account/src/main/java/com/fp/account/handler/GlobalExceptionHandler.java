@@ -1,7 +1,6 @@
 package com.fp.account.handler;
 
-import com.fp.exception.DuplicatedFollowException;
-import com.fp.exception.ServiceException;
+import com.fp.common.exception.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

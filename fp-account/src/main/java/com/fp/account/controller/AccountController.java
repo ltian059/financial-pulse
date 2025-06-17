@@ -1,8 +1,8 @@
 package com.fp.account.controller;
 
 import com.fp.account.service.AccountService;
-import com.fp.dto.account.AccountDTO;
-import com.fp.vo.account.CreateAccountVO;
+import com.fp.common.dto.account.AccountDTO;
+import com.fp.common.vo.account.CreateAccountVO;
 import io.swagger.v3.oas.annotations.Operation;
 
 import io.swagger.v3.oas.annotations.tags.Tag;

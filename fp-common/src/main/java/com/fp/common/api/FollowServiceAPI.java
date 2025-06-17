@@ -1,4 +1,4 @@
-package com.fp.api;
+package com.fp.common.api;
 
 import org.springframework.http.HttpMethod;
 

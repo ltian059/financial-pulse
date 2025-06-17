@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -32,10 +33,10 @@ public class Account {
     private LocalDate birthday;
 
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(nullable = true)
-    private LocalDateTime modifiedAt;
+    private Instant modifiedAt;
 
     @Column(nullable = false)
     private Boolean verified;

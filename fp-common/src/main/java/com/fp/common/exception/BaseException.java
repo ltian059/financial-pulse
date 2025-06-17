@@ -1,4 +1,4 @@
-package com.fp.exception;
+package com.fp.common.exception;
 
 /**
  * Custom base exception for the application.

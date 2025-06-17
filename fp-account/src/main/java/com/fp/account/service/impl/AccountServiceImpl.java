@@ -3,30 +3,30 @@ package com.fp.account.service.impl;
 import com.fp.account.entity.Account;
 import com.fp.account.repository.AccountRepository;
 import com.fp.account.service.AccountService;
-import com.fp.api.FollowServiceAPI;
-import com.fp.dto.account.AccountDTO;
-import com.fp.exception.ServiceException;
-import com.fp.vo.account.CreateAccountVO;
+import com.fp.common.api.FollowServiceAPI;
+import com.fp.common.exception.ServiceException;
+import com.fp.common.vo.account.CreateAccountVO;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.Instant;
 import java.util.Optional;
 
 @Service
 public class AccountServiceImpl implements AccountService {
-    @Autowired
-    private  AccountRepository accountRepository;
-    @Autowired
-    private  PasswordEncoder passwordEncoder;
-    @Autowired
-    private WebClient followWebClient;
+    private final AccountRepository accountRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final WebClient followWebClient;
+
+    public AccountServiceImpl(AccountRepository accountRepository, PasswordEncoder passwordEncoder, WebClient followWebClient) {
+        this.accountRepository = accountRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.followWebClient = followWebClient;
+    }
 
     @Override
     public void createAccount(CreateAccountVO accountVO) {
@@ -37,7 +37,7 @@ public class AccountServiceImpl implements AccountService {
                 .email(accountVO.getEmail())
                 .encryptedPassword(encryptedPassword)
                 .verified(false)
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build();
         //set default values
         accountRepository.save(account);

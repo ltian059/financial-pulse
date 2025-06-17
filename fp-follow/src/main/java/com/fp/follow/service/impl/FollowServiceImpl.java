@@ -1,14 +1,14 @@
 package com.fp.follow.service.impl;
 
-import com.fp.exception.DuplicatedFollowException;
-import com.fp.exception.SelfFollowNotAllowedException;
+import com.fp.common.exception.DuplicatedFollowException;
+import com.fp.common.exception.SelfFollowNotAllowedException;
 import com.fp.follow.entity.Follow;
 import com.fp.follow.repository.FollowRepository;
 import com.fp.follow.service.FollowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 
 @Service
@@ -41,7 +41,7 @@ public class FollowServiceImpl implements FollowService {
             Follow follow = Follow.builder()
                     .followerId(followerId)
                     .followeeId(followeeId)
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(Instant.now())
                     .build();
             followRepository.save(follow);
         }else{

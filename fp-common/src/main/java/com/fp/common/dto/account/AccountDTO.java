@@ -1,12 +1,12 @@
-package com.fp.dto.account;
+package com.fp.common.dto.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -18,5 +18,5 @@ public class AccountDTO implements Serializable {
     private String password;
     private boolean verified;
     private LocalDate birthday;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

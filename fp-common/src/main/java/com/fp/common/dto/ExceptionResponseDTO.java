@@ -1,4 +1,4 @@
-package com.fp.dto;
+package com.fp.common.dto;
 
 import lombok.Builder;
 import lombok.Data;

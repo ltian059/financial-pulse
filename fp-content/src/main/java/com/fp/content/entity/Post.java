@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,9 +30,9 @@ public class Post {
     private String content; // rich text HTML
 
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
-    private LocalDateTime modifiedAt;
+    private Instant modifiedAt;
 
     private String imageLinks;
 
