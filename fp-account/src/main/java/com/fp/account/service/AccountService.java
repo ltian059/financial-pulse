@@ -20,4 +20,6 @@ public interface AccountService {
     Optional<Account> getAccountById(Long id);
 
     Long getFollowerCountById(Long id);
+
+    void followAccount(Long accountId, Long followeeId);
 }

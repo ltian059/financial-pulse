@@ -4,7 +4,20 @@ import org.springframework.http.HttpMethod;
 
 public enum FollowServiceAPI {
     // Define the API endpoints for follow management
-    GET_FOLLOWER_COUNT_BY_ACCOUNT_ID("/api/follow/countFollowers", HttpMethod.GET);
+    /**
+     * @Description: Endpoint to follow an account
+     * @Param: Long accountId - ID of the account being followed
+     * @apiNote Implementation is in FollowController#getFollowerCountByAccountId(Long)}
+     */
+    GET_FOLLOWER_COUNT_BY_ACCOUNT_ID("/api/follow/countFollowers", HttpMethod.GET),
+
+    /**
+     * @Description: Endpoint to follow an account
+     * @Param: Long followerId - ID of the follower
+     * @Param: Long followeeId - ID of the account being followed
+     * @apiNote Implementation is in FollowController#followAccount(Long, Long)
+     */
+    FOLLOW_ACCOUNT("/api/follow", HttpMethod.POST);
 
     private final String path;
     private final HttpMethod method;

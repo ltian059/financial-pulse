@@ -47,4 +47,16 @@ public class AccountController {
         return ResponseEntity.ok(followerCount);
     }
 
+    @PostMapping("/follow")
+    @Operation(summary = "Follow another account")
+    public ResponseEntity<String > followAccount(
+            @RequestParam Long accountId,
+            @RequestParam Long followeeId
+    ){
+        accountService.followAccount(accountId, followeeId);
+        return ResponseEntity.ok("Followed successfully");
+    }
+
+
+
 }
