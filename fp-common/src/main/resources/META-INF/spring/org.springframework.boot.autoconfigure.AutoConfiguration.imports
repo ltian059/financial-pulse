@@ -1,1 +1,3 @@
 com.fp.common.config.ExternalServiceAutoConfiguration
+com.fp.common.config.JwtAutoConfiguration
+com.fp.common.config.JwtSecurityAutoConfiguration

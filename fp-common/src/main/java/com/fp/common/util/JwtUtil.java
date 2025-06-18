@@ -19,9 +19,9 @@ public class JwtUtil {
 
     /**
      * Generate a JWT token for users.
-     * @param accountId
-     * @param email
-     * @param name
+     * @param accountId Field for Account entity. the id of the user, used for claims.
+     * @param email Field for Account entity. the email of the user, used for claims.
+     * @param name Field for Account entity. the name of the user, used for claims.
      * @return
      */
     public String generateAccessToken(Long accountId, String email, String name){
