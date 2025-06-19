@@ -1,4 +1,4 @@
-package com.fp.common.config;
+package com.fp.common.autoconfigure;
 
 
 import com.fp.common.auth.AuthenticationLoggingFilter;

@@ -1,9 +1,7 @@
-package com.fp.common.config;
+package com.fp.common.autoconfigure;
 
 import com.fp.common.properties.JwtProperties;
 import com.fp.common.util.JwtUtil;
-import io.jsonwebtoken.Jwts;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;

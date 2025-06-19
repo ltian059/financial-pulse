@@ -14,6 +14,10 @@ public class ExternalServiceProperties {
     public static class ServiceConfig{
         private String url;
         private boolean enabled = true;
+        /**
+         * Allows other services which are using this service to propagate JWT tokens to this service.
+         */
+        private boolean enableJwtPropagation = true;
         private int timeout = 5000;
         private int maxRetries = 3;
         public ServiceConfig(){}
