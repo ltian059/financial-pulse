@@ -1,7 +1,7 @@
 package com.fp.follow.handler;
 
 import com.fp.common.exception.DuplicatedFollowException;
-import com.fp.common.dto.ExceptionResponseDTO;
+import com.fp.common.dto.auth.ExceptionResponseDTO;
 import com.fp.common.exception.SelfFollowNotAllowedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
