@@ -44,21 +44,21 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         String method = request.getMethod();
         String remoteAddr = request.getRemoteAddr();
 
-        log.warn("🔴 Authentication failed: {} {} from {} - {}",
-                method, requestURI, remoteAddr, authException.getMessage());
+        if(log.isDebugEnabled()){
+            log.debug("🔴 Authentication failed: {} {} from {} - {}",
+                    method, requestURI, remoteAddr, authException.getMessage());
+        }
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        AuthResponseDTO unauthorized = AuthResponseDTO.unauthorized(
+        AuthResponseDTO authResponse = AuthResponseDTO.unauthorized(
                 requestURI,
                 "Authentication required: " + authException.getMessage()
         );
 
-        String jsonResp = objectMapper.writeValueAsString(unauthorized);
-        response.getWriter().write(jsonResp);
-        response.getWriter().flush();
+        objectMapper.writeValue(response.getWriter(), authResponse);
 
     }
 }

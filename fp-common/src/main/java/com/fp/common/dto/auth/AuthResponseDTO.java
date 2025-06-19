@@ -14,7 +14,7 @@ import java.time.Instant;
 public class AuthResponseDTO {
     private String code;
     private String message;
-    private String reqPath;
+    private String requestPath;
     private Instant timestamp;
 
     /**
@@ -27,7 +27,7 @@ public class AuthResponseDTO {
         return AuthResponseDTO.builder()
                 .code("401")
                 .message(message != null ? message : "Unauthorized Access.")
-                .reqPath(reqPath)
+                .requestPath(reqPath)
                 .timestamp(Instant.now())
                 .build();
     }
@@ -36,7 +36,7 @@ public class AuthResponseDTO {
         return AuthResponseDTO.builder()
                 .code("403")
                 .message(message != null ? message : "Forbidden Access.")
-                .reqPath(reqPath)
+                .requestPath(reqPath)
                 .timestamp(Instant.now())
                 .build();
     }

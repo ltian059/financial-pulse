@@ -33,8 +33,10 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         String method = request.getMethod();
         String remoteAddr = HttpUtil.getClientIpAddress(request);
 
-        log.warn("🔴 Access denied: {} {} from {} - {}",
-                method, requestURI, remoteAddr, accessDeniedException.getMessage());
+        if(log.isDebugEnabled()){
+            log.debug("🔴 Access denied: {} {} from {} - {}",
+                    method, requestURI, remoteAddr, accessDeniedException.getMessage());
+        }
 
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -44,8 +46,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                 requestURI,
                 "Access Denied: " + accessDeniedException.getMessage()
         );
-        String jsonResponse = objectMapper.writeValueAsString(authResponse);
-        response.getWriter().write(jsonResponse);
-        response.getWriter().flush();
+
+        objectMapper.writeValue(response.getWriter(), authResponse);
     }
 }

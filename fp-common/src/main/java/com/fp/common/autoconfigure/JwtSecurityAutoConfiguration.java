@@ -1,7 +1,7 @@
 package com.fp.common.autoconfigure;
 
 
-import com.fp.common.auth.AuthenticationLoggingFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fp.common.auth.CustomAccessDeniedHandler;
 import com.fp.common.auth.CustomAuthenticationEntryPoint;
 import com.fp.common.constant.UrlConstant;
@@ -10,19 +10,31 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.ExceptionTranslationFilter;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Slf4j
 @AutoConfiguration(after = JwtAutoConfiguration.class)
 @ConditionalOnClass(JwtDecoder.class)
-@Import({CustomAuthenticationEntryPoint.class, CustomAccessDeniedHandler.class, AuthenticationLoggingFilter.class})
 public class JwtSecurityAutoConfiguration {
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CustomAuthenticationEntryPoint customAuthenticationEntryPoint(ObjectMapper objectMapper) {
+        return new CustomAuthenticationEntryPoint(objectMapper);
+    }
+    @Bean
+    @ConditionalOnMissingBean
+    public CustomAccessDeniedHandler customAccessDeniedHandler(ObjectMapper objectMapper) {
+        return new CustomAccessDeniedHandler(objectMapper);
+    }
+
 
     /**
      * Default SecurityFilterChain
@@ -37,8 +49,7 @@ public class JwtSecurityAutoConfiguration {
             HttpSecurity http,
             JwtDecoder jwtDecoder,
             CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-            CustomAccessDeniedHandler customAccessDeniedHandler,
-            AuthenticationLoggingFilter authenticationLoggingFilter
+            CustomAccessDeniedHandler customAccessDeniedHandler
     ) throws Exception {
         log.info(" Creating default JWT SecurityFilterChain");
         return http
@@ -51,12 +62,16 @@ public class JwtSecurityAutoConfiguration {
                         .requestMatchers(UrlConstant.ALLOWED_REQUEST_URLS).permitAll()
                         .anyRequest().authenticated()
                 )
+                // OAuth2 Resource Server configure - specialized in JWT exception handling
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.decoder(jwtDecoder)))
+                        .jwt(jwt -> jwt.decoder(jwtDecoder))
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                )
+                // Global security exception handling
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler))
-                .addFilterAfter(authenticationLoggingFilter, ExceptionTranslationFilter.class)
                 .build();
     }
 }
