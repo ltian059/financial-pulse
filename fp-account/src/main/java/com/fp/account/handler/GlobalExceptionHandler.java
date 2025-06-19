@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
     @ExceptionHandler(ServiceException.class)
     public ResponseEntity<String > handleServiceException(ServiceException ex) {
         log.error(ex.getResponseBody());

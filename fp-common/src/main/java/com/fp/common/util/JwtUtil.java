@@ -6,8 +6,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +19,6 @@ import java.util.Map;
 public class JwtUtil {
 
     private final JwtProperties jwtProperties;
-
     /**
      * Generate a JWT token for users.
      * @param accountId Field for Account entity. the id of the user, used for claims.
@@ -81,5 +83,11 @@ public class JwtUtil {
      */
     private SecretKey getSigningKey(){
         return Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
+    }
+    private Duration getAccessTokenExpirationDuration(){
+        return jwtProperties.getAccessToken().getExpiration();
+    }
+    private Duration getRefreshTokenExpirationDuration(){
+        return jwtProperties.getRefreshToken().getExpiration();
     }
 }

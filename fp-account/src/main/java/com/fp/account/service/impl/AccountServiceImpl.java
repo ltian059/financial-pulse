@@ -4,10 +4,12 @@ import com.fp.account.entity.Account;
 import com.fp.account.repository.AccountRepository;
 import com.fp.account.service.AccountService;
 import com.fp.common.api.FollowServiceAPI;
+import com.fp.common.dto.account.AccountLoginDTO;
+import com.fp.common.exception.AccountNotFoundException;
+import com.fp.common.exception.InvalidPasswordException;
 import com.fp.common.exception.ServiceException;
-import com.fp.common.vo.account.CreateAccountVO;
+import com.fp.common.dto.account.CreateAccountDTO;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -29,7 +31,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void createAccount(CreateAccountVO accountVO) {
+    public void createAccount(CreateAccountDTO accountVO) {
         // Convert AccountDTO to Account entity
         String encryptedPassword = passwordEncoder.encode(accountVO.getPassword());
         Account account = Account.builder()
@@ -74,7 +76,6 @@ public class AccountServiceImpl implements AccountService {
                 .retrieve()
                 .bodyToMono(Long.class)
                 .block(); // Blocking call to get the follower count
-
     }
 
     @Override
@@ -93,6 +94,23 @@ public class AccountServiceImpl implements AccountService {
         } catch (WebClientResponseException e) {
             throw new ServiceException(e.getStatusCode().value(), e.getResponseBodyAsString());
         }
+    }
+
+    @Override
+    public Account verifyLogin(AccountLoginDTO accountLoginDTO) {
+        String email = accountLoginDTO.getEmail();
+        String password = accountLoginDTO.getPassword();
+        Optional<Account> byEmail = accountRepository.findByEmail(email);
+        if(byEmail.isEmpty()){
+            throw new AccountNotFoundException();
+        }
+        String encryptedPassword = byEmail.get().getEncryptedPassword();
+        if(!passwordEncoder.matches(password, encryptedPassword)){
+            throw new InvalidPasswordException();
+        }
+
+        return byEmail.get();
+
     }
 
 }

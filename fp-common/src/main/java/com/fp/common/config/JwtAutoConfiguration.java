@@ -3,6 +3,7 @@ package com.fp.common.config;
 import com.fp.common.properties.JwtProperties;
 import com.fp.common.util.JwtUtil;
 import io.jsonwebtoken.Jwts;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -23,7 +24,6 @@ import javax.crypto.spec.SecretKeySpec;
 @ConditionalOnClass(JwtDecoder.class)
 public class JwtAutoConfiguration {
     private final JwtProperties jwtProperties;
-
     /**
      * Constructor for JwtAutoConfiguration.
      * Auto-injects JwtProperties and logs the configuration.

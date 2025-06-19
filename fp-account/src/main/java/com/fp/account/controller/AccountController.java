@@ -2,7 +2,7 @@ package com.fp.account.controller;
 
 import com.fp.account.service.AccountService;
 import com.fp.common.dto.account.AccountDTO;
-import com.fp.common.vo.account.CreateAccountVO;
+import com.fp.common.dto.account.CreateAccountDTO;
 import io.swagger.v3.oas.annotations.Operation;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,16 +20,9 @@ public class AccountController {
     private AccountService accountService;
 
 
-    @PostMapping
-    @Operation(summary = "Create a new account")
-    public ResponseEntity<String > createAccount(@RequestBody CreateAccountVO accountVO){
-        accountService.createAccount(accountVO);
-        return ResponseEntity.ok("Account created successfully");
-    }
-
-    @GetMapping("/{id}")
+    @GetMapping
     @Operation(summary = "Get account by ID")
-    public ResponseEntity<AccountDTO> getAccountById(@PathVariable Long id) {
+    public ResponseEntity<AccountDTO> getAccountById(Long id) {
         return accountService.getAccountById(id)
                 .map(account -> {
                     AccountDTO accountDTO = new AccountDTO();
@@ -40,7 +33,7 @@ public class AccountController {
     }
 
 
-    @GetMapping
+    @GetMapping("/follower-count")
     @Operation(summary = "Get the number of followers for an account")
     public ResponseEntity<Long> getFollowerCountById(@RequestParam Long id){
         Long followerCount = accountService.getFollowerCountById(id);
