@@ -2,15 +2,18 @@ package com.fp.common.util;
 
 import com.fp.common.constant.JwtClaimsConstant;
 import com.fp.common.properties.JwtProperties;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.jwt.JwtException;
 
 import javax.crypto.SecretKey;
 import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
 
 @RequiredArgsConstructor
 public class JwtUtil {
@@ -89,4 +92,31 @@ public class JwtUtil {
         return jwtProperties.getRefreshToken().getExpiration();
     }
 
+    public Claims validateRefreshToken(String refreshToken) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(refreshToken)
+                .getPayload();
+    }
+
+    public boolean isRefreshTokenValid(String refreshToken) {
+        try {
+            Claims claims = validateRefreshToken(refreshToken);
+            // Check if the token type is refresh
+
+            // Check if expired
+
+            // Check ... A lot.
+
+            return claims.get(JwtClaimsConstant.TYPE).equals("refresh");
+        } catch (JwtException e) {
+           return false;
+        }
+    }
+
+    public Long getAccountIdByRefreshToken(String refreshToken) {
+        Claims claims = validateRefreshToken(refreshToken);
+        return claims.get(JwtClaimsConstant.ACCOUNT_ID, Long.class);
+    }
 }

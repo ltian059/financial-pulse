@@ -7,9 +7,16 @@ import com.fp.common.api.FollowServiceAPI;
 import com.fp.common.dto.account.AccountLoginDTO;
 import com.fp.common.exception.AccountNotFoundException;
 import com.fp.common.exception.InvalidPasswordException;
+import com.fp.common.exception.InvalidRefreshTokenException;
 import com.fp.common.exception.ServiceException;
 import com.fp.common.dto.account.CreateAccountDTO;
+import com.fp.common.util.JwtUtil;
+import com.fp.common.vo.account.AccountLoginVO;
+import com.fp.common.vo.auth.RefreshTokenVO;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -19,16 +26,14 @@ import java.time.Instant;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
     private final WebClient followWebClient;
+    private final JwtUtil jwtUtil;
 
-    public AccountServiceImpl(AccountRepository accountRepository, PasswordEncoder passwordEncoder, WebClient followWebClient) {
-        this.accountRepository = accountRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.followWebClient = followWebClient;
-    }
 
     @Override
     public void createAccount(CreateAccountDTO accountVO) {
@@ -97,7 +102,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account verifyLogin(AccountLoginDTO accountLoginDTO) {
+    public AccountLoginVO login(AccountLoginDTO accountLoginDTO) {
         String email = accountLoginDTO.getEmail();
         String password = accountLoginDTO.getPassword();
         Optional<Account> byEmail = accountRepository.findByEmail(email);
@@ -108,9 +113,44 @@ public class AccountServiceImpl implements AccountService {
         if(!passwordEncoder.matches(password, encryptedPassword)){
             throw new InvalidPasswordException();
         }
+        var account = byEmail.get();
+        var id = account.getId();
+        var name = account.getName();
+        //After login successfully, generate JWT token
+        String accessToken = jwtUtil.generateAccessToken(id, email, name);
+        String refreshToken = jwtUtil.generateRefreshToken(id, email);
+        var loginVO = new AccountLoginVO();
+        BeanUtils.copyProperties(account, loginVO);
+        loginVO.setAccessToken(accessToken);
+        loginVO.setRefreshToken(refreshToken);
+        log.info("Account login successful: {}", loginVO);
+        return loginVO;
+    }
 
-        return byEmail.get();
-
+    /**
+     * Validate refresh token, if valid:
+     * return the refreshTokenVO with new access token and optionally a new refresh token.
+     *
+     * @param refreshToken
+     * @return
+     */
+    @Override
+    public RefreshTokenVO validateRefreshToken(String refreshToken) {
+        if(!jwtUtil.isRefreshTokenValid(refreshToken)) {
+            throw new InvalidRefreshTokenException();
+        }
+        //Use jwtUtil to parse the refresh token and extract user information
+        Long id = jwtUtil.getAccountIdByRefreshToken(refreshToken);
+        Optional<Account> accountOpt = accountRepository.findAccountById(id);
+        if(accountOpt.isEmpty()){
+            throw new AccountNotFoundException();
+        }
+        Account account = accountOpt.get();
+        //Generate new access token
+        return RefreshTokenVO.builder()
+                .accessToken(jwtUtil.generateAccessToken(id, account.getEmail(), account.getName()))
+                .refreshToken(jwtUtil.generateRefreshToken(id, account.getEmail()))
+                .build();
     }
 
 }

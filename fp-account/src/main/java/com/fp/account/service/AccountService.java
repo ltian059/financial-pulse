@@ -4,6 +4,8 @@ package com.fp.account.service;
 import com.fp.account.entity.Account;
 import com.fp.common.dto.account.AccountLoginDTO;
 import com.fp.common.dto.account.CreateAccountDTO;
+import com.fp.common.vo.account.AccountLoginVO;
+import com.fp.common.vo.auth.RefreshTokenVO;
 
 import java.util.Optional;
 
@@ -22,5 +24,7 @@ public interface AccountService {
 
     void followAccount(Long accountId, Long followeeId);
 
-    Account verifyLogin(AccountLoginDTO accountLoginDTO);
+    AccountLoginVO login(AccountLoginDTO accountLoginDTO);
+
+    RefreshTokenVO validateRefreshToken(String refreshToken);
 }
