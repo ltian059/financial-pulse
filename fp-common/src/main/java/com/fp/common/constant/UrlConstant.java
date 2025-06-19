@@ -6,6 +6,7 @@ public class UrlConstant {
      */
     public static final String[] ALLOWED_REQUEST_URLS = {
             "/api/auth/**",
-            "swagger-ul/**", "/v3/api-docs/**", "/swagger-ui/**"
+            "swagger-ul/**", "/v3/api-docs/**", "/swagger-ui/**",
+            "/debug/**"
     };
 }

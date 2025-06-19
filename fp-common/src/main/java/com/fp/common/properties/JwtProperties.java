@@ -1,7 +1,8 @@
 package com.fp.common.properties;
 
-import com.fp.common.constant.JwtPropertiesConstant;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
@@ -24,23 +25,27 @@ public class JwtProperties {
     /**
      * JWT Issuer
      */
-    private String issuer = JwtPropertiesConstant.JWT_ISSUER;
+    private String issuer;
 
     /**
      * JWT Audience
      */
-    private String audience = JwtPropertiesConstant.JWT_AUDIENCE;
+    private String audience;
 
     private TokenConfig accessToken = new TokenConfig();
     private TokenConfig refreshToken = new TokenConfig();
-    {
-        accessToken.setHeaderName(JwtPropertiesConstant.JWT_ACCESS_TOKEN_HEADER_NAME);
-        accessToken.setExpiration(Duration.ofHours(JwtPropertiesConstant.JWT_ACCESS_TOKEN_EXPIRATION));
 
-        refreshToken.setExpiration(Duration.ofHours(JwtPropertiesConstant.JWT_REFRESH_TOKEN_EXPIRATION));
-        refreshToken.setHeaderName(JwtPropertiesConstant.JWT_REFRESH_TOKEN_HEADER_NAME);
+
+    public JwtProperties() {
+        // Default values for JWT tokens
+        accessToken.setExpiration(Duration.ofHours(24));
+        accessToken.setPrefix("Bearer ");
+        refreshToken.setExpiration(Duration.ofDays(7));
+        refreshToken.setPrefix("Bearer ");
+
+        setIssuer("financial-pulse-issuer");
+        setAudience("financial-pulse-api");
     }
-
     /**
      * JWT Token Configuration
      */
@@ -54,12 +59,8 @@ public class JwtProperties {
         /**
          * JWT Token Prefix
          */
-        private String prefix = JwtPropertiesConstant.JWT_PREFIX;
+        private String prefix;
 
-        /**
-         * JWT Token Header
-         */
-        private String headerName;
 
         public long getExpirationInMillis() {
             return expiration.toMillis();

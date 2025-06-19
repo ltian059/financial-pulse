@@ -16,7 +16,7 @@ public class FollowController {
     @Autowired
     private FollowService followService;
 
-    @GetMapping("/countFollowers")
+    @GetMapping("/count-follower")
     @Operation(summary = "get the number of followers for an account")
     public ResponseEntity<Long> getFollowerCountByAccountId(@RequestParam Long accountId) {
         Long followerCount = followService.getFollowerCount(accountId);

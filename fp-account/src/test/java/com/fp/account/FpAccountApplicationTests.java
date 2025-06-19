@@ -6,20 +6,85 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Base64;
+
 @SpringBootTest
 @Slf4j
 class FpAccountApplicationTests {
 
 	@Autowired
 	private JwtUtil jwtUtil;
+	@Autowired
+	private JwtProperties jwtProperties;
+	@Autowired
+	private JwtDecoder jwtDecoder;
 	@Test
 	void contextLoads() {
 	}
 
 	@Test
 	public void testJWTUtil(){
-		var token = jwtUtil.generateAccessToken(1L, "admin", "litian");
-		log.info(token);
+
+
+	}
+
+	@Test
+	public void testJwtVerfProcess(){
+		String token = jwtUtil.generateAccessToken(1L, "test@exmaple.com", "test");
+		log.info("Generated JWT Token: {}", token);
+
+		//手动解析jwt结构
+		String[] parts = token.split("\\.");
+		assert parts.length == 3 : "Invalid JWT structure";
+
+		//解码header和payload
+		var header = new String(Base64.getUrlDecoder().decode(parts[0]));
+		var payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+		log.info("JWT Header: {}", header);
+		log.info("JWT Payload: {}", payload);
+
+		//使用jwtDecoder验证
+        try {
+            Jwt jwt = jwtDecoder.decode(token);
+            log.info("jwt验证成功");
+        	log.info("jwt subject :{}", jwt.getSubject());
+			log.info("jwt claims :{}", jwt.getClaims());
+
+        } catch (JwtException e) {
+			log.error("JWT verification failed: {}", e.getMessage());
+
+        }
+
+	}
+	@Test
+	public void testTokenValidAfterRestart(){
+		String token = "eyJhbGciOiJIUzI1NiJ9.eyJhY2NvdW50SWQiOjEsImF1ZCI6ImZpbmFuY2lhbC1wdWxzZS1hcGkiLCJuYW1lIjoidGVzdCIsImlzcyI6ImZpbmFuY2lhbC1wdWxzZS1pc3N1ZXIiLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoidGVzdEBleG1hcGxlLmNvbSIsImlhdCI6MTc1MDM2NDYyMSwiZXhwIjoxNzUwMzY1MjIxfQ.tumqiD1JJLrHJm8FdW6Z-m0qsggXI-jAKuquIxS5jU4";
+
+		try{
+			Jwt jwt = jwtDecoder.decode(token);
+			log.info("✅ 重启后token仍然有效");
+			log.info("过期时间: {}", jwt.getExpiresAt());
+			log.info("当前时间: {}", Instant.now());
+			// 验证token是否真的还没过期
+			if (jwt.getExpiresAt().isAfter(Instant.now())) {
+				log.info("✅ Token确实未过期");
+			} else {
+				log.warn("⚠️ Token已过期但验证通过 - 这是个问题!");
+			}
+		}catch (JwtException e){
+			log.info("❌ Token验证失败: {}", e.getMessage());
+		}
+
 	}
 
 }

@@ -1,6 +1,6 @@
 package com.fp.common.util;
 
-import com.fp.common.constant.JwtPropertiesConstant;
+import com.fp.common.properties.JwtProperties;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -19,7 +19,7 @@ public class JwtPropagationUtil {
     public static String getAuthorizationHeader(){
         String jwtToken = getJwtToken();
         return jwtToken != null ?
-                JwtPropertiesConstant.JWT_PREFIX + jwtToken
+                "Bearer " + jwtToken
                 : null;
     }
 }

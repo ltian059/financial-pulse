@@ -22,7 +22,7 @@ public class AccountController {
 
     @GetMapping
     @Operation(summary = "Get account by ID")
-    public ResponseEntity<AccountDTO> getAccountById(Long id) {
+    public ResponseEntity<AccountDTO> getAccountById(@RequestParam Long id) {
         return accountService.getAccountById(id)
                 .map(account -> {
                     AccountDTO accountDTO = new AccountDTO();
@@ -33,7 +33,7 @@ public class AccountController {
     }
 
 
-    @GetMapping("/follower-count")
+    @GetMapping("/count-follower")
     @Operation(summary = "Get the number of followers for an account")
     public ResponseEntity<Long> getFollowerCountById(@RequestParam Long id){
         Long followerCount = accountService.getFollowerCountById(id);

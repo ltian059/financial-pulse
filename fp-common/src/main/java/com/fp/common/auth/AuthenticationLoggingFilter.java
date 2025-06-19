@@ -55,6 +55,7 @@ public class AuthenticationLoggingFilter extends OncePerRequestFilter {
 
                 log.info("🟢 JWT authentication successful: {} {} from {} - User: {}(ID: {}, Email: {})",
                         method, requestURI, remoteAddr, name, accountId, email);
+                log.info("JWT expires at: {}", jwt.getExpiresAt());
             }else{
                 log.info("🟢 Authentication successful: {} {} from {} - Principal: {}",
                         method, requestURI, remoteAddr, auth.getName());

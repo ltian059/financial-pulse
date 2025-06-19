@@ -9,7 +9,7 @@ public enum FollowServiceAPI {
      * @Param: Long accountId - ID of the account being followed
      * @apiNote Implementation is in FollowController#getFollowerCountByAccountId(Long)}
      */
-    GET_FOLLOWER_COUNT_BY_ACCOUNT_ID("/api/follow/countFollowers", HttpMethod.GET),
+    GET_FOLLOWER_COUNT_BY_ACCOUNT_ID("/api/follow/count-follower", HttpMethod.GET),
 
     /**
      * @Description: Endpoint to follow an account

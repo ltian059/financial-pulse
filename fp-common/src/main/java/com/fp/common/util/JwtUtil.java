@@ -5,9 +5,6 @@ import com.fp.common.properties.JwtProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import javax.crypto.SecretKey;
 import java.time.Duration;
@@ -48,6 +45,7 @@ public class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put(JwtClaimsConstant.ACCOUNT_ID, accountId);
         claims.put(JwtClaimsConstant.TYPE, "refresh");
+        jwtProperties.getRefreshToken().setExpiration(Duration.ofDays(7));
         return generateToken(
                 claims,
                 email,
