@@ -1,21 +1,15 @@
 package com.fp.account;
 
 import com.fp.common.properties.JwtProperties;
-import com.fp.common.util.JwtUtil;
 import com.fp.common.util.JwtUtil2;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 

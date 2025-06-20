@@ -1,6 +1,7 @@
 package com.fp.common.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fp.common.constant.Messages;
 import com.fp.common.dto.auth.AuthResponseDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,7 +56,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
         AuthResponseDTO authResponse = AuthResponseDTO.unauthorized(
                 requestURI,
-                "Authentication required: " + authException.getMessage()
+                Messages.Error.Auth.unauthorized(authException.getMessage())
         );
 
         objectMapper.writeValue(response.getWriter(), authResponse);

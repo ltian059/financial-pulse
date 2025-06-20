@@ -1,4 +1,4 @@
-package com.fp.common.dto.auth;
+package com.fp.common.dto.exception;
 
 import lombok.Builder;
 import lombok.Data;

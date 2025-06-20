@@ -2,9 +2,9 @@ package com.fp.account.service;
 
 
 import com.fp.account.entity.Account;
-import com.fp.common.dto.account.AccountLoginDTO;
-import com.fp.common.dto.account.CreateAccountDTO;
-import com.fp.common.vo.account.AccountLoginVO;
+import com.fp.common.dto.auth.LoginDTO;
+import com.fp.common.dto.auth.CreateAccountDTO;
+import com.fp.common.vo.auth.LoginVO;
 import com.fp.common.vo.auth.RefreshTokenVO;
 
 import java.util.Optional;
@@ -24,7 +24,7 @@ public interface AccountService {
 
     void followAccount(Long accountId, Long followeeId);
 
-    AccountLoginVO login(AccountLoginDTO accountLoginDTO);
+    LoginVO login(LoginDTO loginDTO);
 
     RefreshTokenVO validateRefreshToken(String refreshToken);
 }

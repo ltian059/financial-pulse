@@ -11,9 +11,8 @@ public class FpAccountApplication {
 
 	public static void main(String[] args) {
 		try {
-			ConfigurableApplicationContext context = SpringApplication.run(FpAccountApplication.class, args);
-		} catch (Exception e) {
-			log.error("Application start failed" + e.getMessage());
+            SpringApplication.run(FpAccountApplication.class, args);
+        } catch (Exception e) {
 			e.printStackTrace();
 		}
     }

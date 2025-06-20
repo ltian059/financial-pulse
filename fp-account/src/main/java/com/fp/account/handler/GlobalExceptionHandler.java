@@ -1,5 +1,6 @@
 package com.fp.account.handler;
 
+import com.fp.common.dto.exception.ExceptionResponseDTO;
 import com.fp.common.exception.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -11,8 +12,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ServiceException.class)
-    public ResponseEntity<String > handleServiceException(ServiceException ex) {
-        log.error(ex.getResponseBody());
-        return ResponseEntity.status(ex.getStatusCode()).body(ex.getResponseBody());
+    public ResponseEntity<ExceptionResponseDTO> handleServiceException(ServiceException ex) {
+        ExceptionResponseDTO build = ExceptionResponseDTO.builder()
+                .code(ex.getStatus().toString())
+                .message(ex.getMessage())
+                .build();
+        log.error(build.toString());
+        return ResponseEntity.status(ex.getStatus()).body(build);
     }
 }

@@ -1,6 +1,7 @@
 package com.fp.common.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fp.common.constant.Messages;
 import com.fp.common.dto.auth.AuthResponseDTO;
 import com.fp.common.util.HttpUtil;
 import jakarta.servlet.ServletException;
@@ -44,7 +45,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
         var authResponse = AuthResponseDTO.forbidden(
                 requestURI,
-                "Access Denied: " + accessDeniedException.getMessage()
+                Messages.Error.Auth.accessDenied(accessDeniedException.getMessage())
         );
 
         objectMapper.writeValue(response.getWriter(), authResponse);

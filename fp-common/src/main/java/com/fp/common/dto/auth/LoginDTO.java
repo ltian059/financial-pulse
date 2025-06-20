@@ -1,11 +1,11 @@
-package com.fp.common.dto.account;
+package com.fp.common.dto.auth;
 
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
-public class AccountLoginDTO {
+public class LoginDTO {
     private String email;
     private String password;
 

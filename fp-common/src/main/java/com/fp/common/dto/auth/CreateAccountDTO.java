@@ -1,4 +1,4 @@
-package com.fp.common.dto.account;
+package com.fp.common.dto.auth;
 
 import lombok.Data;
 

@@ -4,15 +4,14 @@ import com.fp.account.entity.Account;
 import com.fp.account.repository.AccountRepository;
 import com.fp.account.service.AccountService;
 import com.fp.common.api.FollowServiceAPI;
-import com.fp.common.dto.account.AccountLoginDTO;
-import com.fp.common.exception.AccountNotFoundException;
-import com.fp.common.exception.InvalidPasswordException;
-import com.fp.common.exception.InvalidRefreshTokenException;
+import com.fp.common.dto.auth.LoginDTO;
+import com.fp.common.exception.business.AccountNotFoundException;
+import com.fp.common.exception.business.InvalidPasswordException;
+import com.fp.common.exception.service.InvalidRefreshTokenException;
 import com.fp.common.exception.ServiceException;
-import com.fp.common.dto.account.CreateAccountDTO;
-import com.fp.common.util.JwtUtil;
+import com.fp.common.dto.auth.CreateAccountDTO;
 import com.fp.common.util.JwtUtil2;
-import com.fp.common.vo.account.AccountLoginVO;
+import com.fp.common.vo.auth.LoginVO;
 import com.fp.common.vo.auth.RefreshTokenVO;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -103,9 +102,9 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountLoginVO login(AccountLoginDTO accountLoginDTO) {
-        String email = accountLoginDTO.getEmail();
-        String password = accountLoginDTO.getPassword();
+    public LoginVO login(LoginDTO loginDTO) {
+        String email = loginDTO.getEmail();
+        String password = loginDTO.getPassword();
         Optional<Account> byEmail = accountRepository.findByEmail(email);
         if(byEmail.isEmpty()){
             throw new AccountNotFoundException();
@@ -120,7 +119,7 @@ public class AccountServiceImpl implements AccountService {
         //After login successfully, generate JWT token
         String accessToken = jwtUtil.generateAccessToken(id, email, name);
         String refreshToken = jwtUtil.generateRefreshToken(id, email);
-        var loginVO = new AccountLoginVO();
+        var loginVO = new LoginVO();
         BeanUtils.copyProperties(account, loginVO);
         loginVO.setAccessToken(accessToken);
         loginVO.setRefreshToken(refreshToken);

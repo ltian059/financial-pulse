@@ -2,6 +2,7 @@ package com.fp.common.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fp.common.constant.JwtClaimsConstant;
+import com.fp.common.constant.Messages;
 import com.fp.common.constant.UrlConstant;
 import com.fp.common.dto.auth.AuthResponseDTO;
 import jakarta.servlet.FilterChain;
@@ -18,16 +19,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Arrays;
 
-/**
- * Filter to validate JWT token type for different endpoints.
- * <p>
- * e.g Access token is used for API access.
- * Refresh token is only used for refreshing access tokens.
- * This filter stops requests with invalid token types from proceeding further.
- * </p>
- *
- * @Filter After BearerTokenAuthenticationFilter
- */
+/// Filter to validate JWT token type for different endpoints.
+///
+/// e.g `Access token` is only used for API access.
+/// Refresh token is only used for refreshing access tokens.
+/// This filter stops requests with invalid token types from proceeding further.
+///
+/// Effective after BearerTokenAuthenticationFilter
+///
 @RequiredArgsConstructor
 public class JwtTokenTypeValidationFilter extends OncePerRequestFilter {
 
@@ -53,7 +52,7 @@ public class JwtTokenTypeValidationFilter extends OncePerRequestFilter {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 response.setCharacterEncoding("UTF-8");
-                var authResp = AuthResponseDTO.forbidden(requestURI, "Invalid token type for this endpoint.");
+                var authResp = AuthResponseDTO.forbidden(requestURI, Messages.Error.Auth.INVALID_TOKEN_TYPE);
                 objectMapper.writeValue(response.getWriter(), authResp);
                 return;
             }
