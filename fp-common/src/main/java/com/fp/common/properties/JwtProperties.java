@@ -59,6 +59,7 @@ public class JwtProperties {
          */
         private String prefix;
 
+        private String audience;
 
         public long getExpirationInMillis() {
             return expiration.toMillis();

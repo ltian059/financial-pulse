@@ -26,14 +26,13 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
      * @param response              so that the user agent can be advised of the failure
      * @param accessDeniedException that caused the invocation
      * @throws IOException      in the event of an IOException
-     * @throws ServletException in the event of a ServletException
      */
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
         String requestURI = request.getRequestURI();
         String method = request.getMethod();
         String remoteAddr = HttpUtil.getClientIpAddress(request);
-
+        String authHeader = request.getHeader("Authorization");
         if(log.isDebugEnabled()){
             log.debug("🔴 Access denied: {} {} from {} - {}",
                     method, requestURI, remoteAddr, accessDeniedException.getMessage());

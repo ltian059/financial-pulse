@@ -3,6 +3,7 @@ package com.fp.common.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fp.common.constant.Messages;
 import com.fp.common.dto.auth.AuthResponseDTO;
+import com.fp.common.util.UnauthorizedAuthClassifier;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -44,6 +45,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         String requestURI = request.getRequestURI();
         String method = request.getMethod();
         String remoteAddr = request.getRemoteAddr();
+        String authHeader = request.getHeader("Authorization");
 
         if(log.isDebugEnabled()){
             log.debug("🔴 Authentication failed: {} {} from {} - {}",
@@ -53,10 +55,14 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
+        //TODO: Use AuthenticationErrorClassifier to classify errors
+
+        var authenticationErrorInfo = UnauthorizedAuthClassifier.classifyError(authException, authHeader);
 
         AuthResponseDTO authResponse = AuthResponseDTO.unauthorized(
                 requestURI,
-                Messages.Error.Auth.unauthorized(authException.getMessage())
+                Messages.Error.Auth.unauthorized(authException.getMessage()),
+                authenticationErrorInfo
         );
 
         objectMapper.writeValue(response.getWriter(), authResponse);

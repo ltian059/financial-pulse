@@ -3,8 +3,11 @@ package com.fp.common.dto.auth;
 
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
+
+import static com.fp.common.util.UnauthorizedAuthClassifier.*;
 
 /**
  * AuthResponseDTO is a Data Transfer Object used to encapsulate the response for authentication operations.
@@ -12,30 +15,36 @@ import java.time.Instant;
 @Data
 @Builder
 public class AuthResponseDTO {
-    private String code;
+    private int statusCode;
+    private HttpStatus status;
     private String message;
     private String requestPath;
     private Instant timestamp;
+    private UnauthorizedAuthInfo errorInfo;
+
 
     /**
      * Creates an AuthResponseDTO for unauthorized authentication.
-     * @param reqPath
+     * @param requestPath
      * @param message
      * @return
      */
-    public static AuthResponseDTO unauthorized(String reqPath, String message) {
+    public static AuthResponseDTO unauthorized(String requestPath, String message, UnauthorizedAuthInfo errorInfo) {
         return AuthResponseDTO.builder()
-                .code("401")
-                .message(message != null ? message : "Unauthorized Access.")
-                .requestPath(reqPath)
+                .statusCode(HttpStatus.UNAUTHORIZED.value())
+                .status(HttpStatus.UNAUTHORIZED)
+                .message(message != null ? message : HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                .requestPath(requestPath)
                 .timestamp(Instant.now())
+                .errorInfo(errorInfo)
                 .build();
     }
 
     public static AuthResponseDTO forbidden(String reqPath, String message) {
         return AuthResponseDTO.builder()
-                .code("403")
-                .message(message != null ? message : "Forbidden Access.")
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .status(HttpStatus.FORBIDDEN)
+                .message(message != null ? message : HttpStatus.FORBIDDEN.getReasonPhrase())
                 .requestPath(reqPath)
                 .timestamp(Instant.now())
                 .build();

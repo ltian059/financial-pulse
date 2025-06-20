@@ -63,7 +63,7 @@ class FpAccountApplicationTests {
 	}
 	@Test
 	public void testTokenValidAfterRestart(){
-		String token = "eyJhbGciOiJIUzI1NiJ9.eyJhY2NvdW50SWQiOjEsImF1ZCI6ImZpbmFuY2lhbC1wdWxzZS1hcGkiLCJuYW1lIjoidGVzdCIsImlzcyI6ImZpbmFuY2lhbC1wdWxzZS1pc3N1ZXIiLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoidGVzdEBleG1hcGxlLmNvbSIsImlhdCI6MTc1MDM2NDYyMSwiZXhwIjoxNzUwMzY1MjIxfQ.tumqiD1JJLrHJm8FdW6Z-m0qsggXI-jAKuquIxS5jU4";
+		String token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0aWFubGkwOTI3QGdtYWlsLmNvbSIsImF1ZCI6ImZpbmFuY2lhbC1wdWxzZS1hcGkiLCJhY2NvdW50SWQiOjYsIm5hbWUiOiJ0aWFubGkiLCJleHAiOjE3NTA0NDE3MDUsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTA0NDE3MDR9.vBloW49uBbZ5bFLOZZ-YAfx0pHCC1BNucyeKFju6TSs";
 
 		try{
 			Jwt jwt = jwtDecoder.decode(token);
