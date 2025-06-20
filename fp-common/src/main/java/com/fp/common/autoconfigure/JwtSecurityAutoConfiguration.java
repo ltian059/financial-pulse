@@ -4,6 +4,7 @@ package com.fp.common.autoconfigure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fp.common.auth.CustomAccessDeniedHandler;
 import com.fp.common.auth.CustomAuthenticationEntryPoint;
+import com.fp.common.auth.JwtTokenTypeValidationFilter;
 import com.fp.common.constant.UrlConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Slf4j
@@ -35,6 +37,11 @@ public class JwtSecurityAutoConfiguration {
         return new CustomAccessDeniedHandler(objectMapper);
     }
 
+    @Bean
+    @ConditionalOnMissingBean
+    public JwtTokenTypeValidationFilter jwtTokenTypeValidationFilter(ObjectMapper objectMapper) {
+        return new JwtTokenTypeValidationFilter(objectMapper);
+    }
 
     /**
      * Default SecurityFilterChain
@@ -49,7 +56,8 @@ public class JwtSecurityAutoConfiguration {
             HttpSecurity http,
             JwtDecoder jwtDecoder,
             CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-            CustomAccessDeniedHandler customAccessDeniedHandler
+            CustomAccessDeniedHandler customAccessDeniedHandler,
+            JwtTokenTypeValidationFilter jwtTokenTypeValidationFilter
     ) throws Exception {
         log.info(" Creating default JWT SecurityFilterChain");
         return http
@@ -59,7 +67,7 @@ public class JwtSecurityAutoConfiguration {
                 )
                 .formLogin(formLogin -> formLogin.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(UrlConstant.ALLOWED_REQUEST_URLS).permitAll()
+                        .requestMatchers(UrlConstant.PUBLIC_PATHS).permitAll()
                         .anyRequest().authenticated()
                 )
                 // OAuth2 Resource Server configure - specialized in JWT exception handling
@@ -72,6 +80,8 @@ public class JwtSecurityAutoConfiguration {
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler))
+                // Add JWT token type validation filter after OAuth2 authentication
+                .addFilterAfter(jwtTokenTypeValidationFilter, BearerTokenAuthenticationFilter.class)
                 .build();
     }
 }
