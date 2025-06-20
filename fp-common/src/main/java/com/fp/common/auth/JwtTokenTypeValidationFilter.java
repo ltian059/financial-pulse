@@ -5,6 +5,7 @@ import com.fp.common.constant.JwtClaimsConstant;
 import com.fp.common.constant.Messages;
 import com.fp.common.constant.UrlConstant;
 import com.fp.common.dto.auth.AuthResponseDTO;
+import com.fp.common.util.UnauthorizedAuthClassifier;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,6 +32,7 @@ import java.util.Arrays;
 public class JwtTokenTypeValidationFilter extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
@@ -49,15 +51,17 @@ public class JwtTokenTypeValidationFilter extends OncePerRequestFilter {
             String type = jwt.getClaimAsString(JwtClaimsConstant.TYPE);
             //Even though the token is valid, the type doesn't match the uri it is trying to access.
             if("refresh".equals(type) && !isRefreshTokenPath(requestURI)) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 response.setCharacterEncoding("UTF-8");
-                var authResp = AuthResponseDTO.forbidden(requestURI, Messages.Error.Auth.INVALID_TOKEN_TYPE);
+
+                var authResp = AuthResponseDTO.unauthorized(requestURI, Messages.Error.Auth.INVALID_TOKEN_TYPE,
+                        UnauthorizedAuthClassifier.createErrorInfo(UnauthorizedAuthClassifier.ErrorType.INVALID_TOKEN_TYPE, true));
+
                 objectMapper.writeValue(response.getWriter(), authResp);
                 return;
             }
         }
-
 
         filterChain.doFilter(request, response);
 

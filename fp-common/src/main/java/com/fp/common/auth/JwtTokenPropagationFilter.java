@@ -1,6 +1,9 @@
 package com.fp.common.auth;
 
-import com.fp.common.util.JwtPropagationUtil;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
@@ -29,7 +32,7 @@ public class JwtTokenPropagationFilter implements ExchangeFilterFunction {
      */
     @Override
     public Mono<ClientResponse> filter(ClientRequest request, ExchangeFunction next) {
-        String authHeader = JwtPropagationUtil.getAuthorizationHeader();
+        String authHeader = getAuthorizationHeader();
         if(authHeader != null){
             ClientRequest filteredReq = ClientRequest.from(request)
                     .header("Authorization", authHeader)
@@ -38,6 +41,22 @@ public class JwtTokenPropagationFilter implements ExchangeFilterFunction {
             return next.exchange(filteredReq);
         }
         return next.exchange(request);
+    }
+
+    public String getJwtToken(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication instanceof JwtAuthenticationToken jwtAuth){
+            Jwt jwt = jwtAuth.getToken();
+            return jwt.getTokenValue();
+        }
+        return null;
+    }
+
+    public String getAuthorizationHeader(){
+        String jwtToken = getJwtToken();
+        return jwtToken != null ?
+                "Bearer " + jwtToken
+                : null;
     }
 
 }

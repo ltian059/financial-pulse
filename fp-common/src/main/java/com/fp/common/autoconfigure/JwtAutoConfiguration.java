@@ -1,10 +1,7 @@
 package com.fp.common.autoconfigure;
 
 import com.fp.common.properties.JwtProperties;
-import com.fp.common.util.JwtUtil;
 import com.fp.common.util.JwtUtil2;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

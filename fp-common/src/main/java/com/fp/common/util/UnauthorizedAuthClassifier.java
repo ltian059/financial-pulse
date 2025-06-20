@@ -26,7 +26,9 @@ public class UnauthorizedAuthClassifier {
         TOKEN_REVOKED("TOKEN_REVOKED", "Token has been revoked", false),
         INVALID_ISSUER("INVALID_ISSUER", "Token issuer is invalid", false),
         INVALID_AUDIENCE("INVALID_AUDIENCE", "Token audience is invalid", false),
-        UNKNOWN_ERROR("UNKNOWN_ERROR", "Unknown authentication error", false);
+        UNKNOWN_ERROR("UNKNOWN_ERROR", "Unknown authentication error", false),
+        INVALID_TOKEN_TYPE("INVALID_TOKEN_TYPE", "Token type is invalid", false);
+
         private final String type;
         private final String description;
         private final boolean canRefresh;
@@ -74,7 +76,7 @@ public class UnauthorizedAuthClassifier {
         return createErrorInfo(ErrorType.TOKEN_MALFORMED, true);
     }
 
-    protected static UnauthorizedAuthInfo createErrorInfo(ErrorType errorType, boolean requiresLogin) {
+    public static UnauthorizedAuthInfo createErrorInfo(ErrorType errorType, boolean requiresLogin) {
         return UnauthorizedAuthInfo.builder()
                 .errorType(errorType.getType())
                 .errorDescription(errorType.getDescription())

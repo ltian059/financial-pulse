@@ -20,29 +20,24 @@ public class JwtProperties {
      */
     private Boolean enabled = true;
 
-    /**
-     * JWT Issuer
-     */
-    private String issuer;
+    private String defaultIssuer = "financial-pulse-issuer";
 
-    /**
-     * JWT Audience
-     */
-    private String audience;
-
-    private TokenConfig accessToken = new TokenConfig();
-    private TokenConfig refreshToken = new TokenConfig();
-
+    private TokenConfig accessTokenConfig = new TokenConfig();
+    private TokenConfig refreshTokenConfig = new TokenConfig();
 
     public JwtProperties() {
         // Default values for JWT tokens
-        accessToken.setExpiration(Duration.ofHours(24));
-        accessToken.setPrefix("Bearer ");
-        refreshToken.setExpiration(Duration.ofDays(7));
-        refreshToken.setPrefix("Bearer ");
+        accessTokenConfig.setExpiration(Duration.ofHours(24));
+        accessTokenConfig.setPrefix("Bearer ");
+        accessTokenConfig.setAudience("financial-pulse-api");
+        accessTokenConfig.setType("access");
+        accessTokenConfig.setIssuer(defaultIssuer);
 
-        setIssuer("financial-pulse-issuer");
-        setAudience("financial-pulse-api");
+        refreshTokenConfig.setExpiration(Duration.ofDays(7));
+        refreshTokenConfig.setPrefix("Bearer ");
+        refreshTokenConfig.setAudience("financial-pulse-refresh");
+        refreshTokenConfig.setIssuer(defaultIssuer);
+        refreshTokenConfig.setType("refresh");
     }
     /**
      * JWT Token Configuration
@@ -59,7 +54,16 @@ public class JwtProperties {
          */
         private String prefix;
 
+        private String issuer;
+        /**
+         * Token-specific audience - defines what this token can access
+         */
         private String audience;
+
+        /**
+         * Token type identifier (access, refresh, etc.)
+         */
+        private String type;
 
         public long getExpirationInMillis() {
             return expiration.toMillis();

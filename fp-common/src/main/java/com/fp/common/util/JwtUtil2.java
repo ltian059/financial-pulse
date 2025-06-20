@@ -2,18 +2,11 @@ package com.fp.common.util;
 
 import com.fp.common.constant.JwtClaimsConstant;
 import com.fp.common.properties.JwtProperties;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 
-import javax.crypto.SecretKey;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -35,23 +28,12 @@ public class JwtUtil2 {
      * @return
      */
     public String generateAccessToken(Long accountId, String email, String name) {
-        var now = Instant.now();
-
-        var claims = Map.of(
+        Map<String, Object> claims = Map.of(
                 JwtClaimsConstant.ACCOUNT_ID, accountId,
                 JwtClaimsConstant.NAME, name,
-                JwtClaimsConstant.TYPE, "access"
+                JwtClaimsConstant.TYPE, jwtProperties.getAccessTokenConfig().getType()
         );
-        var claimsSet = JwtClaimsSet.builder()
-                .claims(map -> map.putAll(claims))
-                .subject(email)
-                .issuedAt(now)
-                .audience(List.of(jwtProperties.getAudience()))
-                .expiresAt(now.plus(jwtProperties.getAccessToken().getExpiration()))
-                .build();
-        // Create JWS header with HS256 algorithm; Default is RS256
-        var jwsHeader = JwsHeader.with(MacAlgorithm.HS256).build();
-        return jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claimsSet)).getTokenValue();
+        return generateToken(claims, email, jwtProperties.getAccessTokenConfig());
     }
 
     /**
@@ -62,22 +44,29 @@ public class JwtUtil2 {
      * @return
      */
     public String generateRefreshToken(Long accountId, String email) {
-        var now = Instant.now();
-
-        var claims = Map.of(
+        Map<String, Object> claims = Map.of(
                 JwtClaimsConstant.ACCOUNT_ID, accountId,
-                JwtClaimsConstant.TYPE, "refresh"
+                JwtClaimsConstant.TYPE, jwtProperties.getRefreshTokenConfig().getType()
         );
+        return generateToken(claims, email, jwtProperties.getRefreshTokenConfig());
+    }
+
+
+    private String generateToken(Map<String, Object> claims, String email, JwtProperties.TokenConfig tokenConfig){
+        var now = Instant.now();
+        // Create JWS header with HS256 algorithm; Default is RS256
+        var jwsHeader = JwsHeader.with(MacAlgorithm.HS256).build();
         var claimsSet = JwtClaimsSet.builder()
                 .claims(map -> map.putAll(claims))
                 .subject(email)
                 .issuedAt(now)
-                .audience(List.of(jwtProperties.getAudience()))
-                .expiresAt(now.plus(jwtProperties.getRefreshToken().getExpiration()))
+                .issuer(tokenConfig.getIssuer())
+                .audience(List.of(tokenConfig.getAudience()))
+                .expiresAt(now.plus(tokenConfig.getExpiration()))
                 .build();
-        // Create JWS header with HS256 algorithm; Default is RS256
-        var jwsHeader = JwsHeader.with(MacAlgorithm.HS256).build();
+
         return jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claimsSet)).getTokenValue();
+
     }
 
     public Jwt validateToken(String token) {
