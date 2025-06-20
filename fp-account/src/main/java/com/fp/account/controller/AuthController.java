@@ -6,6 +6,7 @@ import com.fp.common.dto.account.AccountLoginDTO;
 import com.fp.common.dto.account.CreateAccountDTO;
 import com.fp.common.dto.auth.RefreshTokenDTO;
 import com.fp.common.util.JwtUtil;
+import com.fp.common.util.JwtUtil2;
 import com.fp.common.vo.account.AccountLoginVO;
 import com.fp.common.vo.auth.RefreshTokenVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,9 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     @Autowired
     private AccountService accountService;
-    @Autowired
-    private JwtUtil jwtUtil;
-
 
     @PostMapping("/create-account")
     @Operation(summary = "Create a new account")

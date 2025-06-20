@@ -11,6 +11,7 @@ import com.fp.common.exception.InvalidRefreshTokenException;
 import com.fp.common.exception.ServiceException;
 import com.fp.common.dto.account.CreateAccountDTO;
 import com.fp.common.util.JwtUtil;
+import com.fp.common.util.JwtUtil2;
 import com.fp.common.vo.account.AccountLoginVO;
 import com.fp.common.vo.auth.RefreshTokenVO;
 import jakarta.transaction.Transactional;
@@ -32,7 +33,7 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
     private final WebClient followWebClient;
-    private final JwtUtil jwtUtil;
+    private final JwtUtil2 jwtUtil;
 
 
     @Override
@@ -136,11 +137,15 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public RefreshTokenVO validateRefreshToken(String refreshToken) {
-        if(!jwtUtil.isRefreshTokenValid(refreshToken)) {
+        if(!jwtUtil.isRefreshToken(refreshToken)) {
             throw new InvalidRefreshTokenException();
         }
         //Use jwtUtil to parse the refresh token and extract user information
-        Long id = jwtUtil.getAccountIdByRefreshToken(refreshToken);
+        Optional<Long> idOpt = jwtUtil.getAccountIdFromToken(refreshToken);
+        if(idOpt.isEmpty()){
+            throw new InvalidRefreshTokenException();
+        }
+        Long id = idOpt.get();
         Optional<Account> accountOpt = accountRepository.findAccountById(id);
         if(accountOpt.isEmpty()){
             throw new AccountNotFoundException();

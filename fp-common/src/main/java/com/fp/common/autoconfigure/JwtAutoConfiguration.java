@@ -2,6 +2,10 @@ package com.fp.common.autoconfigure;
 
 import com.fp.common.properties.JwtProperties;
 import com.fp.common.util.JwtUtil;
+import com.fp.common.util.JwtUtil2;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -34,18 +38,6 @@ public class JwtAutoConfiguration {
         this.jwtProperties = jwtProperties;
     }
 
-    /**
-     * Creates a JwtUtil bean if one is not already defined.
-     * This bean will be used for JWT operations such as token generation and validation.
-     *
-     * @return JwtUtil instance
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public JwtUtil jwtUtil() {
-        return new JwtUtil(jwtProperties);
-    }
-
 
     /**
      * Spring Security OAuth2 JWT Decoder bean.
@@ -70,6 +62,21 @@ public class JwtAutoConfiguration {
                 .build();
     }
 
+    @Bean
+    @ConditionalOnMissingBean
+    public JwtEncoder jwtEncoder() {
+        SecretKeySpec secretKey = new SecretKeySpec(
+                jwtProperties.getSecret().getBytes(),
+                "HmacSHA256"
+        );
+        return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey));
+    }
 
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JwtUtil2 jwtUtil(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder, JwtProperties jwtProperties) {
+        return new JwtUtil2(jwtEncoder, jwtDecoder, jwtProperties);
+    }
 
 }
