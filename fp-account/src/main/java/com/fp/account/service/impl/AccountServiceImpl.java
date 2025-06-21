@@ -10,7 +10,7 @@ import com.fp.common.exception.business.InvalidPasswordException;
 import com.fp.common.exception.service.InvalidRefreshTokenException;
 import com.fp.common.exception.ServiceException;
 import com.fp.common.dto.auth.CreateAccountDTO;
-import com.fp.common.util.JwtUtil2;
+import com.fp.common.service.JwtTokenService;
 import com.fp.common.vo.auth.LoginVO;
 import com.fp.common.vo.auth.RefreshTokenVO;
 import jakarta.transaction.Transactional;
@@ -32,7 +32,7 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
     private final WebClient followWebClient;
-    private final JwtUtil2 jwtUtil;
+    private final JwtTokenService jwtTokenService;
 
 
     @Override
@@ -117,8 +117,8 @@ public class AccountServiceImpl implements AccountService {
         var id = account.getId();
         var name = account.getName();
         //After login successfully, generate JWT token
-        String accessToken = jwtUtil.generateAccessToken(id, email, name);
-        String refreshToken = jwtUtil.generateRefreshToken(id, email);
+        String accessToken = jwtTokenService.generateAccessToken(id, email, name);
+        String refreshToken = jwtTokenService.generateRefreshToken(id, email);
         var loginVO = new LoginVO();
         BeanUtils.copyProperties(account, loginVO);
         loginVO.setAccessToken(accessToken);
@@ -136,11 +136,11 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public RefreshTokenVO validateRefreshToken(String refreshToken) {
-        if(!jwtUtil.isRefreshToken(refreshToken)) {
+        if(!jwtTokenService.isRefreshToken(refreshToken)) {
             throw new InvalidRefreshTokenException();
         }
         //Use jwtUtil to parse the refresh token and extract user information
-        Optional<Long> idOpt = jwtUtil.getAccountIdFromToken(refreshToken);
+        Optional<Long> idOpt = jwtTokenService.getAccountIdFromToken(refreshToken);
         if(idOpt.isEmpty()){
             throw new InvalidRefreshTokenException();
         }
@@ -152,8 +152,8 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountOpt.get();
         //Generate new access token
         return RefreshTokenVO.builder()
-                .accessToken(jwtUtil.generateAccessToken(id, account.getEmail(), account.getName()))
-                .refreshToken(jwtUtil.generateRefreshToken(id, account.getEmail()))
+                .accessToken(jwtTokenService.generateAccessToken(id, account.getEmail(), account.getName()))
+                .refreshToken(jwtTokenService.generateRefreshToken(id, account.getEmail()))
                 .build();
     }
 

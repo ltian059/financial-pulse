@@ -1,3 +1,4 @@
 com.fp.common.autoconfigure.ExternalServiceAutoConfiguration
 com.fp.common.autoconfigure.JwtAutoConfiguration
 com.fp.common.autoconfigure.JwtSecurityAutoConfiguration
+com.fp.common.autoconfigure.DynamoDbAutoConfiguration

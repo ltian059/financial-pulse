@@ -1,4 +1,4 @@
-package com.fp.common.util;
+package com.fp.common.service;
 
 import com.fp.common.constant.JwtClaimsConstant;
 import com.fp.common.properties.JwtProperties;
@@ -13,7 +13,7 @@ import java.util.*;
 
 @RequiredArgsConstructor
 @Slf4j
-public class JwtUtil2 {
+public class JwtTokenService {
 
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;

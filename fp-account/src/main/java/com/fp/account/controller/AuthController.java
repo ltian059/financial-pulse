@@ -26,7 +26,6 @@ public class AuthController {
     private final AccountService accountService;
 
 
-
     @PostMapping("/create-account")
     @Operation(summary = "Create a new account")
     public ResponseEntity<String > createAccount(@RequestBody CreateAccountDTO createAccountDTO){
