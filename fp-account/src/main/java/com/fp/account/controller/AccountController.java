@@ -21,9 +21,7 @@ import java.util.Map;
 public class AccountController {
     private final AccountService accountService;
 
-
-
-
+    
     @GetMapping
     @Operation(summary = "Get account by ID")
     public ResponseEntity<?> getAccountById(@RequestParam Long id) {

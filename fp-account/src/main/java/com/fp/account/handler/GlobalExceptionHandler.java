@@ -1,6 +1,7 @@
 package com.fp.account.handler;
 
 import com.fp.common.dto.exception.ExceptionResponseDTO;
+import com.fp.common.exception.BusinessException;
 import com.fp.common.exception.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,5 +20,13 @@ public class GlobalExceptionHandler {
                 .build();
         log.error(build.toString());
         return ResponseEntity.status(ex.getStatus()).body(build);
+    }
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleBusinessException(BusinessException ex) {
+        ExceptionResponseDTO build = ExceptionResponseDTO.builder()
+                .message(ex.getMessage())
+                .build();
+        log.error(build.toString());
+        return ResponseEntity.internalServerError().body(build);
     }
 }

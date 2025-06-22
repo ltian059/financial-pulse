@@ -20,7 +20,7 @@ public class TokenBlacklist {
     /**
      * JWT "jti" (JWT ID) claim, which is a unique identifier for the token.
      */
-    private String jti;
+    private String tokenId;
     /**
      * The time when the token was revoked.
      */
@@ -28,13 +28,13 @@ public class TokenBlacklist {
     /**
      * The original expiration time of the token.
      */
-    private Instant expiresAt;
+    private Long ttl;
 
     private String reason;
 
     @DynamoDbPartitionKey
-    public String getJti() {
-        return jti;
+    public String getTokenId() {
+        return tokenId;
     }
 
     /**
@@ -43,8 +43,8 @@ public class TokenBlacklist {
      * @return
      */
     @DynamoDbAttribute("ttl")
-    public Instant getExpiresAt(){
-        return expiresAt;
+    public Long getTtl() {
+        return ttl;
     }
 
 }
