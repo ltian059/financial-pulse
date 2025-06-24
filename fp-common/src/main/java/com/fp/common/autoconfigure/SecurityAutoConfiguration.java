@@ -11,8 +11,13 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ImportRuntimeHints;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,7 +25,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Slf4j
 @AutoConfiguration(after = JwtAutoConfiguration.class)
 @ConditionalOnClass(JwtDecoder.class)
-public class JwtSecurityAutoConfiguration {
+public class SecurityAutoConfiguration {
     @Bean
     public ObjectMapper objectMapper() {
         return new ObjectMapper();
@@ -52,6 +57,7 @@ public class JwtSecurityAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(name = "defaultJwtSecurityFilterChain")
+    @Order(1)
     public SecurityFilterChain defaultJwtSecurityFilterChain(
             HttpSecurity http,
             JwtDecoder jwtDecoder,
@@ -59,13 +65,13 @@ public class JwtSecurityAutoConfiguration {
             CustomAccessDeniedHandler customAccessDeniedHandler,
             JwtTokenTypeValidationFilter jwtTokenTypeValidationFilter
     ) throws Exception {
-        log.info(" Creating default JWT SecurityFilterChain");
         return http
+                .securityMatcher("/api/**") // Only Match all API paths
                 .csrf(csrf -> csrf.disable())
+                .formLogin(formLogin -> formLogin.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .formLogin(formLogin -> formLogin.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(UrlConstant.PUBLIC_PATHS).permitAll()
                         .anyRequest().authenticated()
@@ -84,4 +90,29 @@ public class JwtSecurityAutoConfiguration {
                 .addFilterAfter(jwtTokenTypeValidationFilter, BearerTokenAuthenticationFilter.class)
                 .build();
     }
+
+    /**
+     * 默认 SecurityFilterChain 处理非 API 路径
+     * 优先级较低，处理所有其他路径
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "formLoginSecurityFilterChain")
+    @Order(10)
+    public SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http) throws Exception {
+        log.info("Creating default SecurityFilterChain for non-API paths");
+        return http
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().authenticated()  // 所有其他路径都需要认证
+                )
+                .formLogin(form -> form
+                        // 使用默认登录页面
+                        .defaultSuccessUrl("/swagger-ui/index.html", true)
+                )
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/login?logout")
+                )
+                .csrf(csrf -> csrf.disable())
+                .build();
+    }
+
 }

@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>fp-common</artifactId>
+    <version>1.0-SNAPSHOT</version>
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" serverName="EC2_FP_Account" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="EC2_FP_Account">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/opt/app" local="$PROJECT_DIR$/fp-account/target" web="" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

@@ -16,10 +16,10 @@
 
 
     <modules>
+        <module>fp-common</module>
         <module>fp-account</module>
         <module>fp-follow</module>
         <module>fp-content</module>
-        <module>fp-common</module>
     </modules>
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
