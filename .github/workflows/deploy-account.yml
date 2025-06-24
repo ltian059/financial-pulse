@@ -78,15 +78,6 @@ jobs:
             # Start new service
             echo "🚀 Starting service..."
             ./start.sh
-          
-            # Basic health check
-            sleep 10
-            if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
-              echo "✅ Service deployed and health check passed!"
-            else
-              echo "⚠️ Service started but health check failed"
-              echo "Check logs for details"
-            fi
           EOF
 
       - name: Deployment summary
