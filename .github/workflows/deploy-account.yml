@@ -41,10 +41,24 @@ jobs:
 
       - name: Setup SSH
         run: |
+          # Create SSH directory
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          # Write private key with proper handling
+          cat > ~/.ssh/id_rsa << 'EOF'
+          ${{ secrets.EC2_SSH_KEY }}
+          EOF
           chmod 600 ~/.ssh/id_rsa
+          # Verify key format
+          echo "Checking SSH key format..."
+          head -1 ~/.ssh/id_rsa
+          tail -1 ~/.ssh/id_rsa
+          # Add host to known_hosts
+          echo "Adding ${{ secrets.EC2_HOST }} to known_hosts..."
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          # Test SSH connection
+          echo "Testing SSH connection..."
+          ssh -i ~/.ssh/id_rsa -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
+          ec2-user@${{ secrets.EC2_HOST }} "echo 'SSH connection successful'"
 
       - name: Deploy to EC2
         run: |
