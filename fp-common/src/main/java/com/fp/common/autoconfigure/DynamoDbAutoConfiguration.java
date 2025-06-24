@@ -1,7 +1,7 @@
 package com.fp.common.autoconfigure;
 
 import com.fp.common.properties.DynamoDbProperties;
-import com.fp.common.service.DynamoDbService;
+import com.fp.common.service.DynamoDbRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -25,7 +25,6 @@ public class DynamoDbAutoConfiguration {
         log.info("DynamoDbAutoConfiguration initialized");
     }
 
-
     @Bean
     @ConditionalOnMissingBean
     public DynamoDbClient dynamoDbClient() {
@@ -44,11 +43,6 @@ public class DynamoDbAutoConfiguration {
         return dbEnhancedClient;
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public DynamoDbService dynamoDbService(DynamoDbClient dynamoDbClient, DynamoDbEnhancedClient dynamoDbEnhancedClient) {
-        return new DynamoDbService(dynamoDbClient, dynamoDbEnhancedClient, dynamoDbProperties);
-    }
 
 
 

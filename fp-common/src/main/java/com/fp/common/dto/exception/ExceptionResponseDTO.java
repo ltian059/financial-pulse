@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @Builder
 public class ExceptionResponseDTO {
-    private String code;
+    private int code;
     private String message;
 }

@@ -1,5 +1,6 @@
 package com.fp.account.controller;
 
+import com.fp.account.entity.Account;
 import com.fp.account.service.AccountService;
 import com.fp.common.constant.Messages;
 import com.fp.common.vo.account.AccountVO;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Tag(name = "API for Account Management")
 @RestController
@@ -21,30 +23,30 @@ import java.util.Map;
 public class AccountController {
     private final AccountService accountService;
 
+    @GetMapping("/by-email")
+    @Operation(summary = "Get account by email")
+    public ResponseEntity<?> getAccountByEmail(@RequestParam String email) {
+        Account accountByEmail = accountService.getAccountByEmail(email);
+        return new ResponseEntity<>(accountByEmail, HttpStatus.OK);
+    }
     
     @GetMapping
     @Operation(summary = "Get account by ID")
-    public ResponseEntity<?> getAccountById(@RequestParam Long id) {
-        var accountOptional = accountService.getAccountById(id);
-        if(accountOptional.isEmpty()){
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", Messages.Error.Account.notFoundById(id)));
-        }else{
-            AccountVO accountVO = new AccountVO();
-            BeanUtils.copyProperties(accountOptional.get(), accountVO);
-            return ResponseEntity.ok(accountVO);
-        }
+    public ResponseEntity<?> getAccountById(@RequestParam String accountId) {
+        var account = accountService.getAccountById(accountId);
+        AccountVO accountVO = new AccountVO();
+        BeanUtils.copyProperties(account, accountVO);
+        return ResponseEntity.ok(accountVO);
+
     }
 
 
     @GetMapping("/count-follower")
     @Operation(summary = "Get the number of followers for an account")
-    public ResponseEntity<Long> getFollowerCountById(@RequestParam Long id){
-        Long followerCount = accountService.getFollowerCountById(id);
+    public ResponseEntity<Long> getFollowerCountById(@RequestParam String accountId) {
+        Long followerCount = accountService.getFollowerCountById(accountId);
         return ResponseEntity.ok(followerCount);
     }
-
 
     @PostMapping("/follow")
     @Operation(summary = "Follow another account")
@@ -54,5 +56,19 @@ public class AccountController {
     ){
         accountService.followAccount(accountId, followeeId);
         return ResponseEntity.ok(Messages.Success.Follow.FOLLOWED_SUCCESSFULLY);
+    }
+
+    @PutMapping("/update-verification")
+    @Operation(summary = "Update account verification status")
+    public ResponseEntity<?> updateVerificationStatus(@RequestParam boolean verified) {
+        accountService.updateVerificationStatus(verified);
+        return ResponseEntity.ok("Verification status updated successfully");
+    }
+
+    @DeleteMapping
+    @Operation(summary = "Delete account by email")
+    public ResponseEntity<?> deleteAccountByEmail() {
+        Account account = accountService.deleteAccountByEmail();
+        return ResponseEntity.ok("Account deleted successfully: " + account.getEmail());
     }
 }

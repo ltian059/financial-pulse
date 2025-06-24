@@ -35,7 +35,7 @@ class FpAccountApplicationTests {
 
 	@Test
 	public void testJwtVerfProcess(){
-		String token = jwtUtil.generateAccessToken(1L, "test@exmaple.com", "test");
+		String token = jwtUtil.generateAccessToken("12ssss", "test@exmaple.com", "test");
 		log.info("Generated JWT Token: {}", token);
 
 		//手动解析jwt结构

@@ -7,24 +7,24 @@ import com.fp.common.dto.auth.CreateAccountDTO;
 import com.fp.common.vo.auth.LoginVO;
 import com.fp.common.vo.auth.RefreshTokenVO;
 
-import java.util.Optional;
-
 public interface AccountService {
     // Define methods for account management
 
     void createAccount(CreateAccountDTO accountVO);
 
-    Optional<Account> getAccountByEmail(String email);
+    Account getAccountByEmail(String email);
 
-    void updateVerificationStatus(Long id, boolean verified);
+    Account getAccountById(String id);
 
-    Optional<Account> getAccountById(Long id);
-
-    Long getFollowerCountById(Long id);
+    Long getFollowerCountById(String accountId);
 
     void followAccount(Long accountId, Long followeeId);
 
     LoginVO login(LoginDTO loginDTO);
 
     RefreshTokenVO validateRefreshToken(String refreshToken);
+
+    void updateVerificationStatus(boolean verified);
+
+    Account deleteAccountByEmail();
 }

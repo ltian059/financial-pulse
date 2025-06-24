@@ -5,6 +5,7 @@ import com.fp.account.repository.AccountRepository;
 import com.fp.account.service.AccountService;
 import com.fp.common.api.FollowServiceAPI;
 import com.fp.common.dto.auth.LoginDTO;
+import com.fp.common.exception.business.AccountAlreadyExistsException;
 import com.fp.common.exception.business.AccountNotFoundException;
 import com.fp.common.exception.business.InvalidPasswordException;
 import com.fp.common.exception.service.InvalidRefreshTokenException;
@@ -13,7 +14,6 @@ import com.fp.common.dto.auth.CreateAccountDTO;
 import com.fp.common.service.JwtTokenService;
 import com.fp.common.vo.auth.LoginVO;
 import com.fp.common.vo.auth.RefreshTokenVO;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -21,9 +21,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.model.IgnoreNullsMode;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,9 +40,17 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void createAccount(CreateAccountDTO accountVO) {
+        //Check if the email already exists.
+        Key key = Key.builder().partitionValue(accountVO.getEmail()).build();
+        if(accountRepository.exists(key)){
+            throw new AccountAlreadyExistsException("Email already exists: " + accountVO.getEmail());
+        }
         // Convert AccountDTO to Account entity
         String encryptedPassword = passwordEncoder.encode(accountVO.getPassword());
+        String accountId = UUID.randomUUID().toString();
+
         Account account = Account.builder()
+                .accountId(accountId)
                 .name(accountVO.getName())
                 .email(accountVO.getEmail())
                 .encryptedPassword(encryptedPassword)
@@ -51,31 +62,54 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Optional<Account> getAccountByEmail(String email) {
-        return accountRepository.findByEmail(email);
-    }
-
-    @Override
-    @Transactional
-    public void updateVerificationStatus(Long id, boolean verified) {
-        Optional<Account> byId = accountRepository.findAccountById(id);
-        if(byId.isPresent()){
-            byId.get().setVerified(verified);
+    public Account getAccountByEmail(String email) {
+        Key key = Key.builder().partitionValue(email).build();
+        Optional<Account> byKey = accountRepository.findByKey(key);
+        if (byKey.isEmpty()){
+            throw new AccountNotFoundException("Account not found for email: " + email);
+        } else {
+            return byKey.get();
         }
     }
 
     @Override
-    public Optional<Account> getAccountById(Long id) {
-        return accountRepository.findAccountById(id);
+    public void updateVerificationStatus(boolean verified) {
+        String email = jwtTokenService.getEmailFromAuthContext();
+
+        Account account = Account.builder().email(email).verified(verified).build();
+        accountRepository.updateItem(account, IgnoreNullsMode.SCALAR_ONLY);
     }
 
     @Override
-    public Long getFollowerCountById(Long id) {
+    public Account deleteAccountByEmail() {
+        String email = jwtTokenService.getEmailFromAuthContext();
+
+        Key key = Key.builder().partitionValue(email).build();
+        Optional<Account> account = accountRepository.deleteByKey(key);
+        if (account.isEmpty()) {
+            throw new AccountNotFoundException("Account not found for email: " + email);
+        }
+        //TODO Revoke JWT token if necessary
+        return account.get();
+    }
+
+    @Override
+    public Account getAccountById(String accountId) {
+        Key key = Key.builder().partitionValue(accountId).build();
+        Optional<Account> byKey = accountRepository.findByKey(key);
+        if(byKey.isEmpty()) {
+            throw new AccountNotFoundException("Account not found for ID: " + accountId);
+        }
+        return byKey.get();
+    }
+
+    @Override
+    public Long getFollowerCountById(String accountId) {
         //TODO implement logic to get follower count
         return followWebClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path(FollowServiceAPI.GET_FOLLOWER_COUNT_BY_ACCOUNT_ID.getPath())
-                        .queryParam("accountId", id)
+                        .queryParam("accountId", accountId)
                         .build()
                 )
                 .retrieve()
@@ -105,7 +139,7 @@ public class AccountServiceImpl implements AccountService {
     public LoginVO login(LoginDTO loginDTO) {
         String email = loginDTO.getEmail();
         String password = loginDTO.getPassword();
-        Optional<Account> byEmail = accountRepository.findByEmail(email);
+        Optional<Account> byEmail = accountRepository.findByKey(Key.builder().partitionValue(loginDTO.getEmail()).build());
         if(byEmail.isEmpty()){
             throw new AccountNotFoundException();
         }
@@ -114,7 +148,7 @@ public class AccountServiceImpl implements AccountService {
             throw new InvalidPasswordException();
         }
         var account = byEmail.get();
-        var id = account.getId();
+        var id = account.getAccountId();
         var name = account.getName();
         //After login successfully, generate JWT token
         String accessToken = jwtTokenService.generateAccessToken(id, email, name);
@@ -140,12 +174,12 @@ public class AccountServiceImpl implements AccountService {
             throw new InvalidRefreshTokenException();
         }
         //Use jwtUtil to parse the refresh token and extract user information
-        Optional<Long> idOpt = jwtTokenService.getAccountIdFromToken(refreshToken);
+        Optional<String> idOpt = jwtTokenService.getAccountIdFromToken(refreshToken);
         if(idOpt.isEmpty()){
             throw new InvalidRefreshTokenException();
         }
-        Long id = idOpt.get();
-        Optional<Account> accountOpt = accountRepository.findAccountById(id);
+        String id = idOpt.get();
+        Optional<Account> accountOpt = accountRepository.findByKey(Key.builder().partitionValue(id).build());
         if(accountOpt.isEmpty()){
             throw new AccountNotFoundException();
         }

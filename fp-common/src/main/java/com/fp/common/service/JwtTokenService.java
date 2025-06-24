@@ -1,11 +1,15 @@
 package com.fp.common.service;
 
 import com.fp.common.constant.JwtClaimsConstant;
+import com.fp.common.exception.business.AccountNotFoundException;
 import com.fp.common.properties.JwtProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.time.Instant;
 import java.util.*;
@@ -27,7 +31,7 @@ public class JwtTokenService {
      * @param name
      * @return
      */
-    public String generateAccessToken(Long accountId, String email, String name) {
+    public String generateAccessToken(String accountId, String email, String name) {
         Map<String, Object> claims = Map.of(
                 JwtClaimsConstant.ACCOUNT_ID, accountId,
                 JwtClaimsConstant.NAME, name,
@@ -43,7 +47,7 @@ public class JwtTokenService {
      * @param email
      * @return
      */
-    public String generateRefreshToken(Long accountId, String email) {
+    public String generateRefreshToken(String accountId, String email) {
         Map<String, Object> claims = Map.of(
                 JwtClaimsConstant.ACCOUNT_ID, accountId,
                 JwtClaimsConstant.TYPE, jwtProperties.getRefreshTokenConfig().getType()
@@ -94,7 +98,7 @@ public class JwtTokenService {
         return isTokenType(token, "access");
     }
 
-    public Optional<Long> getAccountIdFromToken(String token) {
+    public Optional<String> getAccountIdFromToken(String token) {
         try {
             Jwt jwt = validateToken(token);
             return Optional.of(jwt.getClaim(JwtClaimsConstant.ACCOUNT_ID));
@@ -105,5 +109,12 @@ public class JwtTokenService {
     }
 
 
-
+    public String getEmailFromAuthContext(){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth instanceof JwtAuthenticationToken jwtAuth) {
+            Jwt jwt = jwtAuth.getToken();
+            return jwt.getSubject();
+        }
+        throw new AccountNotFoundException("Email not found in authentication context");
+    }
 }

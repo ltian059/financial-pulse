@@ -13,8 +13,8 @@ public final class Messages {
             public static final String USER_ALREADY_FOLLOWED = "You have already followed this user";
 
             //Template methods
-            public static String notFoundById(Long id){
-                return String.format("Account with id %d not found.", id);
+            public static String notFoundById(String accountId){
+                return String.format("Account with id %d not found.", accountId);
             }
             public static String notFoundByEmail(String email) {
                 return String.format("Account with email %s not found.", email);
