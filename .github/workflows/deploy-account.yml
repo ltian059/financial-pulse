@@ -2,7 +2,7 @@ name: Deploy Account Service
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master, test-deployment ]
     paths:
       - 'fp-account/**'
       - 'fp-common/**'
