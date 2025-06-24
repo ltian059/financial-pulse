@@ -16,7 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: test-deployment  # Use the test-deployment branch
+          ref: ${{ github.ref }}  # Use the test-deployment branch
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4

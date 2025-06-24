@@ -17,9 +17,17 @@ public class DynamoDbProperties {
      */
     private String region;
 
-    private String tablePrefix = "fp";
+    /**
+     * Table prefix for DynamoDB tables
+     * e.g: if tablePrefix == fp, suffix is dev, whole table name is fp-tableName-dev
+     */
+    private String tablePrefix;
 
-    private String tableSuffix = "dev";
+    /**
+     * Table suffix for DynamoDB tables
+     * e.g: fp-tableName-dev
+     */
+    private String tableSuffix;
 
     public Region getAwsRegion() {
         return Region.of(region);

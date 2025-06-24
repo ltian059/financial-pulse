@@ -4,6 +4,7 @@ import com.fp.common.properties.DynamoDbProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -19,8 +20,9 @@ import java.util.stream.Stream;
 
 /// # Service class for DynamoDB operations
 ///
-///
 @Slf4j
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+@ConditionalOnBean({DynamoDbClient.class, DynamoDbEnhancedClient.class, DynamoDbProperties.class})
 public abstract class DynamoDbRepository<T> {
     @Autowired
     protected  DynamoDbClient client;
@@ -29,14 +31,15 @@ public abstract class DynamoDbRepository<T> {
     @Autowired
     protected  DynamoDbProperties dynamoDbProperties;
 
-    protected  Class<T> entityClass;
-    protected  DynamoDbTable<T> table;
+
+    protected Class<T> entityClass;
+    protected DynamoDbTable<T> table;
 
     @PostConstruct
     @SuppressWarnings("unchecked")
-    private void init(){
+    private void init() {
         //Get generic type by reflection
-        this.entityClass = (Class<T>)((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        this.entityClass = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
         this.table = initializeTable();
     }
 
@@ -171,6 +174,7 @@ public abstract class DynamoDbRepository<T> {
     public DynamoDbTable<T> getTable() {
         return table;
     }
+
     /**
      * Build the table name based on the entity class name.
      *
