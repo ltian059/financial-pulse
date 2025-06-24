@@ -48,13 +48,16 @@ jobs:
           ${{ secrets.EC2_SSH_KEY }}
           EOF
           chmod 600 ~/.ssh/id_rsa
-          # Test SSH connection directly (skip ssh-keyscan)
+          # Create SSH config to skip host verification
+          cat > ~/.ssh/config << 'EOF'
+          Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            LogLevel ERROR
+          EOF
+          # Test SSH connection
           echo "Testing SSH connection..."
-          ssh -i ~/.ssh/id_rsa \
-            -o ConnectTimeout=30 \
-            -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
-          ec2-user@${{ secrets.EC2_HOST }} "echo 'SSH connection successful'"
+          ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} "echo 'SSH connection successful'"
 
       - name: Deploy to EC2
         run: |
