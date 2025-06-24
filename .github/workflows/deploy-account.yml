@@ -1,0 +1,75 @@
+name: Deploy Account Service
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'fp-account/**'
+      - 'fp-common/**'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build and test
+        run: |
+          mvn clean install -pl fp-common -DskipTests
+          mvn clean package -pl fp-account
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          # Copy JAR file
+          scp -i ~/.ssh/id_rsa fp-account/target/fp-account-*.jar \
+            ec2-user@${{ secrets.EC2_HOST }}:/opt/app/fp-account.jar
+          
+          # Use existing scripts to restart service
+          ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /opt/app
+          
+            # Stop existing service
+            echo "🛑 Stopping service..."
+            ./stop.sh || true
+          
+            # Start new service
+            echo "🚀 Starting service..."
+            ./start.sh
+          
+            # Basic health check
+            sleep 10
+            if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "✅ Service deployed and health check passed!"
+            else
+              echo "⚠️ Service started but health check failed"
+              echo "Check logs for details"
+            fi
+          EOF
+
+      - name: Deployment summary
+        run: |
+          echo "🎉 Deployment completed!"
+          echo "🔗 Service: http://${{ secrets.EC2_HOST }}:8080"
+          echo "📚 Swagger: http://${{ secrets.EC2_HOST }}:8080/swagger-ui.html"
