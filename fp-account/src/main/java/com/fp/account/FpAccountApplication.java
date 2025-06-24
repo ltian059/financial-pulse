@@ -12,6 +12,7 @@ public class FpAccountApplication {
 	public static void main(String[] args) {
 		try {
             SpringApplication.run(FpAccountApplication.class, args);
+			log.info("Application Under Test deployment branch Started Successfully");
         } catch (Exception e) {
 			e.printStackTrace();
 		}
