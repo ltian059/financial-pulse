@@ -15,4 +15,16 @@ public class HttpUtil {
         }
 
         return request.getRemoteAddr();
-    }}
+    }
+
+    public static boolean isLocalhostRequest(HttpServletRequest request) {
+        String remoteAddr = getClientIpAddress(request);
+        String serverName = request.getServerName();
+
+        return "127.0.0.1".equals(remoteAddr) ||
+                "0:0:0:0:0:0:0:1".equals(remoteAddr) ||
+                "::1".equals(remoteAddr) ||
+                "localhost".equals(serverName) ||
+                "localhost".equals(remoteAddr);
+    }
+}

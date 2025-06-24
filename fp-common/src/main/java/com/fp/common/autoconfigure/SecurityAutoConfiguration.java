@@ -6,6 +6,7 @@ import com.fp.common.auth.CustomAccessDeniedHandler;
 import com.fp.common.auth.CustomAuthenticationEntryPoint;
 import com.fp.common.auth.JwtTokenTypeValidationFilter;
 import com.fp.common.constant.UrlConstant;
+import com.fp.common.util.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -102,6 +103,7 @@ public class SecurityAutoConfiguration {
         log.info("Creating default SecurityFilterChain for non-API paths");
         return http
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpUtil::isLocalhostRequest).permitAll()
                         .anyRequest().authenticated()  // 所有其他路径都需要认证
                 )
                 .formLogin(form -> form
