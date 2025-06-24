@@ -30,8 +30,13 @@ jobs:
 
       - name: Build and test
         run: |
+          # First install the parent POM
+          mvn clean install -N
+          # Then install fp-common
           mvn clean install -pl fp-common -DskipTests
-          mvn clean package -pl fp-account
+          # Finally build fp-account
+          mvn clean package -pl fp-account -DskipTests
+
 
       - name: Setup SSH
         run: |
