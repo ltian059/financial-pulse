@@ -123,9 +123,11 @@ jobs:
           echo "Deploying application using custom scripts..."
           ssh -i /tmp/fp-keypair.pem -o StrictHostKeyChecking=no \
             ec2-user@$EC2_HOST << 'REMOTE_SCRIPT'
-          
+            # Navigate to the application directory
+            cd /opt/app
             # Ensure proper permissions
-            chmod 644 .env fp-account.jar
+            chmod 644 .env
+            chmod 644 fp-account.jar
             
             # stop existing service
             ./stop.sh || true
