@@ -1,6 +1,7 @@
 package com.fp.common.service;
 
 import com.fp.common.constant.JwtClaimsKey;
+import com.fp.common.enumeration.jwt.JwtType;
 import com.fp.common.exception.business.AccountNotFoundException;
 import com.fp.common.properties.JwtProperties;
 import lombok.RequiredArgsConstructor;
@@ -82,12 +83,33 @@ public class JwtService {
 
     public Jwt validateToken(String token) {
         try {
-            return jwtDecoder.decode(token);
+            Jwt jwt = jwtDecoder.decode(token);
+            JwtType type = JwtType.fromString(jwt.getClaimAsString(JwtClaimsKey.TYPE));
+            // Check if the token is revoked or not.
+            if(isRevokedToken(token)){
+                throw new JwtException("Token has been revoked");
+            }
+            if(type == JwtType.VERIFY || type == JwtType.REFRESH) {
+                //TODO revoke the used token
+                revokeToken(token);
+            }
+            return jwt;
         } catch (JwtException e) {
             log.error("Failed to decode JWT: {}", e.getMessage());
             throw e;
         }
     }
+
+    //TODO Implement a proper token checking mechanism
+    private boolean isRevokedToken(String token) {
+        return false;
+    }
+
+    // TODO Implement a proper token revocation mechanism
+    public void revokeToken(String token) {
+        return;
+    }
+
     public boolean isTokenType(String token, String expectedType) {
         try {
             Jwt jwt = validateToken(token);
@@ -123,5 +145,12 @@ public class JwtService {
             return jwt.getSubject();
         }
         throw new AccountNotFoundException("Email not found in authentication context");
+    }
+    public String getTokenFromAuthContext() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken jwtAuth) {
+            return jwtAuth.getToken().getTokenValue();
+        }
+        throw new AccountNotFoundException("JWT token not found in authentication context");
     }
 }

@@ -4,12 +4,10 @@ import com.fp.account.entity.Account;
 import com.fp.account.repository.AccountRepository;
 import com.fp.account.service.AccountService;
 import com.fp.account.service.SesService;
+import com.fp.common.constant.Messages;
 import com.fp.common.enumeration.api.FollowServiceAPI;
 import com.fp.common.dto.auth.LoginDTO;
-import com.fp.common.exception.business.AccountAlreadyExistsException;
-import com.fp.common.exception.business.AccountNotFoundException;
-import com.fp.common.exception.business.InvalidPasswordException;
-import com.fp.common.exception.business.EmailSendingException;
+import com.fp.common.exception.business.*;
 import com.fp.common.exception.service.InvalidRefreshTokenException;
 import com.fp.common.exception.ServiceException;
 import com.fp.common.dto.auth.CreateAccountDTO;
@@ -20,11 +18,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.IgnoreNullsMode;
+import software.amazon.awssdk.services.ses.model.Message;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -83,13 +84,6 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-    @Override
-    public void updateVerificationStatus(boolean verified) {
-        String email = jwtService.getEmailFromAuthContext();
-
-        Account account = Account.builder().email(email).verified(verified).build();
-        accountRepository.updateItem(account, IgnoreNullsMode.SCALAR_ONLY);
-    }
 
     @Override
     public Account deleteAccountByEmail() {
@@ -100,8 +94,30 @@ public class AccountServiceImpl implements AccountService {
         if (account.isEmpty()) {
             throw new AccountNotFoundException("Account not found for email: " + email);
         }
-        //TODO Revoke JWT token if necessary
+        jwtService.revokeToken(jwtService.getTokenFromAuthContext());
         return account.get();
+    }
+
+    @Override
+    public void verifyAccountEmail(String verifyToken) {
+        //1. Validate the verify jwt token
+        try {
+            Jwt jwt = jwtService.validateToken(verifyToken);
+            String email = jwt.getSubject();
+            //2. Check if the account exists
+            Optional<Account> accountOpt = accountRepository.findByKey(Key.builder().partitionValue(email).build());
+            if (accountOpt.isEmpty()) {
+                throw new AccountNotFoundException("Account not found for email: " + email);
+            }
+            //3. Update the account to set verified to true
+            Account account = accountOpt.get();
+            account.setVerified(true);
+            account.setModifiedAt(Instant.now());
+            //4. Update the account in the DynamoDB
+            accountRepository.updateItem(account, IgnoreNullsMode.SCALAR_ONLY);
+        } catch (JwtException e) {
+            throw new InvalidVerifyTokenException(Messages.Error.Auth.INVALID_TOKEN, e);
+        }
     }
 
     @Override

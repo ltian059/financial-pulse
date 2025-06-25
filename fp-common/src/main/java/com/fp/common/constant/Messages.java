@@ -31,7 +31,7 @@ public final class Messages {
             public static final String TOKEN_EXPIRED = "Authentication token has expired";
             public static final String ACCESS_DENIED = "Access denied: insufficient permissions";
             public static final String SESSION_EXPIRED = "Your session has expired. Please log in again.";
-
+            public static final String INVALID_TOKEN = "Invalid token provided.";
             public static final String UNAUTHORIZED = "Unauthorized access.";
             public static String unauthorized(String message) {
                 return String.format("Unauthorized access: %s", message);

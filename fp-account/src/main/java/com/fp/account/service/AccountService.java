@@ -24,7 +24,7 @@ public interface AccountService {
 
     RefreshTokenVO validateRefreshToken(String refreshToken);
 
-    void updateVerificationStatus(boolean verified);
-
     Account deleteAccountByEmail();
+
+    void verifyAccountEmail(String verifyToken);
 }

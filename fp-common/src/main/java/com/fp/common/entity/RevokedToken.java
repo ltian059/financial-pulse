@@ -15,7 +15,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TokenBlacklist {
+public class RevokedToken {
 
     /**
      * JWT "jti" (JWT ID) claim, which is a unique identifier for the token.

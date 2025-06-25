@@ -58,12 +58,7 @@ public class AccountController {
         return ResponseEntity.ok(Messages.Success.Follow.FOLLOWED_SUCCESSFULLY);
     }
 
-    @PutMapping("/update-verification")
-    @Operation(summary = "Update account verification status")
-    public ResponseEntity<?> updateVerificationStatus(@RequestParam boolean verified) {
-        accountService.updateVerificationStatus(verified);
-        return ResponseEntity.ok("Verification status updated successfully");
-    }
+
 
     @DeleteMapping
     @Operation(summary = "Delete account by email")
