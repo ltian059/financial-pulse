@@ -1,4 +1,4 @@
-com.fp.common.autoconfigure.ServiceAutoConfiguration
-com.fp.common.autoconfigure.JwtAutoConfiguration
-com.fp.common.autoconfigure.SecurityAutoConfiguration
-com.fp.common.autoconfigure.DynamoDbAutoConfiguration
+com.fp.autoconfigure.ServiceAutoConfiguration
+com.fp.autoconfigure.JwtAutoConfiguration
+com.fp.autoconfigure.SecurityAutoConfiguration
+com.fp.autoconfigure.DynamoDbAutoConfiguration

@@ -1,8 +1,8 @@
 package com.fp.account;
 
-import com.fp.account.entity.Account;
-import com.fp.account.properties.SesProperties;
-import com.fp.account.service.SesService;
+import com.fp.entity.Account;
+import com.fp.properties.SesProperties;
+import com.fp.service.SesService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

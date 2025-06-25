@@ -10,10 +10,14 @@ Parameters:
       - test
       - prod
     Description: Environment name
+  AmiId:
+    Description: The Amazon Linux 2 AMI ID
+    Type: AWS::EC2::Image::Id
+    Default: ami-0c3391e886cc52a28
   LatestAmiId:
     Description: The latest Amazon Linux 2 AMI from the Parameter Store
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
 
   InstanceType:
     Type: String
@@ -50,7 +54,7 @@ Resources:
         - Key: Service
           Value: account
 
-  #DynamoDB table for accounts
+  # DynamoDB table for accounts
   AccountTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -71,6 +75,30 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+  #DynamoDB table for revoked JWTs
+  RevokedJwtTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: fp-revoked-jwt-dev
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: jti
+          AttributeType: S
+        - AttributeName: account_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: jti
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: account-id-index
+          KeySchema:
+            - AttributeName: account_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
   # Security Group for EC2
   AccountServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -97,7 +125,7 @@ Resources:
   AccountServiceInstance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: !Ref LatestAmiId
+      ImageId: !Ref AmiId
       InstanceType: !Ref InstanceType
       IamInstanceProfile: !Ref AccountServiceInstanceProfile
       KeyName: fp-keypair
@@ -114,8 +142,7 @@ Resources:
           cd /opt/app
 
           # Download your JAR (you'll need to upload it somewhere first)
-          # For now, just create placeholder
-          echo "Ready for application deployment" > /opt/app/status.txt
+          # upload your start.sh script, then ./start.sh to start the java application
 
       Tags:
         - Key: Name
@@ -128,7 +155,9 @@ Outputs:
   AccountTableName:
     Description: Name of the DynamoDB table
     Value: !Ref AccountTable
-
+  RevokedJwtTableName:
+    Description: Name of the DynamoDB table for revoked JWTs
+    Value: !Ref RevokedJwtTable
   SSHCommand:
     Description: SSH command to connect to the instance
     Value: !Sub "ssh -i fp-keypair.pem ec2-user@${AccountServiceInstance.PublicIp}"
