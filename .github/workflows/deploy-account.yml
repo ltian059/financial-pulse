@@ -2,11 +2,10 @@ name: Deploy Account Service
 
 on:
   push:
-    branches: [ master, test-deployment ]
+    branches: [ master ]
     paths:
       - 'fp-account/**'
       - 'fp-common/**'
-      - '.github/workflows/deploy-account.yml'
   workflow_dispatch:
     inputs:
       environment:

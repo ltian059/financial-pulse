@@ -107,7 +107,7 @@ Resources:
         Fn::Sub: |
           #!/bin/bash
           yum update -y
-          yum install -y java-17-openjdk-headless wget
+          yum install java-17-amazon-corretto-headless wget
 
           # Create app directory
           mkdir -p /opt/app
@@ -116,15 +116,6 @@ Resources:
           # Download your JAR (you'll need to upload it somewhere first)
           # For now, just create placeholder
           echo "Ready for application deployment" > /opt/app/status.txt
-
-          # Create startup script
-          cat > /opt/app/start.sh << 'EOF'
-          #!/bin/bash
-          export SPRING_PROFILES_ACTIVE=dev
-          export AWS_REGION=us-west-1
-          java -jar /opt/app/fp-account.jar
-          EOF
-          chmod +x /opt/app/start.sh
 
       Tags:
         - Key: Name
