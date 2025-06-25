@@ -35,8 +35,9 @@ springdoc:
     operations-sorter: method #Sort operations by method name
     display-request-duration: true #Display request duration in the UI
     try-it-out-enabled: false #Fold "Try it out" feature as default
-external-services:
-  content-service:
+
+services:
+  content:
     enabled: false
 
 

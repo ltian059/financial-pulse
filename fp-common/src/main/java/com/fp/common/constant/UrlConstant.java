@@ -6,7 +6,6 @@ public class UrlConstant {
      */
     public static final String[] PUBLIC_PATHS = {
             "/api/auth/**",
-
     };
 
     public static final String[] PROTECTED_PATHS = {
@@ -17,5 +16,9 @@ public class UrlConstant {
 
     public static final String[] REFRESH_TOKEN_ONLY_PATHS = {
             "/api/auth/refresh"
+    };
+
+    public static final String[] VERIFY_TOKEN_ONLY_PATHS = {
+            "/api/auth/verify"
     };
 }

@@ -1,4 +1,4 @@
-package com.fp.common.api;
+package com.fp.common.enumeration.api;
 
 import org.springframework.http.HttpMethod;
 

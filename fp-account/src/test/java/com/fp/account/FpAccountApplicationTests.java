@@ -1,7 +1,7 @@
 package com.fp.account;
 
 import com.fp.common.properties.JwtProperties;
-import com.fp.common.service.JwtTokenService;
+import com.fp.common.service.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ import java.util.Base64;
 class FpAccountApplicationTests {
 
 	@Autowired
-	private JwtTokenService jwtUtil;
+	private JwtService jwtUtil;
 	@Autowired
 	private JwtProperties jwtProperties;
 	@Autowired

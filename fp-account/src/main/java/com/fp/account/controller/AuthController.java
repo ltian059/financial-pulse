@@ -1,6 +1,7 @@
 package com.fp.account.controller;
 
 import com.fp.account.service.AccountService;
+import com.fp.common.dto.auth.AccountVerifyDTO;
 import com.fp.common.dto.auth.LoginDTO;
 import com.fp.common.dto.auth.CreateAccountDTO;
 import com.fp.common.dto.auth.RefreshTokenDTO;
@@ -53,6 +54,13 @@ public class AuthController {
                     new RefreshTokenVO(null, null, "Invalid refresh token")
             );
         }
+    }
+
+    @PostMapping("/verify")
+    @Operation(summary = "Verify account email")
+    public ResponseEntity<?> verifyAccountEmail(@RequestBody AccountVerifyDTO accountVerifyDTO){
+        //TODO implement email verification logic
+        return null;
     }
 
 

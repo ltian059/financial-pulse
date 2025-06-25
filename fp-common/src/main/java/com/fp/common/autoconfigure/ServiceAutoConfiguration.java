@@ -1,6 +1,6 @@
 package com.fp.common.autoconfigure;
 
-import com.fp.common.properties.ExternalServiceProperties;
+import com.fp.common.properties.ServiceProperties;
 import com.fp.common.util.WebClientFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -12,13 +12,13 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @AutoConfiguration
-@EnableConfigurationProperties(ExternalServiceProperties.class)
+@EnableConfigurationProperties(ServiceProperties.class)
 @ConditionalOnClass(WebClient.class)
-public class ExternalServiceAutoConfiguration {
+public class ServiceAutoConfiguration {
 
-    private final ExternalServiceProperties properties;
+    private final ServiceProperties properties;
 
-    public ExternalServiceAutoConfiguration(ExternalServiceProperties properties) {
+    public ServiceAutoConfiguration(ServiceProperties properties) {
         this.properties = properties;
     }
 
@@ -36,8 +36,8 @@ public class ExternalServiceAutoConfiguration {
     @ConditionalOnMissingBean(name = "followWebClient")
     public WebClient followWebClient() {
         return WebClientFactory.create(
-                properties.getFollowService().getUrl(),
-                properties.getFollowService().isEnableJwtPropagation()
+                properties.getFollow().getUrl(),
+                properties.getFollow().isEnableJwtPropagation()
         );
     }
 
@@ -49,8 +49,8 @@ public class ExternalServiceAutoConfiguration {
     @ConditionalOnMissingBean(name = "contentWebClient")
     public WebClient contentWebClient() {
         return WebClientFactory.create(
-                properties.getContentService().getUrl(),
-                properties.getContentService().isEnableJwtPropagation()
+                properties.getContent().getUrl(),
+                properties.getContent().isEnableJwtPropagation()
         );
     }
 
@@ -62,8 +62,8 @@ public class ExternalServiceAutoConfiguration {
     @ConditionalOnMissingBean(name = "accountWebClient")
     public WebClient accountWebClient(){
         return WebClientFactory.create(
-                properties.getAccountService().getUrl(),
-                properties.getAccountService().isEnableJwtPropagation()
+                properties.getAccount().getUrl(),
+                properties.getAccount().isEnableJwtPropagation()
         );
     }
 }

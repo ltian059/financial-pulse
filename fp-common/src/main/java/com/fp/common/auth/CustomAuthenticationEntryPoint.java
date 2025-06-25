@@ -55,7 +55,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        //TODO: Use AuthenticationErrorClassifier to classify errors
 
         var authenticationErrorInfo = UnauthorizedAuthClassifier.classifyError(authException, authHeader);
 

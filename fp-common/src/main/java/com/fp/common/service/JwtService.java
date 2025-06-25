@@ -1,6 +1,6 @@
 package com.fp.common.service;
 
-import com.fp.common.constant.JwtClaimsConstant;
+import com.fp.common.constant.JwtClaimsKey;
 import com.fp.common.exception.business.AccountNotFoundException;
 import com.fp.common.properties.JwtProperties;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import java.util.*;
 
 @RequiredArgsConstructor
 @Slf4j
-public class JwtTokenService {
+public class JwtService {
 
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
@@ -33,9 +33,9 @@ public class JwtTokenService {
      */
     public String generateAccessToken(String accountId, String email, String name) {
         Map<String, Object> claims = Map.of(
-                JwtClaimsConstant.ACCOUNT_ID, accountId,
-                JwtClaimsConstant.NAME, name,
-                JwtClaimsConstant.TYPE, jwtProperties.getAccessTokenConfig().getType()
+                JwtClaimsKey.ACCOUNT_ID, accountId,
+                JwtClaimsKey.NAME, name,
+                JwtClaimsKey.TYPE, jwtProperties.getAccessTokenConfig().getType()
         );
         return generateToken(claims, email, jwtProperties.getAccessTokenConfig());
     }
@@ -49,12 +49,19 @@ public class JwtTokenService {
      */
     public String generateRefreshToken(String accountId, String email) {
         Map<String, Object> claims = Map.of(
-                JwtClaimsConstant.ACCOUNT_ID, accountId,
-                JwtClaimsConstant.TYPE, jwtProperties.getRefreshTokenConfig().getType()
+                JwtClaimsKey.ACCOUNT_ID, accountId,
+                JwtClaimsKey.TYPE, jwtProperties.getRefreshTokenConfig().getType()
         );
         return generateToken(claims, email, jwtProperties.getRefreshTokenConfig());
     }
 
+    public String generateVerifyToken(String accountId, String email){
+        Map<String, Object> claims = Map.of(
+                JwtClaimsKey.ACCOUNT_ID, accountId,
+                JwtClaimsKey.TYPE, jwtProperties.getVerifyTokenConfig().getType()
+        );
+        return generateToken(claims, email, jwtProperties.getVerifyTokenConfig());
+    }
 
     private String generateToken(Map<String, Object> claims, String email, JwtProperties.TokenConfig tokenConfig){
         var now = Instant.now();
@@ -84,7 +91,7 @@ public class JwtTokenService {
     public boolean isTokenType(String token, String expectedType) {
         try {
             Jwt jwt = validateToken(token);
-            return jwt.getClaimAsString(JwtClaimsConstant.TYPE).equals(expectedType);
+            return jwt.getClaimAsString(JwtClaimsKey.TYPE).equals(expectedType);
         } catch (JwtException e) {
             return false;
         }
@@ -101,7 +108,7 @@ public class JwtTokenService {
     public Optional<String> getAccountIdFromToken(String token) {
         try {
             Jwt jwt = validateToken(token);
-            return Optional.of(jwt.getClaim(JwtClaimsConstant.ACCOUNT_ID));
+            return Optional.of(jwt.getClaim(JwtClaimsKey.ACCOUNT_ID));
         } catch (JwtException e) {
             log.error("Failed to get account ID from JWT: {}", e.getMessage());
             return Optional.empty();

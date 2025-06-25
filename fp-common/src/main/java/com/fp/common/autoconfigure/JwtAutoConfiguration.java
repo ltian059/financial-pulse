@@ -1,7 +1,7 @@
 package com.fp.common.autoconfigure;
 
 import com.fp.common.properties.JwtProperties;
-import com.fp.common.service.JwtTokenService;
+import com.fp.common.service.JwtService;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -72,8 +72,8 @@ public class JwtAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public JwtTokenService jwtUtil(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder, JwtProperties jwtProperties) {
-        return new JwtTokenService(jwtEncoder, jwtDecoder, jwtProperties);
+    public JwtService jwtUtil(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder, JwtProperties jwtProperties) {
+        return new JwtService(jwtEncoder, jwtDecoder, jwtProperties);
     }
 
 }

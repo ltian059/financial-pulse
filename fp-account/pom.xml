@@ -74,6 +74,12 @@
 			<artifactId>reactor-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+<!--		AWS SES-->
+		<!-- https://mvnrepository.com/artifact/software.amazon.awssdk/ses -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>ses</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

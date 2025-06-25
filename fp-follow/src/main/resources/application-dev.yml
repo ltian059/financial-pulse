@@ -44,8 +44,8 @@ springdoc:
     try-it-out-enabled: false #Fold "Try it out" feature as default
 
 
-external-services:
-  follow-service:
+services:
+  follow:
     enabled: false
 
 

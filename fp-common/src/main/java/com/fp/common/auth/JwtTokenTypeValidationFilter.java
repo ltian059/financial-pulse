@@ -1,10 +1,11 @@
 package com.fp.common.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fp.common.constant.JwtClaimsConstant;
+import com.fp.common.constant.JwtClaimsKey;
 import com.fp.common.constant.Messages;
 import com.fp.common.constant.UrlConstant;
 import com.fp.common.dto.auth.AuthResponseDTO;
+import com.fp.common.enumeration.jwt.JwtType;
 import com.fp.common.util.UnauthorizedAuthClassifier;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -48,17 +49,16 @@ public class JwtTokenTypeValidationFilter extends OncePerRequestFilter {
 
         if(authentication instanceof JwtAuthenticationToken jwtAuth){
             Jwt jwt = jwtAuth.getToken();
-            String type = jwt.getClaimAsString(JwtClaimsConstant.TYPE);
+            String typeString = jwt.getClaimAsString(JwtClaimsKey.TYPE);
+            JwtType type = JwtType.fromString(typeString);
             //Even though the token is valid, the type doesn't match the uri it is trying to access.
-            if("refresh".equals(type) && !isRefreshTokenPath(requestURI)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                response.setCharacterEncoding("UTF-8");
+            if(JwtType.REFRESH.equals(type) && !isRefreshTokenPath(requestURI)) {
+                handleInvalidTokenTypeError(response, requestURI);
+                return;
+            }
 
-                var authResp = AuthResponseDTO.unauthorized(requestURI, Messages.Error.Auth.INVALID_TOKEN_TYPE,
-                        UnauthorizedAuthClassifier.createErrorInfo(UnauthorizedAuthClassifier.ErrorType.INVALID_TOKEN_TYPE, true));
-
-                objectMapper.writeValue(response.getWriter(), authResp);
+            if(JwtType.VERIFY.equals(type) && !isVerifyTokenPath(requestURI)){
+                handleInvalidTokenTypeError(response, requestURI);
                 return;
             }
         }
@@ -66,6 +66,18 @@ public class JwtTokenTypeValidationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
 
     }
+
+    private void handleInvalidTokenTypeError(HttpServletResponse response, String requestURI) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+
+        var authResp = AuthResponseDTO.unauthorized(requestURI, Messages.Error.Auth.INVALID_TOKEN_TYPE,
+                UnauthorizedAuthClassifier.createErrorInfo(UnauthorizedAuthClassifier.ErrorType.INVALID_TOKEN_TYPE, true));
+
+        objectMapper.writeValue(response.getWriter(), authResp);
+    }
+
     private boolean isPublicPath(String uri){
         return Arrays.stream(UrlConstant.PUBLIC_PATHS)
                 .anyMatch(uri::startsWith);
@@ -74,4 +86,9 @@ public class JwtTokenTypeValidationFilter extends OncePerRequestFilter {
         return Arrays.stream(UrlConstant.REFRESH_TOKEN_ONLY_PATHS)
                 .anyMatch(uri::startsWith);
     }
+    private boolean isVerifyTokenPath(String uri) {
+        return Arrays.stream(UrlConstant.VERIFY_TOKEN_ONLY_PATHS)
+                .anyMatch(uri::startsWith);
+    }
+
 }

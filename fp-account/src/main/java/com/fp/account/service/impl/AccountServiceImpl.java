@@ -3,15 +3,17 @@ package com.fp.account.service.impl;
 import com.fp.account.entity.Account;
 import com.fp.account.repository.AccountRepository;
 import com.fp.account.service.AccountService;
-import com.fp.common.api.FollowServiceAPI;
+import com.fp.account.service.SesService;
+import com.fp.common.enumeration.api.FollowServiceAPI;
 import com.fp.common.dto.auth.LoginDTO;
 import com.fp.common.exception.business.AccountAlreadyExistsException;
 import com.fp.common.exception.business.AccountNotFoundException;
 import com.fp.common.exception.business.InvalidPasswordException;
+import com.fp.common.exception.business.EmailSendingException;
 import com.fp.common.exception.service.InvalidRefreshTokenException;
 import com.fp.common.exception.ServiceException;
 import com.fp.common.dto.auth.CreateAccountDTO;
-import com.fp.common.service.JwtTokenService;
+import com.fp.common.service.JwtService;
 import com.fp.common.vo.auth.LoginVO;
 import com.fp.common.vo.auth.RefreshTokenVO;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +37,8 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
     private final WebClient followWebClient;
-    private final JwtTokenService jwtTokenService;
+    private final JwtService jwtService;
+    private final SesService sesService;
 
 
     @Override
@@ -59,6 +62,14 @@ public class AccountServiceImpl implements AccountService {
                 .build();
         //set default values
         accountRepository.save(account);
+        if(sesService != null){
+            try {
+                sesService.sendVerificationEmail(account);
+            } catch (Exception e) {
+                throw new EmailSendingException("Failed to send verification email for account: " + account.getEmail(), e);
+            }
+        }
+
     }
 
     @Override
@@ -74,7 +85,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void updateVerificationStatus(boolean verified) {
-        String email = jwtTokenService.getEmailFromAuthContext();
+        String email = jwtService.getEmailFromAuthContext();
 
         Account account = Account.builder().email(email).verified(verified).build();
         accountRepository.updateItem(account, IgnoreNullsMode.SCALAR_ONLY);
@@ -82,7 +93,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Account deleteAccountByEmail() {
-        String email = jwtTokenService.getEmailFromAuthContext();
+        String email = jwtService.getEmailFromAuthContext();
 
         Key key = Key.builder().partitionValue(email).build();
         Optional<Account> account = accountRepository.deleteByKey(key);
@@ -151,8 +162,8 @@ public class AccountServiceImpl implements AccountService {
         var id = account.getAccountId();
         var name = account.getName();
         //After login successfully, generate JWT token
-        String accessToken = jwtTokenService.generateAccessToken(id, email, name);
-        String refreshToken = jwtTokenService.generateRefreshToken(id, email);
+        String accessToken = jwtService.generateAccessToken(id, email, name);
+        String refreshToken = jwtService.generateRefreshToken(id, email);
         var loginVO = new LoginVO();
         BeanUtils.copyProperties(account, loginVO);
         loginVO.setAccessToken(accessToken);
@@ -170,11 +181,11 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public RefreshTokenVO validateRefreshToken(String refreshToken) {
-        if(!jwtTokenService.isRefreshToken(refreshToken)) {
+        if(!jwtService.isRefreshToken(refreshToken)) {
             throw new InvalidRefreshTokenException();
         }
         //Use jwtUtil to parse the refresh token and extract user information
-        Optional<String> idOpt = jwtTokenService.getAccountIdFromToken(refreshToken);
+        Optional<String> idOpt = jwtService.getAccountIdFromToken(refreshToken);
         if(idOpt.isEmpty()){
             throw new InvalidRefreshTokenException();
         }
@@ -186,8 +197,8 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountOpt.get();
         //Generate new access token
         return RefreshTokenVO.builder()
-                .accessToken(jwtTokenService.generateAccessToken(id, account.getEmail(), account.getName()))
-                .refreshToken(jwtTokenService.generateRefreshToken(id, account.getEmail()))
+                .accessToken(jwtService.generateAccessToken(id, account.getEmail(), account.getName()))
+                .refreshToken(jwtService.generateRefreshToken(id, account.getEmail()))
                 .build();
     }
 

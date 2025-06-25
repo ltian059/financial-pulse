@@ -1,6 +1,8 @@
 package com.fp.common.properties;
 
+import com.fp.common.enumeration.jwt.JwtType;
 import lombok.Data;
+import org.apache.el.parser.Token;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
@@ -24,20 +26,27 @@ public class JwtProperties {
 
     private TokenConfig accessTokenConfig = new TokenConfig();
     private TokenConfig refreshTokenConfig = new TokenConfig();
+    private TokenConfig verifyTokenConfig = new TokenConfig();
 
     public JwtProperties() {
         // Default values for JWT tokens
         accessTokenConfig.setExpiration(Duration.ofHours(24));
         accessTokenConfig.setPrefix("Bearer ");
         accessTokenConfig.setAudience("financial-pulse-api");
-        accessTokenConfig.setType("access");
+        accessTokenConfig.setType(JwtType.ACCESS);
         accessTokenConfig.setIssuer(defaultIssuer);
 
         refreshTokenConfig.setExpiration(Duration.ofDays(7));
         refreshTokenConfig.setPrefix("Bearer ");
         refreshTokenConfig.setAudience("financial-pulse-refresh");
         refreshTokenConfig.setIssuer(defaultIssuer);
-        refreshTokenConfig.setType("refresh");
+        refreshTokenConfig.setType(JwtType.VERIFY);
+
+        verifyTokenConfig.setPrefix("Bearer ");
+        verifyTokenConfig.setExpiration(Duration.ofHours(1));
+        verifyTokenConfig.setAudience("financial-pulse-verify");
+        verifyTokenConfig.setIssuer(defaultIssuer);
+        verifyTokenConfig.setType(JwtType.VERIFY);
     }
     /**
      * JWT Token Configuration
@@ -63,7 +72,7 @@ public class JwtProperties {
         /**
          * Token type identifier (access, refresh, etc.)
          */
-        private String type;
+        private JwtType type;
 
         public long getExpirationInMillis() {
             return expiration.toMillis();

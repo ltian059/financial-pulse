@@ -7,8 +7,8 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
     org.springframework.web.client: DEBUG
 
-external-services:
-  account-service:
+services:
+  account:
     enabled: false # Disable external account service calls in dev environment
 
 springdoc:
@@ -31,4 +31,8 @@ fp:
       region: ${AWS_REGION}
       table-prefix: fp
       table-suffix: dev
-
+    ses:
+      region: ${AWS_REGION}
+      app-base-url: ${SERVICES_ACCOUNT_URL}
+      from-email: ${AWS_SES_FROM_EMAIL}
+      from-name: Financial Pulse
