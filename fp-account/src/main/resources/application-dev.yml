@@ -31,3 +31,4 @@ fp:
       region: ${AWS_REGION}
       table-prefix: fp
       table-suffix: dev
+
