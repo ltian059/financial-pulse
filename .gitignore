@@ -36,9 +36,6 @@ build/
 
 ### Mac OS ###
 .DS_Store
-### All configuration files ###
-**/application.properties
-**/src/main/resources/application.yml
 ## Retain the example yml file
 !**/src/main/resources/application-example.yml
 
@@ -47,6 +44,6 @@ build/
 **/mvnw*
 /fp-account/.mvn/wrapper/maven-wrapper.properties
 /fp-content/.mvn/wrapper/maven-wrapper.properties
-/fp-content/src/main/resources/application-dev.yml
-/fp-account/src/main/resources/application-dev.yml
-/fp-follow/src/main/resources/application-dev.yml
+
+
+**/**.env

@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: fp-content
+
+  profiles:
+    active: dev

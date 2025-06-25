@@ -10,8 +10,8 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FollowId implements Serializable {
-    private Long followerId;
-    private Long followeeId;
+    private String followerId;
+    private String followeeId;
 
     @Override
     public boolean equals(Object obj) {

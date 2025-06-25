@@ -2,7 +2,7 @@ package com.fp.follow.service;
 
 public interface FollowService {
 
-    Long getFollowerCount(Long accountId);
+    Long getFollowerCount(String accountId);
 
-    void followAccount(Long followerId, Long followeeId);
+    void followAccount(String followerId, String followeeId);
 }

@@ -1,12 +1,10 @@
 package com.fp.follow.controller;
 
 
-import com.fp.common.constant.Messages;
 import com.fp.follow.service.FollowService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +19,7 @@ public class FollowController {
 
     @GetMapping("/count-follower")
     @Operation(summary = "get the number of followers for an account")
-    public ResponseEntity<Long> getFollowerCountByAccountId(@RequestParam Long accountId) {
+    public ResponseEntity<Long> getFollowerCountByAccountId(@RequestParam String accountId) {
         Long followerCount = followService.getFollowerCount(accountId);
         return ResponseEntity.ok(followerCount);
     }
@@ -30,8 +28,8 @@ public class FollowController {
     @PostMapping
     @Operation(summary = "Follow an account")
     public ResponseEntity<?> followAccount(
-            @RequestParam Long followerId,
-            @RequestParam Long followeeId
+            @RequestParam String followerId,
+            @RequestParam String followeeId
     ){
         followService.followAccount(followerId, followeeId);
         return ResponseEntity.ok(null);

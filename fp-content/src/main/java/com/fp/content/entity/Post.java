@@ -46,7 +46,7 @@ public class Post {
     private String labels;
 
     @Column(nullable = false)
-    private Long accountId;
+    private String accountId;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;

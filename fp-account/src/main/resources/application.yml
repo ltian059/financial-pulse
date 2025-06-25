@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: fp-account
+  profiles:
+    active: dev
+
+

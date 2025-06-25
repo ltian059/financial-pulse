@@ -24,14 +24,14 @@ public class FollowServiceImpl implements FollowService {
      * @return the number of followers for the account
      */
     @Override
-    public Long getFollowerCount(Long accountId) {
+    public Long getFollowerCount(String accountId) {
         //Get the number of people following this account
         //followeeId = accountId
         return followRepository.countFollowByFolloweeId(accountId);
     }
 
     @Override
-    public void followAccount(Long followerId, Long followeeId) {
+    public void followAccount(String followerId, String followeeId) {
         if(followerId.equals(followeeId)){
             throw new SelfFollowNotAllowedException();
         }

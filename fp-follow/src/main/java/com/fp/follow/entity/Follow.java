@@ -18,10 +18,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Follow {
     @Id
-    private Long followerId;
+    private String followerId;
 
     @Id
-    private Long followeeId;
+    private String followeeId;
 
     @Column(nullable = false)
     private Instant createdAt;

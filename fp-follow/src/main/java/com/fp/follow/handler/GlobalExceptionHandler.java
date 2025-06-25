@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ServiceException.class)
     public ResponseEntity<ExceptionResponseDTO> handleServiceException(ServiceException ex) {
         ExceptionResponseDTO build = ExceptionResponseDTO.builder()
-                .code(ex.getStatus().toString())
+                .code(ex.getStatusCode())
                 .message(ex.getMessage())
                 .build();
         log.error(build.toString());

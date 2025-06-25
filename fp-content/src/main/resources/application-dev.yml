@@ -1,0 +1,47 @@
+server:
+  port: 8081
+
+
+spring:
+  datasource:
+    username: ${CONTENT_DB_USERNAME}
+    password: ${CONTENT_DB_PASSWORD}
+    url: ${CONTENT_DB_URL}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      naming:
+        # Use CamelCase to Underscores Naming Strategy
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.springframework.web.client: DEBUG
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha #Sort tags alphabetically
+    operations-sorter: method #Sort operations by method name
+    display-request-duration: true #Display request duration in the UI
+    try-it-out-enabled: false #Fold "Try it out" feature as default
+external-services:
+  content-service:
+    enabled: false
+
+
+
+
+fp:
+  jwt:
+    secret: ${JWT_SECRET}
