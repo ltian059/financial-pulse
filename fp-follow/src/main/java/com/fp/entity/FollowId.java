@@ -15,8 +15,7 @@ public class FollowId implements Serializable {
     @Override
     public boolean equals(Object obj) {
         if(this == obj) return true;
-        if(!(obj instanceof FollowId)) return false;
-        FollowId that = (FollowId) obj;
+        if(!(obj instanceof FollowId that)) return false;
 
         return Objects.equals(this.followeeId, that.followeeId) &&
                 Objects.equals(this.followerId, that.followerId);

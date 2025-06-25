@@ -41,7 +41,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
      * @param authException that caused the invocation
      */
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
         String requestURI = request.getRequestURI();
         String method = request.getMethod();
         String remoteAddr = request.getRemoteAddr();

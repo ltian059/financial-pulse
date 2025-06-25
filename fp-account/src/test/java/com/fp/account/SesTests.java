@@ -11,8 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 @Slf4j
 public class SesTests {
-    @Autowired
-    private SesProperties sesProperties;
 
     @Autowired
     private SesService sesService;

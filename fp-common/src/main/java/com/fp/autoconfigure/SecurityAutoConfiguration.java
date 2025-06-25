@@ -48,9 +48,9 @@ public class SecurityAutoConfiguration {
     /**
      * Default SecurityFilterChain
      * Can be Overridden by defining a bean with the same name.
-     * @param http
-     * @param jwtDecoder
-     * @return
+     * @param http HttpSecurity instance
+     * @param jwtDecoder JwtDecoder instance for decoding JWT tokens
+     * @return SecurityFilterChain
      */
     @Bean
     @ConditionalOnMissingBean(name = "defaultJwtSecurityFilterChain")

@@ -191,8 +191,8 @@ public class AccountServiceImpl implements AccountService {
      * Validate refresh token, if valid:
      * return the refreshTokenVO with new access token and optionally a new refresh token.
      *
-     * @param refreshToken
-     * @return
+     * @param refreshToken the refresh token to validate
+     * @return RefreshTokenVO containing new access token and refresh token
      */
     @Override
     public RefreshTokenVO validateRefreshToken(String refreshToken) {

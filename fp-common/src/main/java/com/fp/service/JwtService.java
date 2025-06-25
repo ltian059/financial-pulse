@@ -32,10 +32,10 @@ public class JwtService {
     /**
      * Generate access token using Spring Security JwtEncoder.
      *
-     * @param accountId
-     * @param email
-     * @param name
-     * @return
+     * @param accountId the account ID of the user
+     * @param email the email of the user
+     * @param name the name of the user
+     * @return the generated access token
      */
     public String generateAccessToken(String accountId, String email, String name) {
         Map<String, Object> claims = Map.of(
@@ -49,9 +49,9 @@ public class JwtService {
     /**
      * Generate refresh token using Spring Security JwtEncoder
      *
-     * @param accountId
-     * @param email
-     * @return
+     * @param accountId the account ID of the user
+     * @param email the email of the user
+     * @return the generated refresh token
      */
     public String generateRefreshToken(String accountId, String email) {
         Map<String, Object> claims = Map.of(

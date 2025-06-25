@@ -15,7 +15,7 @@ public class RevokedJwtRepository extends DynamoDbRepository<RevokedJwt>{
     public void revokeJwt(Jwt jwt, String reason) {
         RevokedJwt revokedJwt = RevokedJwt.builder()
                 .jti(jwt.getId())
-                .ttl(jwt.getExpiresAt().getEpochSecond())
+                .ttl(jwt.getExpiresAt() != null ? jwt.getExpiresAt().getEpochSecond() : 0)
                 .reason(reason)
                 .type(JwtType.fromString(jwt.getClaimAsString(JwtClaimsKey.TYPE)))
                 .accountId(jwt.getClaimAsString(JwtClaimsKey.ACCOUNT_ID))

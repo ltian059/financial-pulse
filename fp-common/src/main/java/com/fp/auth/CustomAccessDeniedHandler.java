@@ -31,7 +31,6 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         String requestURI = request.getRequestURI();
         String method = request.getMethod();
         String remoteAddr = HttpUtil.getClientIpAddress(request);
-        String authHeader = request.getHeader("Authorization");
         if(log.isDebugEnabled()){
             log.debug("🔴 Access denied: {} {} from {} - {}",
                     method, requestURI, remoteAddr, accessDeniedException.getMessage());

@@ -1,16 +1,33 @@
 package com.fp.properties;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "services")
 @Data
 public class ServiceProperties {
-    private ServiceConfig account = new ServiceConfig("http://localhost:8080");
-    private ServiceConfig content = new ServiceConfig("http://localhost:8081");
-    private ServiceConfig follow = new ServiceConfig("http://localhost:8082");
+    private ServiceConfig account;
+    private ServiceConfig content;
+    private ServiceConfig follow;
 
+    public ServiceProperties() {
+        account = ServiceConfig.builder()
+                .url("http://localhost:8080")
+                .build();
+        content = ServiceConfig.builder()
+                .url("http://localhost:8081")
+                .build();
+        follow = ServiceConfig.builder()
+                .url("http://localhost:8082")
+                .build();
+    }
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class ServiceConfig{
         private String url;
         private boolean enabled = true;
@@ -20,9 +37,5 @@ public class ServiceProperties {
         private boolean enableJwtPropagation = true;
         private int timeout = 5000;
         private int maxRetries = 3;
-        public ServiceConfig(){}
-        public ServiceConfig(String url) {
-            this.url = url;
-        }
     }
 }

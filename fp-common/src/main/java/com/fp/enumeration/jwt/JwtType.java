@@ -1,8 +1,12 @@
 package com.fp.enumeration.jwt;
 
+import lombok.Data;
+import lombok.Getter;
+
 ///
 /// # Enumeration for JWT token types, which is in Jwt Claims
 ///
+@Getter
 public enum JwtType {
     /**
      * access: Used for API access
@@ -23,9 +27,6 @@ public enum JwtType {
 
     JwtType(String type) {
         this.type = type;
-    }
-    public String getType() {
-        return type;
     }
 
     public static JwtType fromString(String type) {

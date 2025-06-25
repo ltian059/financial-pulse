@@ -11,6 +11,7 @@ services:
   account:
     enabled: false # Disable external account service calls in dev environment
 
+
 springdoc:
   api-docs:
     path: /v3/api-docs

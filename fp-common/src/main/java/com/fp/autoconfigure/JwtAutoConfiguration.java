@@ -36,17 +36,15 @@ public class JwtAutoConfiguration {
     }
 
 
-    /**
-     * Spring Security OAuth2 JWT Decoder bean.
-     * HMAC: Hash-based Message Authentication Code
-     * @Details: When a request arrives, JwtDecoder will:
-     * @1. Break down JWT: Header.Payload.Signature
-     * @2. Use the same secret key to calculate the signature.
-     * @3. Compare the calculated signature with the one in the JWT.
-     * @4. Verify the expiration time.
-     * @5. Extract User information from the JWT.
-     * @return
-     */
+
+    ///      Spring Security OAuth2 JWT Decoder bean.
+    ///      HMAC: Hash-based Message Authentication Code
+    ///      Details: When a request arrives, JwtDecoder will:
+    ///      1. Break down JWT: Header.Payload.Signature
+    ///      2. Use the same secret key to calculate the signature.
+    ///      3. Compare the calculated signature with the one in the JWT.
+    ///      4. Verify the expiration time.
+    ///      5. Extract User information from the JWT.
     @Bean
     @ConditionalOnMissingBean
     public JwtDecoder jwtDecoder() {
