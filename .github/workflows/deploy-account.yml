@@ -89,7 +89,7 @@ jobs:
 
       - name: Create environment configuration
         run: |
-          cat > .env << EOF
+          cat > .env << 'EOF'
           # Application Configuration
           SPRING_PROFILES_ACTIVE=${{ steps.profile.outputs.profile }}
           # JWT Configuration
@@ -111,7 +111,7 @@ jobs:
 
       - name: Set up start script
         run: |
-          cat > start.sh << EOF
+          cat > start.sh << 'EOF'
           #!/bin/bash
           
           # start.sh - Financial Pulse Account Service Startup Script
@@ -228,7 +228,7 @@ jobs:
 
       - name: Set up stop script
         run: |
-          cat > stop.sh << EOF
+          cat > stop.sh << 'EOF'
           #!/bin/bash
           cd /opt/app
 
@@ -238,10 +238,14 @@ jobs:
               rm -f app.pid
               echo "Application terminated"
           else
-              echo "No Application found running."
+              echo "No application found running."
+              # Kill any existing java processes (fallback)
+              pkill -f "fp-account.jar" 2>/dev/null || true
           fi
           EOF
-
+          
+          # Make scripts executable
+          chmod +x start.sh stop.sh
       - name: Deploy to EC2
         run: |
           EC2_HOST=${{ vars.EC2_HOST }}

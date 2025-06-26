@@ -147,15 +147,34 @@ Resources:
       UserData: !Base64
         Fn::Sub: |
           #!/bin/bash
+          # Update system
           yum update -y
-          yum install java-17-amazon-corretto-headless wget
-
+          
+          # Install Java 17
+          yum install -y java-17-amazon-corretto-headless wget
+          
           # Create app directory
           mkdir -p /opt/app
-          cd /opt/app
-
-          # Download your JAR (you'll need to upload it somewhere first)
-          # upload your start.sh script, then ./start.sh to start the java application
+          
+          # Change ownership to ec2-user (UserData runs as root, so no sudo needed here)
+          chown -R ec2-user:ec2-user /opt/app
+          
+          # Set proper permissions
+          chmod 755 /opt/app
+          
+          # Create status file as root, then change ownership
+          echo "EC2 instance setup completed at $(date)" > /opt/app/setup-status.txt
+          chown ec2-user:ec2-user /opt/app/setup-status.txt
+          
+          # Verify Java installation as root, then change ownership
+          java -version > /opt/app/java-version.txt 2>&1
+          chown ec2-user:ec2-user /opt/app/java-version.txt
+          
+          # Ensure all files in /opt/app belong to ec2-user
+          chown -R ec2-user:ec2-user /opt/app
+          
+          # Log the setup completion
+          echo "Setup completed successfully" >> /var/log/user-data.log
 
       Tags:
         - Key: Name
