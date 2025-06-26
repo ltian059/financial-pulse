@@ -8,22 +8,15 @@ import org.springframework.http.HttpStatus;
 ///
 /// This exception is designed for REST API error responses.
 @Getter
-public class ServiceException extends BaseException{
-    private final int statusCode;
-    private final HttpStatus status;
-    private final String responseBody;
+public abstract class ServiceException extends BaseException{
+    private final HttpStatus httpStatus;
 
-    public ServiceException(int statusCode, String responseBody) {
-        super(responseBody);
-        this.statusCode = statusCode;
-        this.status = HttpStatus.valueOf(statusCode);
-        this.responseBody = responseBody;
+    protected ServiceException(HttpStatus httpStatus, String message) {
+        super(message);
+        this.httpStatus = httpStatus;
     }
-    public ServiceException(HttpStatus status, String responseBody) {
-        super(responseBody);
-        this.status = status;
-        this.statusCode = status.value();
-        this.responseBody = responseBody;
+    public int getStatusCode() {
+        return httpStatus.value();
     }
 
 }

@@ -11,4 +11,5 @@ public class InvalidRefreshTokenException extends ServiceException {
         super(HttpStatus.UNAUTHORIZED, Messages.Error.Auth.INVALID_REFRESH_TOKEN);
     }
 
+
 }

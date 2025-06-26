@@ -25,7 +25,6 @@ public class SesServiceImpl implements SesService {
     @Override
     @Async
     public void sendVerificationEmail(Account account) {
-        //TODO implement email sending logic using AWS SES
         //1. Generate verification token using account info
         String verifyToken = jwtService.generateVerifyToken(account.getAccountId(), account.getEmail());
         //2. Construct verification link url
@@ -37,9 +36,10 @@ public class SesServiceImpl implements SesService {
         //4. Send the email using SES client
 
         sendEmail(account.getEmail(), subject, htmlBody, textBody);
-        log.info("Verification email sent successfully to: {}", account.getEmail());
+        log.debug("Verification email sent successfully to: {}", account.getEmail());
 
     }
+
 
     /**
      * Builds the HTML content for the verification email.

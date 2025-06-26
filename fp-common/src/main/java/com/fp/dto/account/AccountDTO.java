@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountDTO implements Serializable {
-    private Long id;
+    private String accountId;
     private String name;
     private String email;
     private String password;

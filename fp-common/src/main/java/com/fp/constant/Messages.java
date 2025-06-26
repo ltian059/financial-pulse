@@ -7,8 +7,13 @@ public final class Messages {
         private Error() {}
         //Account related error messages
         public static final class Account {
+            public static final String ALREADY_EXISTS = "Account already exists.";
+            public static final String EMAIL_SENDING_ERROR = "Error sending verification email.";
+            public static final String JWT_CONTEXT_ERROR = "JWT Authentication context is invalid. Please try to re-login.";
+            public static final String ALREADY_VERIFIED = "Account already verified.";
+
             private Account() {}
-            public static final String NOT_FOUND_BY_EMAIL = "Account with given email not found.";
+            public static final String NOT_FOUND = "Account not found.";
             public static final String INVALID_PASSWORD = "Invalid password.";
             public static final String USER_ALREADY_FOLLOWED = "You have already followed this user";
 
@@ -55,10 +60,12 @@ public final class Messages {
     public static final class Success {
         private  Success() {}
         public static final class Account {
-            public static final String CREATED_SUCCESSFULLY = "Account created successfully";
-            public static final String VERIFIED_SUCCESSFULLY = "Account verified successfully";
-            public static final String UPDATED_SUCCESSFULLY = "Account updated successfully";
-            public static final String LOGIN_SUCCESSFUL = "Login successful";
+            public static final String CREATED = "Account created successfully";
+            public static final String VERIFIED = "Account verified successfully";
+            public static final String UPDATED = "Account updated successfully";
+            public static final String LOGIN = "Login successful";
+            public static final String VERIFICATION_EMAIL_SENT = "Verification email sent successfully";
+            public static final Object DELETED = "Account deleted successfully";
 
             public static String welcomeAfterAccountCreation(String name) {
                 return String.format("Welcome %s! Your account has been created successfully.", name);

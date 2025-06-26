@@ -1,13 +1,14 @@
 package com.fp.exception.business;
 
+import com.fp.constant.Messages;
 import com.fp.exception.BusinessException;
+import org.springframework.http.HttpStatus;
 
 public class AccountAlreadyExistsException extends BusinessException {
     public AccountAlreadyExistsException() {
-        super("Account with the given email already exists: ");
+        super(HttpStatus.CONFLICT, Messages.Error.Account.ALREADY_EXISTS);
     }
-
-    public AccountAlreadyExistsException(String message) {
-        super(message);
+    public AccountAlreadyExistsException(String msg) {
+        super(HttpStatus.CONFLICT, msg);
     }
 }

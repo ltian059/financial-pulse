@@ -4,6 +4,7 @@ import com.fp.service.AccountService;
 import com.fp.dto.auth.LoginDTO;
 import com.fp.dto.auth.CreateAccountDTO;
 import com.fp.dto.auth.RefreshTokenDTO;
+import com.fp.service.AuthService;
 import com.fp.vo.auth.LoginVO;
 import com.fp.vo.auth.RefreshTokenVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,13 +19,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final AccountService accountService;
 
+    private final AuthService authService;
 
     @PostMapping("/create-account")
     @Operation(summary = "Create a new account")
     public ResponseEntity<String > createAccount(@RequestBody CreateAccountDTO createAccountDTO){
-        accountService.createAccount(createAccountDTO);
+        authService.createAccount(createAccountDTO);
         return ResponseEntity.ok("Account created successfully");
     }
 
@@ -32,7 +33,7 @@ public class AuthController {
     @Operation(summary = "Account login")
     @ApiResponse(description = "loginVO contains account information and JWT tokens")
     public ResponseEntity<LoginVO> login(@RequestBody LoginDTO loginDTO){
-        LoginVO loginVO = accountService.login(loginDTO);
+        LoginVO loginVO = authService.login(loginDTO);
         return ResponseEntity.ok(loginVO);
     }
 
@@ -40,14 +41,14 @@ public class AuthController {
     @Operation(summary = "Refresh access token using refresh token")
     @ApiResponse(description = "Returns a new access token and optionally a new refresh token")
     public ResponseEntity<RefreshTokenVO> refreshToken(@RequestBody RefreshTokenDTO refreshTokenDTO){
-        var refreshTokenVO = accountService.validateRefreshToken(refreshTokenDTO.getRefreshToken());
+        var refreshTokenVO = authService.validateRefreshToken(refreshTokenDTO.getRefreshToken());
         return ResponseEntity.ok(refreshTokenVO);
     }
 
     @GetMapping("/verify")
     @Operation(summary = "Verify account email")
     public ResponseEntity<?> verifyAccountEmail(@RequestParam String token){
-        accountService.verifyAccountEmail(token);
+        authService.verifyAccountEmail(token);
         String htmlResponse = """
             <!DOCTYPE html>
             <html>
@@ -118,6 +119,7 @@ public class AuthController {
                 .header("Content-Type", "text/html; charset=UTF-8")
                 .body(htmlResponse);
     }
+
 
 
 }

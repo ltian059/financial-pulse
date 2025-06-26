@@ -20,15 +20,15 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .build();
         log.error(build.toString());
-        return ResponseEntity.status(ex.getStatus()).body(build);
+        return ResponseEntity.status(ex.getHttpStatus()).body(build);
     }
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ExceptionResponseDTO> handleBusinessException(BusinessException ex) {
         ExceptionResponseDTO build = ExceptionResponseDTO.builder()
-                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .code(ex.getStatusCode())
                 .message(ex.getMessage())
                 .build();
         log.error(build.toString());
-        return ResponseEntity.internalServerError().body(build);
+        return ResponseEntity.status(ex.getHttpStatus()).body(build);
     }
 }

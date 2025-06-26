@@ -7,6 +7,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 
+import java.time.Instant;
+
 @Repository
 public class RevokedJwtRepository extends DynamoDbRepository<RevokedJwt>{
     /**
@@ -17,6 +19,7 @@ public class RevokedJwtRepository extends DynamoDbRepository<RevokedJwt>{
                 .jti(jwt.getId())
                 .ttl(jwt.getExpiresAt() != null ? jwt.getExpiresAt().getEpochSecond() : 0)
                 .reason(reason)
+                .revokedAt(Instant.now())
                 .type(JwtType.fromString(jwt.getClaimAsString(JwtClaimsKey.TYPE)))
                 .accountId(jwt.getClaimAsString(JwtClaimsKey.ACCOUNT_ID))
                 .build();

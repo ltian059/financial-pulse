@@ -39,7 +39,7 @@ public class JwtProperties {
         refreshTokenConfig.setPrefix("Bearer ");
         refreshTokenConfig.setAudience("financial-pulse-refresh");
         refreshTokenConfig.setIssuer(defaultIssuer);
-        refreshTokenConfig.setType(JwtType.VERIFY);
+        refreshTokenConfig.setType(JwtType.REFRESH);
 
         verifyTokenConfig.setPrefix("Bearer ");
         verifyTokenConfig.setExpiration(Duration.ofHours(1));

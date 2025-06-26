@@ -3,6 +3,8 @@ package com.fp.service;
 import com.fp.constant.JwtClaimsKey;
 import com.fp.enumeration.jwt.JwtType;
 import com.fp.exception.business.AccountNotFoundException;
+import com.fp.exception.business.JwtRevokedException;
+import com.fp.exception.business.JwtRevokingException;
 import com.fp.properties.JwtProperties;
 import com.fp.repository.RevokedJwtRepository;
 import lombok.RequiredArgsConstructor;
@@ -87,24 +89,36 @@ public class JwtService {
 
     }
 
-    public Jwt validateToken(String token) {
+    /**
+     * Validate the JWT token using Spring Security JwtDecoder.
+     * @param token the JWT token to validate
+     * @return the decoded Jwt object if the token is valid
+     */
+    public Jwt decodeAndValidate(String token) {
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            JwtType type = JwtType.fromString(jwt.getClaimAsString(JwtClaimsKey.TYPE));
-            // Check if the token is revoked or not.
-            if(isRevokedJwt(jwt)){
-                throw new JwtException("Token has been revoked");
-            }
-            if(type == JwtType.VERIFY || type == JwtType.REFRESH) {
-                revokeJwt(jwt, "Token is validated then used. " + jwt.getClaimAsString(JwtClaimsKey.TYPE));
+            if (isRevokedJwt(jwt)) {
+                throw new JwtRevokedException();
             }
             return jwt;
         } catch (JwtException e) {
             log.error("Failed to decode JWT: {}", e.getMessage());
             throw e;
-        } catch (Exception e){
-            log.error("Unexpected error while validating JWT: {}", e.getMessage());
-            throw new JwtException("Unexpected error while validating JWT", e);
+        }
+    }
+
+    /**
+     * Revoke the JWT token
+     * @param token the JWT token to validate and potentially revoke
+     * @return the decoded Jwt object if the token is valid and not revoked
+     */
+    public Jwt revokeToken(String token, String reason) {
+        try {
+            Jwt jwt = decodeAndValidate(token);
+            revokeJwt(jwt, "Token type:" + jwt.getClaimAsString(JwtClaimsKey.TYPE) + "revoked for reason: " + reason);
+            return jwt;
+        } catch (JwtException e) {
+            throw new JwtRevokingException(e);
         }
     }
 
@@ -124,26 +138,34 @@ public class JwtService {
         revokedJwtRepository.revokeJwt(jwt, reason);
     }
 
-    public boolean isTokenType(String token, String expectedType) {
+    public boolean isTokenType(String token, JwtType expectedType) {
         try {
-            Jwt jwt = validateToken(token);
-            return jwt.getClaimAsString(JwtClaimsKey.TYPE).equals(expectedType);
+            Jwt jwt = jwtDecoder.decode(token);
+            return JwtType.fromString(jwt.getClaimAsString(JwtClaimsKey.TYPE)).equals(expectedType);
         } catch (JwtException e) {
             return false;
         }
     }
 
     public boolean isRefreshToken(String token) {
-        return isTokenType(token, "refresh");
+        return isTokenType(token, JwtType.REFRESH);
     }
 
     public boolean isAccessToken(String token) {
-        return isTokenType(token, "access");
+        return isTokenType(token, JwtType.ACCESS);
     }
 
+    public Optional<String> getAccountIdFromAuthContext() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken jwtAuth) {
+            Jwt jwt = jwtAuth.getToken();
+            return Optional.of(jwt.getClaim(JwtClaimsKey.ACCOUNT_ID));
+        }
+        return Optional.empty();
+    }
     public Optional<String> getAccountIdFromToken(String token) {
         try {
-            Jwt jwt = validateToken(token);
+            Jwt jwt = decodeAndValidate(token);
             return Optional.of(jwt.getClaim(JwtClaimsKey.ACCOUNT_ID));
         } catch (JwtException e) {
             log.error("Failed to get account ID from JWT: {}", e.getMessage());
@@ -151,14 +173,23 @@ public class JwtService {
         }
     }
 
+    public Optional<String> getEmailFromToken(String token) {
+        try {
+            Jwt jwt = decodeAndValidate(token);
+            return Optional.of(jwt.getSubject());
+        } catch (JwtException e) {
+            log.error("Failed to get email from JWT: {}", e.getMessage());
+            return Optional.empty();
+        }
+    }
 
-    public String getEmailFromAuthContext(){
+    public Optional<String> getEmailFromAuthContext(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth instanceof JwtAuthenticationToken jwtAuth) {
             Jwt jwt = jwtAuth.getToken();
-            return jwt.getSubject();
+            return Optional.of(jwt.getSubject());
         }
-        throw new AccountNotFoundException("Email not found in authentication context");
+        return Optional.empty();
     }
     public Jwt getJwtFromAuthContext() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

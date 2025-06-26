@@ -18,6 +18,6 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .build();
         log.error(build.toString());
-        return ResponseEntity.status(ex.getStatus()).body(build);
+        return ResponseEntity.status(ex.getHttpStatus()).body(build);
     }
 }
