@@ -44,6 +44,7 @@ public class AccountController {
 
     @PostMapping("/follow")
     @Operation(summary = "Follow another account")
+    //TODO Use AOP to validate JWT context
     public ResponseEntity<String > followAccount(@RequestBody FollowAccountRequestDTO followAccountRequestDTO){
         validateJwtContextWithRequest(followAccountRequestDTO.getAccountId(), followAccountRequestDTO.getEmail());
 
@@ -55,6 +56,8 @@ public class AccountController {
 
     @DeleteMapping
     @Operation(summary = "Delete account by email")
+    //TODO Use AOP to validate JWT context
+    //TODO Use AOP to revoke JWT tokens if successful
     public ResponseEntity<?> deleteAccountByEmail(@RequestBody DeleteAccountRequestDTO deleteAccountDTO) {
         validateJwtContextWithRequest(deleteAccountDTO.getAccountId(), deleteAccountDTO.getEmail());
 
@@ -64,9 +67,10 @@ public class AccountController {
 
     @PostMapping("/send-verification-email")
     @Operation(summary = "Send verification email to the currently logged in account")
+    //TODO USE AOP to validate JWT context
+    //TODO USE AOP to revoke JWT tokens if successful
     public ResponseEntity<?> sendVerificationEmail(@RequestBody AccountVerifyRequestDTO dto) {
         validateJwtContextWithRequest(dto.getAccountId(), dto.getEmail());
-
         accountService.sendVerificationEmail(dto);
         return ResponseEntity.ok(Messages.Success.Account.VERIFICATION_EMAIL_SENT);
     }
@@ -76,6 +80,16 @@ public class AccountController {
     public ResponseEntity<String> setVerificationStatus(@RequestParam String email, @RequestParam boolean status) {
         accountService.setVerificationStatus(email, status);
         return ResponseEntity.ok("Verification status updated successfully");
+    }
+
+    @PostMapping("logout")
+    @Operation(summary = "Logout the currently logged in account")
+    //TODO USE AOP to validate JWT context
+    //TODO USE AOP to revoke JWT tokens if successful
+    public ResponseEntity<String> logout() {
+        //TODO Implement logout logic
+
+        return ResponseEntity.ok("Logout successful");
     }
 
     /**

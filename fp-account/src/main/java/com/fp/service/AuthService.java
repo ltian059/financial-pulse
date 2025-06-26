@@ -12,6 +12,6 @@ public interface AuthService {
 
     RefreshTokenVO validateRefreshToken(String refreshToken);
 
-    void verifyAccountEmail(String verifyToken);
+    String verifyAccountEmail(String verifyToken);
 
 }

@@ -133,11 +133,13 @@ public abstract class DynamoDbRepository<T> {
     /**
      * Update item using the item-based approach
      */
-    public T updateItem(T item, IgnoreNullsMode ignoreNullsMode) {
-        return table.updateItem(UpdateItemEnhancedRequest.builder(entityClass)
+    public Optional<T> updateItem(T item, IgnoreNullsMode ignoreNullsMode) {
+        return Optional.of
+                (table.updateItem(UpdateItemEnhancedRequest.builder(entityClass)
                 .item(item)
                 .ignoreNullsMode(ignoreNullsMode)
-                .build());
+                .build())
+                );
     }
 
     /**
