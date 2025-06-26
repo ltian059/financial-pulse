@@ -100,7 +100,7 @@ jobs:
           SERVER_PORT=8080
           # External Services Configuration
           SERVICES_ACCOUNT_ENABLED=false
-          SERVICES_ACCOUNT_URL=$${{ vars.SERVICES_ACCOUNT_URL }}
+          SERVICES_ACCOUNT_URL=${{ vars.SERVICES_ACCOUNT_URL }}
           SERVICES_CONTENT_URL=http://localhost:8081
           SERVICES_FOLLOW_URL=http://localhost:8082
           
