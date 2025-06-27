@@ -25,7 +25,7 @@ springdoc:
 
 fp:
   jwt:
-    secret: ${JWT_SECRET};
+    secret: ${JWT_SECRET}
   aws:
     dynamodb:
       enabled: true

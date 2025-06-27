@@ -94,7 +94,7 @@ public class AccountServiceImpl implements AccountService {
                     .bodyToMono(String.class)
                     .block();
         } catch (WebClientResponseException e) {
-            throw new GetFollowAccountServiceException();
+            throw new GetFollowAccountServiceException(e.getResponseBodyAsString(), e.getCause());
         }
     }
 

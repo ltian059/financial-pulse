@@ -1,6 +1,7 @@
 package com.fp.autoconfigure;
 
 import com.fp.properties.DynamoDbProperties;
+import com.fp.repository.RevokedJwtRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -40,6 +41,12 @@ public class DynamoDbAutoConfiguration {
                 .build();
 
         return dbEnhancedClient;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RevokedJwtRepository revokedJwtRepository() {
+        return new RevokedJwtRepository();
     }
 
 

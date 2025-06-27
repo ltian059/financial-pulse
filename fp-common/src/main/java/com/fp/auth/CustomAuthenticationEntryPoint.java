@@ -57,7 +57,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setCharacterEncoding("UTF-8");
 
         var authenticationErrorInfo = UnauthorizedAuthClassifier.classifyError(authException, authHeader);
-
+        //TODO Add more information to the error response, e.g. Signature verification failure
         AuthResponseDTO authResponse = AuthResponseDTO.unauthorized(
                 requestURI,
                 Messages.Error.Auth.unauthorized(authException.getMessage()),

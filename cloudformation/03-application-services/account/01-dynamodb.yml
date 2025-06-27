@@ -1,0 +1,140 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Financial Pulse DynamoDB Tables - Account Service'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, test, prod]
+    Description: Environment name
+
+  TablePrefix:
+    Type: String
+    Default: fp
+    Description: Prefix for table names
+
+Resources:
+  # DynamoDB table for accounts
+  AccountTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${TablePrefix}-account-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+        - AttributeName: account_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: account-id-index
+          KeySchema:
+            - AttributeName: account_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      # Enable point-in-time recovery for production
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [IsProduction, true, false]
+      # Server-side encryption
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${TablePrefix}-account-${Environment}
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Service
+          Value: account
+        - Key: Purpose
+          Value: user-accounts
+
+  # DynamoDB table for revoked JWTs
+  RevokedJwtTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${TablePrefix}-revoked-jwt-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: jti
+          AttributeType: S
+        - AttributeName: account_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: jti
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: account-id-index
+          KeySchema:
+            - AttributeName: account_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      # TTL for automatic cleanup of expired tokens
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      # Enable point-in-time recovery for production
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [IsProduction, true, false]
+      # Server-side encryption
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${TablePrefix}-revoked-jwt-${Environment}
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Service
+          Value: account
+        - Key: Purpose
+          Value: jwt-blacklist
+
+Conditions:
+  IsProduction: !Equals [!Ref Environment, 'prod']
+
+Outputs:
+  AccountTableName:
+    Description: Name of the Account DynamoDB table
+    Value: !Ref AccountTable
+    Export:
+      Name: !Sub ${AWS::StackName}-AccountTableName
+
+  AccountTableArn:
+    Description: ARN of the Account DynamoDB table
+    Value: !GetAtt AccountTable.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-AccountTableArn
+
+  RevokedJwtTableName:
+    Description: Name of the Revoked JWT DynamoDB table
+    Value: !Ref RevokedJwtTable
+    Export:
+      Name: !Sub ${AWS::StackName}-RevokedJwtTableName
+
+  RevokedJwtTableArn:
+    Description: ARN of the Revoked JWT DynamoDB table
+    Value: !GetAtt RevokedJwtTable.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-RevokedJwtTableArn
+
+  # 用于应用配置的输出
+  DynamoDBRegion:
+    Description: AWS Region for DynamoDB tables
+    Value: !Ref AWS::Region
+    Export:
+      Name: !Sub ${AWS::StackName}-DynamoDBRegion
+
+  TablePrefix:
+    Description: Table prefix used
+    Value: !Ref TablePrefix
+    Export:
+      Name: !Sub ${AWS::StackName}-TablePrefix
+
+  TableSuffix:
+    Description: Table suffix (environment)
+    Value: !Ref Environment
+    Export:
+      Name: !Sub ${AWS::StackName}-TableSuffix

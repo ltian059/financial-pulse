@@ -29,11 +29,8 @@ public class ServiceAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(
-            prefix = "external-services.follow-service",
-            name = "enabled", havingValue = "true", matchIfMissing = true
-    )
     @ConditionalOnMissingBean(name = "followWebClient")
+    @ConditionalOnProperty(prefix = "services.follow", name = "enabled", havingValue = "true", matchIfMissing = true)
     public WebClient followWebClient() {
         return WebClientFactory.create(
                 properties.getFollow().getUrl(),
@@ -42,11 +39,8 @@ public class ServiceAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(
-            prefix = "external-services.content-service",
-            name = "enabled", havingValue = "true", matchIfMissing = true
-    )
     @ConditionalOnMissingBean(name = "contentWebClient")
+    @ConditionalOnProperty(prefix = "services.content", name = "enabled", havingValue = "true", matchIfMissing = true)
     public WebClient contentWebClient() {
         return WebClientFactory.create(
                 properties.getContent().getUrl(),
@@ -55,11 +49,8 @@ public class ServiceAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(
-            prefix = "external-services.account-service",
-            name = "enabled", havingValue = "true", matchIfMissing = true
-    )
     @ConditionalOnMissingBean(name = "accountWebClient")
+    @ConditionalOnProperty(prefix = "services.account", name = "enabled", havingValue = "true", matchIfMissing = true)
     public WebClient accountWebClient(){
         return WebClientFactory.create(
                 properties.getAccount().getUrl(),

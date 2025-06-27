@@ -19,4 +19,13 @@ public abstract class ServiceException extends BaseException{
         return httpStatus.value();
     }
 
+    protected ServiceException(HttpStatus httpStatus, String message, Throwable cause) {
+        super(message, cause);
+        this.httpStatus = httpStatus;
+    }
+    protected ServiceException(HttpStatus httpStatus, Throwable cause) {
+        super(cause);
+        this.httpStatus = httpStatus;
+    }
+
 }

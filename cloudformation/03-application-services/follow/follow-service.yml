@@ -1,0 +1,200 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Financial Pulse Follow Service Infrastructure
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - test
+      - prod
+    Description: Environment name
+
+  AmiId:
+    Description: The Amazon Linux 2 AMI ID
+    Type: AWS::EC2::Image::Id
+    Default: ami-0c3391e886cc52a28
+
+  LatestAmiId:
+    Description: The latest Amazon Linux 2 AMI from the Parameter Store
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t3.micro
+    Description: EC2 Instance type
+
+  VPCStackName:
+    Type: String
+    Default: fp-vpc-dev
+    Description: VPC Stack name
+
+  SecurityStackName:
+    Type: String
+    Default: fp-security-dev
+    Description: Security Stack name
+
+  DatabaseStackName:
+    Type: String
+    Default: fp-postgres-dev
+    Description: Aurora Database Stack name
+
+  # EIP AllocationId
+  ElasticIPAllocationId:
+    Type: String
+    Description: Allocation ID of existing Elastic IP
+    Default: eipalloc-05dd1a67802d57d3c
+
+  # Database Configuration
+  DatabaseName:
+    Type: String
+    Default: fp_follow_dev
+    Description: PostgreSQL database name for follow service
+
+
+Resources:
+  # IAM Role for Follow Service
+  FollowServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+      Tags:
+        - Key: Name
+          Value: !Sub fp-follow-role-${Environment}
+        - Key: Service
+          Value: follow
+
+  FollowServiceInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref FollowServiceRole
+
+  # EC2 Instance for Follow Service
+  FollowServiceInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref FollowServiceInstanceProfile
+      KeyName: fp-keypair
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub ${SecurityStackName}-ApplicationSecurityGroupId
+      SubnetId:
+        Fn::ImportValue: !Sub ${VPCStackName}-PublicSubnet1Id
+      UserData: !Base64
+        Fn::Sub: |
+          #!/bin/bash
+          # Update system
+          yum update -y
+          
+          # Install Java 17
+          yum install -y java-17-amazon-corretto-headless wget
+          
+          # Create app directory
+          mkdir -p /opt/app
+          
+          # Change ownership to ec2-user
+          chown -R ec2-user:ec2-user /opt/app
+          
+          # Set proper permissions
+          chmod 755 /opt/app
+          
+          # Create status file as root, then change ownership
+          echo "EC2 instance setup completed at $(date)" > /opt/app/setup-status.txt
+          chown ec2-user:ec2-user /opt/app/setup-status.txt
+          
+          # Verify Java installation as root, then change ownership
+          java -version > /opt/app/java-version.txt 2>&1
+          chown ec2-user:ec2-user /opt/app/java-version.txt
+          
+          # Ensure all files in /opt/app belong to ec2-user
+          chown -R ec2-user:ec2-user /opt/app
+          
+          # Log the setup completion
+          echo "Setup completed successfully" >> /var/log/user-data.log
+      Tags:
+        - Key: Name
+          Value: !Sub fp-follow-service-${Environment}
+        - Key: Service
+          Value: follow
+
+  # Associate Elastic IP with Instance
+  FollowServiceEIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !Ref ElasticIPAllocationId
+      InstanceId: !Ref FollowServiceInstance
+
+Outputs:
+  InstanceId:
+    Description: Instance ID of the Follow Service
+    Value: !Ref FollowServiceInstance
+    Export:
+      Name: !Sub ${AWS::StackName}-InstanceId
+
+  InstancePublicIP:
+    Description: Public IP of the EC2 instance
+    Value: !GetAtt FollowServiceInstance.PublicIp
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicIP
+
+  PrivateIP:
+    Description: Private IP of the EC2 instance
+    Value: !GetAtt FollowServiceInstance.PrivateIp
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateIP
+
+  SSHCommand:
+    Description: SSH command to connect to the instance
+    Value: !Sub "ssh -i fp-keypair.pem ec2-user@${FollowServiceInstance.PublicIp}"
+
+  ServiceEndpoint:
+    Description: Service endpoint
+    Value: !Sub "http://${FollowServiceInstance.PublicIp}:8082"
+    Export:
+      Name: !Sub ${AWS::StackName}-ServiceEndpoint
+
+  DatabaseConnectionInfo:
+    Description: Database connection information for fp_follow_dev
+    Value: !Sub
+      - "jdbc:postgresql://${DatabaseEndpoint}:${DatabasePort}/${DatabaseName}"
+      - DatabaseEndpoint:
+          Fn::ImportValue: !Sub ${DatabaseStackName}-DBEndpoint
+        DatabasePort:
+          Fn::ImportValue: !Sub ${DatabaseStackName}-DBPort
+
+  # Environment variables for application deployment
+  DatabaseEndpoint:
+    Description: Database endpoint for environment variables
+    Value:
+      Fn::ImportValue: !Sub ${DatabaseStackName}-DBEndpoint
+    Export:
+      Name: !Sub ${AWS::StackName}-DatabaseEndpoint
+
+  DatabasePort:
+    Description: Database port for environment variables
+    Value:
+      Fn::ImportValue: !Sub ${DatabaseStackName}-DBPort
+    Export:
+      Name: !Sub ${AWS::StackName}-DatabasePort
+
+  DatabaseUsername:
+    Description: Database username for environment variables
+    Value:
+      Fn::ImportValue: !Sub ${DatabaseStackName}-MasterUsername
+    Export:
+      Name: !Sub ${AWS::StackName}-DatabaseUsernam

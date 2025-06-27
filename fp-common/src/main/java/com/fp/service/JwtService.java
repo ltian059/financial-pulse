@@ -3,6 +3,7 @@ package com.fp.service;
 import com.fp.constant.JwtClaimsKey;
 import com.fp.enumeration.jwt.JwtType;
 import com.fp.exception.business.AccountNotFoundException;
+import com.fp.exception.business.JwtRepositoryNotFoundException;
 import com.fp.exception.business.JwtRevokedException;
 import com.fp.exception.business.JwtRevokingException;
 import com.fp.properties.JwtProperties;
@@ -125,7 +126,7 @@ public class JwtService {
     private boolean isRevokedJwt(Jwt jwt) {
         if (revokedJwtRepository == null) {
             log.warn("RevokedTokenRepository is null: The invoking service does not have DynamoDB service enabled.");
-            return true;
+            throw new JwtRepositoryNotFoundException();
         }
         return revokedJwtRepository.exists(jwt);
     }
@@ -133,7 +134,7 @@ public class JwtService {
     public void revokeJwt(Jwt jwt, String reason) {
         if(revokedJwtRepository == null){
             log.warn("RevokedTokenRepository is null: The invoking service does not have DynamoDB service enabled.");
-            return;
+            throw new JwtRepositoryNotFoundException();
         }
         revokedJwtRepository.revokeJwt(jwt, reason);
     }

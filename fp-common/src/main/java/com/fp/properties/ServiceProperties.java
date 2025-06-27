@@ -14,21 +14,15 @@ public class ServiceProperties {
     private ServiceConfig follow;
 
     public ServiceProperties() {
-        account = ServiceConfig.builder()
-                .url("http://localhost:8080")
-                .build();
-        content = ServiceConfig.builder()
-                .url("http://localhost:8081")
-                .build();
-        follow = ServiceConfig.builder()
-                .url("http://localhost:8082")
-                .build();
+        this.account = new ServiceConfig("http://localhost:8080");
+        this.content = new ServiceConfig("http://localhost:8081");
+        this.follow = new ServiceConfig("http://localhost:8082");
     }
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder
     public static class ServiceConfig{
+
         private String url;
         private boolean enabled = true;
         /**
@@ -37,5 +31,9 @@ public class ServiceProperties {
         private boolean enableJwtPropagation = true;
         private int timeout = 5000;
         private int maxRetries = 3;
+
+        public ServiceConfig(String url) {
+            this.url = url;
+        }
     }
 }

@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Financial Pulse Shared Security Groups'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, test, prod]
+
+  VPCStackName:
+    Type: String
+    Default: fp-vpc-dev
+    Description: VPC Stack name to import VPC ID
+
+  MyIP:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: Your IP address for SSH and HTTP access
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: ^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$
+    ConstraintDescription: must be a valid IP CIDR range
+
+Resources:
+  # Common Application Security Group (for all services)
+  ApplicationSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Common security group for all application services
+      VpcId:
+        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
+      SecurityGroupIngress:
+        # SSH access
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref MyIP
+          Description: SSH access from admin IP
+        # Direct access for development
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8090
+          CidrIp: !Ref MyIP
+          Description: Direct HTTP access from admin IPv4
+
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8082
+          CidrIp: 0.0.0.0/0
+          Description: Public HTTP access to services
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8082
+          CidrIpv6: ::/0
+          Description: Public HTTP IPv6 access to services
+      Tags:
+        - Key: Name
+          Value: !Sub fp-app-sg-${Environment}
+
+  # Database Security Group
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Aurora PostgreSQL
+      VpcId:
+        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref ApplicationSecurityGroup
+          Description: PostgreSQL access from application servers
+
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: !Ref MyIP
+          Description: PostgreSQL access from admin IP for development
+      Tags:
+        - Key: Name
+          Value: !Sub fp-db-sg-${Environment}
+
+  # Allow inter-service communication
+  ApplicationSecurityGroupIngressSelf:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ApplicationSecurityGroup
+      IpProtocol: tcp
+      FromPort: 8080
+      ToPort: 8090
+      SourceSecurityGroupId: !Ref ApplicationSecurityGroup
+      Description: Inter-service communication
+
+Outputs:
+  ApplicationSecurityGroupId:
+    Description: Application Security Group ID
+    Value: !Ref ApplicationSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-ApplicationSecurityGroupId
+
+  DatabaseSecurityGroupId:
+    Description: Database Security Group ID
+    Value: !Ref DatabaseSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-DatabaseSecurityGroupId

@@ -18,7 +18,6 @@ Parameters:
     Description: The latest Amazon Linux 2 AMI from the Parameter Store
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
-
   InstanceType:
     Type: String
     Default: t2.micro
@@ -27,19 +26,26 @@ Parameters:
       - t3.micro
     Description: EC2 Instance type
 
-  MyIPv6:
-    Description: Your IPv6 address or range in CIDR format (e.g. 2001:db8::/64)
+  VPCStackName:
     Type: String
-    Default: ::/0
+    Default: fp-vpc-dev
+    Description: VPC Stack name
 
-  MyIPv4:
-    Description: Your IPv4 address in CIDR format (if available)
+  SecurityStackName:
     Type: String
-    Default: 0.0.0.0/0
-    MinLength: '9'
-    MaxLength: '18'
-    AllowedPattern: ^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$
-    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+    Default: fp-security-dev
+    Description: Security Stack name
+
+  DynamoDBStackName:
+    Type: String
+    Default: fp-dynamodb-dev
+    Description: DynamoDB Tables Stack name
+
+  #EIP AllocationId
+  ElasticIPAllocationId:
+    Type: String
+    Description: Allocation ID of existing Elastic IP (e.g., eipalloc-1234567890abcdef0)
+    Default: eipalloc-00306762fa828833d
 
 Resources:
   AccountServiceRole:
@@ -60,81 +66,13 @@ Resources:
           Value: !Sub fp-account-role-${Environment}
         - Key: Service
           Value: account
-
-  # DynamoDB table for accounts
-  AccountTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: fp-account-dev
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: email
-          AttributeType: S
-        - AttributeName: account_id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: email
-          KeyType: HASH
-      GlobalSecondaryIndexes:
-        - IndexName: account-id-index
-          KeySchema:
-            - AttributeName: account_id
-              KeyType: HASH
-          Projection:
-            ProjectionType: ALL
-  #DynamoDB table for revoked JWTs
-  RevokedJwtTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: fp-revoked-jwt-dev
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: jti
-          AttributeType: S
-        - AttributeName: account_id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: jti
-          KeyType: HASH
-      GlobalSecondaryIndexes:
-        - IndexName: account-id-index
-          KeySchema:
-            - AttributeName: account_id
-              KeyType: HASH
-          Projection:
-            ProjectionType: ALL
-      TimeToLiveSpecification:
-        AttributeName: ttl
-        Enabled: true
-  # Security Group for EC2
-  AccountServiceSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Security group for Account Service
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
-          CidrIp: !Ref MyIPv4
-          Description: Application port
-
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
-          CidrIpv6: !Ref MyIPv6
-          Description: Application port for IPv6 - home network
-
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
-          Description: SSH access
-
   AccountServiceInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
         - !Ref AccountServiceRole
+
+
   AccountServiceInstance:
     Type: AWS::EC2::Instance
     Properties:
@@ -143,7 +81,9 @@ Resources:
       IamInstanceProfile: !Ref AccountServiceInstanceProfile
       KeyName: fp-keypair
       SecurityGroupIds:
-        - !Ref AccountServiceSecurityGroup
+        - Fn::ImportValue: !Sub ${SecurityStackName}-ApplicationSecurityGroupId
+      SubnetId:
+        Fn::ImportValue: !Sub ${VPCStackName}-PublicSubnet1Id
       UserData: !Base64
         Fn::Sub: |
           #!/bin/bash
@@ -179,22 +119,60 @@ Resources:
       Tags:
         - Key: Name
           Value: fp-account-service-${Environment}
+  # Associate Elastic IP with Instance
+  AccountServiceEIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !Ref ElasticIPAllocationId
+      InstanceId: !Ref AccountServiceInstance
+
 Outputs:
+  InstanceId:
+    Description: Instance ID of the Account Service
+    Value: !Ref AccountServiceInstance
+    Export:
+      Name: !Sub ${AWS::StackName}-InstanceId
+
   InstancePublicIP:
     Description: Public IP of the EC2 instance
     Value: !GetAtt AccountServiceInstance.PublicIp
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicIP
 
-  AccountTableName:
-    Description: Name of the DynamoDB table
-    Value: !Ref AccountTable
-  RevokedJwtTableName:
-    Description: Name of the DynamoDB table for revoked JWTs
-    Value: !Ref RevokedJwtTable
+  PrivateIP:
+    Description: Private IP of the EC2 instance
+    Value: !GetAtt AccountServiceInstance.PrivateIp
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateIP
+
   SSHCommand:
     Description: SSH command to connect to the instance
     Value: !Sub "ssh -i fp-keypair.pem ec2-user@${AccountServiceInstance.PublicIp}"
 
-
   ServiceEndpoint:
     Description: Service endpoint
     Value: !Sub "http://${AccountServiceInstance.PublicIp}:8080"
+    Export:
+      Name: !Sub ${AWS::StackName}-ServiceEndpoint
+
+  # Reference to DynamoDB tables (from imported stack)
+  AccountTableName:
+    Description: Name of the Account DynamoDB table
+    Value:
+      Fn::ImportValue: !Sub ${DynamoDBStackName}-AccountTableName
+
+  RevokedJwtTableName:
+    Description: Name of the Revoked JWT DynamoDB table
+    Value:
+      Fn::ImportValue: !Sub ${DynamoDBStackName}-RevokedJwtTableName
+  # Environment variables for application deployment
+  DynamoDBConfiguration:
+    Description: DynamoDB configuration for application
+    Value: !Sub
+      - "Region: ${Region}, TablePrefix: ${TablePrefix}, TableSuffix: ${TableSuffix}"
+      - Region:
+          Fn::ImportValue: !Sub ${DynamoDBStackName}-DynamoDBRegion
+        TablePrefix:
+          Fn::ImportValue: !Sub ${DynamoDBStackName}-TablePrefix
+        TableSuffix:
+          Fn::ImportValue: !Sub ${DynamoDBStackName}-TableSuffix
