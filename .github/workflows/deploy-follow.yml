@@ -87,6 +87,7 @@ jobs:
           echo "Environment: $ENV_NAME"
           echo "Spring Profile: $SPRING_PROFILE"
           echo "profile=$SPRING_PROFILE" >> $GITHUB_OUTPUT
+          
 
       - name: Create environment configuration
         run: |
@@ -115,6 +116,17 @@ jobs:
           EOF
 
           echo "Environment configuration created"
+
+      - name: Debug Environment Variables
+        run: |
+          echo "Current environment: ${{ github.event.inputs.environment }}"
+          echo "Profile: ${{ steps.profile.outputs.profile }}"
+          echo "JWT_SECRET exists: ${{ secrets.JWT_SECRET != '' }}"
+          echo "FOLLOW_DB_URL exists: ${{ secrets.FOLLOW_DB_URL != '' }}"
+          echo "FOLLOW_DB_USERNAME exists: ${{ secrets.FOLLOW_DB_USERNAME != '' }}"
+          echo "FOLLOW_DB_PASSWORD exists: ${{ secrets.FOLLOW_DB_PASSWORD != '' }}"
+          echo "AWS_REGION: ${{ vars.AWS_REGION }}"
+          
 
       - name: Set up start script
         run: |
