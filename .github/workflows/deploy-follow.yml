@@ -2,10 +2,11 @@ name: Deploy Follow Service
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, follow-test-deployment ]
     paths:
       - 'fp-follow/**'
       - 'fp-common/**'
+      - '.github/workflows/deploy-follow.yml'
   workflow_dispatch:
     inputs:
       environment:
