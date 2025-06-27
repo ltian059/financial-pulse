@@ -34,4 +34,22 @@ public class FollowController {
         followService.followAccount(followerId, followeeId);
         return ResponseEntity.ok(null);
     }
+
+
+    //TODO Unfollow an account
+
+
+
+    //TODO Get a list of followers of an account
+
+
+
+
+    //TODO Get a list of accounts that a user is following
+
+
+    //TODO get a list of accounts that a use is following with pagination
+
+    //TODO get a list of followers of an account with pagination
+
 }

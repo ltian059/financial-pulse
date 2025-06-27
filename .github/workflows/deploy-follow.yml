@@ -2,7 +2,7 @@ name: Deploy Follow Service
 
 on:
   push:
-    branches: [ master, follow-test-deployment ]
+    branches: [ master ]
     paths:
       - 'fp-follow/**'
       - 'fp-common/**'

@@ -92,6 +92,11 @@ public class AccountController {
         return ResponseEntity.ok("Logout successful");
     }
 
+
+    //TODO Set the date of birthday of an account
+
+
+
     /**
      * Validate the JWT context with the request parameters.
      * @param accountIdInRequest the account ID from the request

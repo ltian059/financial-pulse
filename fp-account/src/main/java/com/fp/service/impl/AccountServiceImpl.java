@@ -83,6 +83,9 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void followAccount(FollowAccountRequestDTO followAccountRequestDTO) {
         try {
+            //TODO Asynchronously handle the follow request; SQS or Kafka can be used for this purpose
+
+            //TODO SQS handle dead letter queue for failed follow requests
             followWebClient.method(FollowServiceAPI.FOLLOW_ACCOUNT.getMethod())
                     .uri(uriBuilder -> uriBuilder
                             .path(FollowServiceAPI.FOLLOW_ACCOUNT.getPath())

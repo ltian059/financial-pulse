@@ -34,7 +34,7 @@ public class SesServiceImpl implements SesService {
         String htmlBody = buildVerifyEmailHtml(account.getName(), verifyUrl);
         String textBody = buildVerifyEmailText(account.getName(), verifyUrl);
         //4. Send the email using SES client
-
+        //TODO: USE SQS to send email asynchronously
         sendEmail(account.getEmail(), subject, htmlBody, textBody);
         log.debug("Verification email sent successfully to: {}", account.getEmail());
 
