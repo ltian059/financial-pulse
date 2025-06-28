@@ -1,6 +1,6 @@
 package com.fp.handler;
 
-import com.fp.dto.exception.ExceptionResponseDTO;
+import com.fp.dto.common.ExceptionResponseDTO;
 import com.fp.exception.BusinessException;
 import com.fp.exception.ServiceException;
 import lombok.extern.slf4j.Slf4j;

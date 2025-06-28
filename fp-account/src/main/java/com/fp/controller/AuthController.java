@@ -1,12 +1,11 @@
 package com.fp.controller;
 
-import com.fp.service.AccountService;
-import com.fp.dto.auth.LoginDTO;
-import com.fp.dto.auth.CreateAccountDTO;
-import com.fp.dto.auth.RefreshTokenDTO;
+import com.fp.dto.auth.request.LoginRequestDTO;
+import com.fp.dto.auth.request.CreateAccountRequestDTO;
+import com.fp.dto.auth.request.RefreshTokenRequestDTO;
 import com.fp.service.AuthService;
-import com.fp.vo.auth.LoginVO;
-import com.fp.vo.auth.RefreshTokenVO;
+import com.fp.dto.auth.response.LoginResponseDTO;
+import com.fp.dto.auth.response.RefreshTokenResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,24 +23,24 @@ public class AuthController {
 
     @PostMapping("/create-account")
     @Operation(summary = "Create a new account")
-    public ResponseEntity<String > createAccount(@RequestBody CreateAccountDTO createAccountDTO){
-        authService.createAccount(createAccountDTO);
+    public ResponseEntity<String > createAccount(@RequestBody CreateAccountRequestDTO createAccountRequestDTO){
+        authService.createAccount(createAccountRequestDTO);
         return ResponseEntity.ok("Account created successfully");
     }
 
     @PostMapping("/login")
     @Operation(summary = "Account login")
     @ApiResponse(description = "loginVO contains account information and JWT tokens")
-    public ResponseEntity<LoginVO> login(@RequestBody LoginDTO loginDTO){
-        LoginVO loginVO = authService.login(loginDTO);
-        return ResponseEntity.ok(loginVO);
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO){
+        LoginResponseDTO loginResponseDTO = authService.login(loginRequestDTO);
+        return ResponseEntity.ok(loginResponseDTO);
     }
 
     @PostMapping("/refresh")
     @Operation(summary = "Refresh access token using refresh token")
     @ApiResponse(description = "Returns a new access token and optionally a new refresh token")
-    public ResponseEntity<RefreshTokenVO> refreshToken(@RequestBody RefreshTokenDTO refreshTokenDTO){
-        var refreshTokenVO = authService.validateRefreshToken(refreshTokenDTO.getRefreshToken());
+    public ResponseEntity<RefreshTokenResponseDTO> refreshToken(@RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO){
+        var refreshTokenVO = authService.validateRefreshToken(refreshTokenRequestDTO.getRefreshToken());
         return ResponseEntity.ok(refreshTokenVO);
     }
 

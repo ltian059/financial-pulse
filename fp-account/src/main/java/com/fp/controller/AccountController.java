@@ -1,8 +1,9 @@
 package com.fp.controller;
 
-import com.fp.dto.account.AccountVerifyRequestDTO;
-import com.fp.dto.account.DeleteAccountRequestDTO;
-import com.fp.dto.account.FollowAccountRequestDTO;
+import com.fp.dto.account.request.AccountVerifyRequestDTO;
+import com.fp.dto.account.request.DeleteAccountRequestDTO;
+import com.fp.dto.follow.request.FollowRequestDTO;
+import com.fp.dto.account.request.UpdateBirthdayRequestDTO;
 import com.fp.entity.Account;
 import com.fp.exception.business.JwtContextException;
 import com.fp.service.AccountService;
@@ -45,10 +46,10 @@ public class AccountController {
     @PostMapping("/follow")
     @Operation(summary = "Follow another account")
     //TODO Use AOP to validate JWT context
-    public ResponseEntity<String > followAccount(@RequestBody FollowAccountRequestDTO followAccountRequestDTO){
-        validateJwtContextWithRequest(followAccountRequestDTO.getAccountId(), followAccountRequestDTO.getEmail());
+    public ResponseEntity<String > follow(@RequestBody FollowRequestDTO followRequestDTO){
+        validateJwtContextWithRequest(followRequestDTO.getAccountId(), followRequestDTO.getEmail());
 
-        accountService.followAccount(followAccountRequestDTO);
+        accountService.follow(followRequestDTO);
         return ResponseEntity.ok(Messages.Success.Follow.FOLLOWED_SUCCESSFULLY);
     }
 
@@ -77,8 +78,8 @@ public class AccountController {
 
     @PutMapping("/set-verification-status")
     @Operation(summary = "Set account verification status ONLY FOR TESTING PURPOSES")
-    public ResponseEntity<String> setVerificationStatus(@RequestParam String email, @RequestParam boolean status) {
-        accountService.setVerificationStatus(email, status);
+    public ResponseEntity<String> updateVerificationStatus(@RequestParam String email, @RequestParam boolean status) {
+        accountService.updateVerificationStatus(email, status);
         return ResponseEntity.ok("Verification status updated successfully");
     }
 
@@ -86,16 +87,21 @@ public class AccountController {
     @Operation(summary = "Logout the currently logged in account")
     //TODO USE AOP to validate JWT context
     //TODO USE AOP to revoke JWT tokens if successful
-    public ResponseEntity<String> logout() {
-        //TODO Implement logout logic
-
+    public ResponseEntity<?> logout() {
+        accountService.logout();
         return ResponseEntity.ok("Logout successful");
     }
 
 
-    //TODO Set the date of birthday of an account
-
-
+    //TODO Use AOP to validate JWT context
+    //TODO update the date of birthday of an account
+    @PutMapping("/update-birthday")
+    @Operation(summary = "Set the birthday of the currently logged in account")
+    public ResponseEntity<?> updateBirthday(@RequestBody UpdateBirthdayRequestDTO birthdayRequestDTO) {
+        validateJwtContextWithRequest(birthdayRequestDTO.getAccountId(), birthdayRequestDTO.getEmail());
+        accountService.updateBirthday(birthdayRequestDTO);
+        return  ResponseEntity.ok("Birthday updated successfully");
+    }
 
     /**
      * Validate the JWT context with the request parameters.

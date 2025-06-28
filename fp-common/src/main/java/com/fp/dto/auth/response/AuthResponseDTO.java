@@ -1,4 +1,4 @@
-package com.fp.dto.auth;
+package com.fp.dto.auth.response;
 
 
 import lombok.Builder;

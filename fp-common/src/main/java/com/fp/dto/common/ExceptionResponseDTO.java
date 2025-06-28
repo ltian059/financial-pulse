@@ -1,4 +1,4 @@
-package com.fp.dto.exception;
+package com.fp.dto.common;
 
 import lombok.Builder;
 import lombok.Data;

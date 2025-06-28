@@ -1,8 +1,7 @@
 package com.fp.client;
 
-import com.fp.dto.account.FollowAccountRequestDTO;
+import com.fp.dto.follow.request.FollowRequestDTO;
 import com.fp.enumeration.api.FollowServiceAPI;
-import com.fp.exception.service.GetFollowAccountServiceException;
 import com.fp.util.ServiceExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +40,7 @@ public class FollowServiceClient {
     }
 
 
-    public void followAccount(FollowAccountRequestDTO followAccountRequestDTO) {
+    public void follow(FollowRequestDTO followRequestDTO) {
         try {
             //TODO Asynchronously handle the follow request; SQS or Kafka can be used for this purpose
 
@@ -49,10 +48,9 @@ public class FollowServiceClient {
             followWebClient.method(FollowServiceAPI.FOLLOW_ACCOUNT.getMethod())
                     .uri(uriBuilder -> uriBuilder
                             .path(FollowServiceAPI.FOLLOW_ACCOUNT.getPath())
-                            .queryParam("followerId", followAccountRequestDTO.getAccountId())
-                            .queryParam("followeeId", followAccountRequestDTO.getFolloweeId())
                             .build()
                     )
+                    .bodyValue(followRequestDTO)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();

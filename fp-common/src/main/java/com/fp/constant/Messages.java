@@ -11,6 +11,7 @@ public final class Messages {
             public static final String EMAIL_SENDING_ERROR = "Error sending verification email.";
             public static final String JWT_CONTEXT_ERROR = "JWT Authentication context is invalid. Please try to re-login.";
             public static final String ALREADY_VERIFIED = "Account already verified.";
+            public static final String BIRTHDAY_FORMAT_ERROR = "Birthday format error. Please check your birthday format is MM/dd/yyyy and the value is correct.";
 
             private Account() {}
             public static final String NOT_FOUND = "Account not found.";

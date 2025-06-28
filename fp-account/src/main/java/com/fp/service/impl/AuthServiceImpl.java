@@ -1,8 +1,8 @@
 package com.fp.service.impl;
 
 import com.fp.constant.Messages;
-import com.fp.dto.auth.CreateAccountDTO;
-import com.fp.dto.auth.LoginDTO;
+import com.fp.dto.auth.request.CreateAccountRequestDTO;
+import com.fp.dto.auth.request.LoginRequestDTO;
 import com.fp.entity.Account;
 import com.fp.exception.business.*;
 import com.fp.exception.service.InvalidRefreshTokenException;
@@ -10,8 +10,8 @@ import com.fp.repository.AccountRepository;
 import com.fp.service.AuthService;
 import com.fp.service.JwtService;
 import com.fp.service.SesService;
-import com.fp.vo.auth.LoginVO;
-import com.fp.vo.auth.RefreshTokenVO;
+import com.fp.dto.auth.response.LoginResponseDTO;
+import com.fp.dto.auth.response.RefreshTokenResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -37,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
     private final SesService sesService;
 
     @Override
-    public void createAccount(CreateAccountDTO accountVO) {
+    public void createAccount(CreateAccountRequestDTO accountVO) {
         //Check if the email already exists.
         Key key = Key.builder().partitionValue(accountVO.getEmail()).build();
         if(accountRepository.exists(key)){
@@ -160,10 +160,10 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public LoginVO login(LoginDTO loginDTO) {
-        String email = loginDTO.getEmail();
-        String password = loginDTO.getPassword();
-        Optional<Account> byEmail = accountRepository.findByKey(Key.builder().partitionValue(loginDTO.getEmail()).build());
+    public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) {
+        String email = loginRequestDTO.getEmail();
+        String password = loginRequestDTO.getPassword();
+        Optional<Account> byEmail = accountRepository.findByKey(Key.builder().partitionValue(loginRequestDTO.getEmail()).build());
         if(byEmail.isEmpty()){
             throw new AccountNotFoundException();
         }
@@ -177,7 +177,7 @@ public class AuthServiceImpl implements AuthService {
         //After login successfully, generate JWT token
         String accessToken = jwtService.generateAccessToken(id, email, name);
         String refreshToken = jwtService.generateRefreshToken(id, email);
-        var loginVO = new LoginVO();
+        var loginVO = new LoginResponseDTO();
         BeanUtils.copyProperties(account, loginVO);
         loginVO.setAccessToken(accessToken);
         loginVO.setRefreshToken(refreshToken);
@@ -194,7 +194,7 @@ public class AuthServiceImpl implements AuthService {
      * @return RefreshTokenVO containing new access token and refresh token
      */
     @Override
-    public RefreshTokenVO validateRefreshToken(String refreshToken) {
+    public RefreshTokenResponseDTO validateRefreshToken(String refreshToken) {
         try {
             if(!jwtService.isRefreshToken(refreshToken)) {
                 throw new InvalidJwtTypeException(Messages.Error.Auth.INVALID_TOKEN_TYPE);
@@ -212,7 +212,7 @@ public class AuthServiceImpl implements AuthService {
             }
             Account account = accountOpt.get();
             //Generate new access token
-            return RefreshTokenVO.builder()
+            return RefreshTokenResponseDTO.builder()
                     .accessToken(jwtService.generateAccessToken(account.getAccountId(), account.getEmail(), account.getName()))
                     .refreshToken(jwtService.generateRefreshToken(account.getAccountId(), account.getEmail()))
                     .build();

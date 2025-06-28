@@ -1,11 +1,11 @@
-package com.fp.dto.auth;
+package com.fp.dto.auth.request;
 
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class CreateAccountDTO implements Serializable {
+public class CreateAccountRequestDTO implements Serializable {
     private String name;
     private String email;
     private String password;

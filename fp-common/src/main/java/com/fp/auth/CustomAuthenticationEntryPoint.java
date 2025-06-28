@@ -2,9 +2,8 @@ package com.fp.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fp.constant.Messages;
-import com.fp.dto.auth.AuthResponseDTO;
+import com.fp.dto.auth.response.AuthResponseDTO;
 import com.fp.util.UnauthorizedAuthClassifier;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

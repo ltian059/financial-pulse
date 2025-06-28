@@ -1,4 +1,4 @@
-package com.fp.dto.account;
+package com.fp.dto.account.request;
 
 import lombok.Data;
 

@@ -1,16 +1,16 @@
 package com.fp.service;
 
-import com.fp.dto.auth.CreateAccountDTO;
-import com.fp.dto.auth.LoginDTO;
-import com.fp.vo.auth.LoginVO;
-import com.fp.vo.auth.RefreshTokenVO;
+import com.fp.dto.auth.request.CreateAccountRequestDTO;
+import com.fp.dto.auth.request.LoginRequestDTO;
+import com.fp.dto.auth.response.LoginResponseDTO;
+import com.fp.dto.auth.response.RefreshTokenResponseDTO;
 
 public interface AuthService {
-    void createAccount(CreateAccountDTO accountVO);
+    void createAccount(CreateAccountRequestDTO accountVO);
 
-    LoginVO login(LoginDTO loginDTO);
+    LoginResponseDTO login(LoginRequestDTO loginRequestDTO);
 
-    RefreshTokenVO validateRefreshToken(String refreshToken);
+    RefreshTokenResponseDTO validateRefreshToken(String refreshToken);
 
     String verifyAccountEmail(String verifyToken);
 

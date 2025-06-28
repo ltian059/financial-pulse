@@ -1,9 +1,10 @@
 package com.fp.service;
 
 
-import com.fp.dto.account.AccountVerifyRequestDTO;
-import com.fp.dto.account.DeleteAccountRequestDTO;
-import com.fp.dto.account.FollowAccountRequestDTO;
+import com.fp.dto.account.request.AccountVerifyRequestDTO;
+import com.fp.dto.account.request.DeleteAccountRequestDTO;
+import com.fp.dto.follow.request.FollowRequestDTO;
+import com.fp.dto.account.request.UpdateBirthdayRequestDTO;
 import com.fp.entity.Account;
 
 public interface AccountService {
@@ -11,7 +12,7 @@ public interface AccountService {
 
     Long getFollowerCountById(String accountId);
 
-    void followAccount(FollowAccountRequestDTO followAccountRequestDTO);
+    void follow(FollowRequestDTO followRequestDTO);
 
 
     Account deleteAccountByEmail(DeleteAccountRequestDTO deleteAccountRequestDTO);
@@ -19,8 +20,11 @@ public interface AccountService {
 
     void sendVerificationEmail(AccountVerifyRequestDTO verifyRequestDTO);
 
-    void setVerificationStatus(String email, boolean status);
+    void updateVerificationStatus(String email, boolean status);
 
     Account getAccountByEmail(String email);
 
+    void logout();
+
+    void updateBirthday(UpdateBirthdayRequestDTO birthdayRequestDTO);
 }

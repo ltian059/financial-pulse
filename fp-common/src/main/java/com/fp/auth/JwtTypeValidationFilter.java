@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fp.constant.JwtClaimsKey;
 import com.fp.constant.Messages;
 import com.fp.constant.UrlConstant;
-import com.fp.dto.auth.AuthResponseDTO;
+import com.fp.dto.auth.response.AuthResponseDTO;
 import com.fp.enumeration.jwt.JwtType;
 import com.fp.util.UnauthorizedAuthClassifier;
 import jakarta.servlet.FilterChain;

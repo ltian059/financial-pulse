@@ -1,4 +1,4 @@
-package com.fp.vo.auth;
+package com.fp.dto.auth.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RefreshTokenVO {
+public class RefreshTokenResponseDTO {
     private String accessToken;
     private String refreshToken;
 

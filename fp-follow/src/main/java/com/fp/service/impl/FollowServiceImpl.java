@@ -1,6 +1,9 @@
 package com.fp.service.impl;
 
+import com.fp.dto.follow.request.FollowRequestDTO;
+import com.fp.dto.follow.request.UnfollowRequestDTO;
 import com.fp.exception.business.DuplicatedFollowException;
+import com.fp.exception.business.FollowRelationshipNotFoundException;
 import com.fp.exception.business.SelfFollowNotAllowedException;
 import com.fp.entity.Follow;
 import com.fp.repository.FollowRepository;
@@ -9,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -31,7 +35,9 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public void followAccount(String followerId, String followeeId) {
+    public void follow(FollowRequestDTO followRequestDTO) {
+        var followeeId = followRequestDTO.getFolloweeId();
+        var followerId = followRequestDTO.getAccountId();
         if(followerId.equals(followeeId)){
             throw new SelfFollowNotAllowedException();
         }
@@ -48,5 +54,30 @@ public class FollowServiceImpl implements FollowService {
         }else{
             throw new DuplicatedFollowException();
         }
+    }
+
+    @Override
+    public void unfollow(UnfollowRequestDTO unfollowRequestDTO) {
+        var followeeId = unfollowRequestDTO.getFolloweeId();
+        var followerId = unfollowRequestDTO.getAccountId();
+        // Check if the follow relationship exists
+        Optional<Follow> optional = followRepository.findByFollowerIdAndFolloweeId(followerId, followeeId);
+        if(optional.isPresent()){
+            //delete the follow relationship
+            followRepository.delete(optional.get());
+        }else{
+            throw new FollowRelationshipNotFoundException();
+        }
+    }
+
+    @Override
+    public List<String> listFollower(String accountId) {
+        // Get the list of followers for the account
+        return followRepository.findFollowerIdsByFolloweeId(accountId);
+    }
+
+    @Override
+    public List<String> listFollowing(String accountId) {
+        return followRepository.findFolloweeIdsByFollowerId(accountId);
     }
 }

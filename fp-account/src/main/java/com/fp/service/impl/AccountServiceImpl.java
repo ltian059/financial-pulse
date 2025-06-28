@@ -1,25 +1,28 @@
 package com.fp.service.impl;
 
 import com.fp.client.FollowServiceClient;
-import com.fp.dto.account.AccountVerifyRequestDTO;
-import com.fp.dto.account.DeleteAccountRequestDTO;
-import com.fp.dto.account.FollowAccountRequestDTO;
+import com.fp.dto.account.request.AccountVerifyRequestDTO;
+import com.fp.dto.account.request.DeleteAccountRequestDTO;
+import com.fp.dto.follow.request.FollowRequestDTO;
+import com.fp.dto.account.request.UpdateBirthdayRequestDTO;
 import com.fp.entity.Account;
 import com.fp.repository.AccountRepository;
 import com.fp.service.AccountService;
 import com.fp.service.SesService;
 import com.fp.constant.Messages;
-import com.fp.enumeration.api.FollowServiceAPI;
 import com.fp.exception.business.*;
 import com.fp.service.JwtService;
-import com.fp.util.ServiceExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import software.amazon.awssdk.enhanced.dynamodb.model.IgnoreNullsMode;
 
+import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +34,7 @@ public class AccountServiceImpl implements AccountService {
     private final SesService sesService;
 
     /// Only for testing purposes, not used in production
-    public void setVerificationStatus(String email, boolean status){
+    public void updateVerificationStatus(String email, boolean status){
         Account account = accountRepository.findByEmail(email);
         account.setVerified(status);
         account.setModifiedAt(Instant.now());
@@ -41,6 +44,37 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account getAccountByEmail(String email) {
         return accountRepository.findByEmail(email);
+    }
+
+    @Override
+    public void logout() {
+        //1. Get the account info from the JWT context
+        String email = jwtService.getEmailFromAuthContext()
+                .orElseThrow(() -> new JwtContextException(Messages.Error.Account.JWT_CONTEXT_ERROR));
+        //2. Revoke access token
+        Jwt jwt = jwtService.getJwtFromAuthContext();
+        jwtService.revokeJwt(jwt, "User logged out");
+    }
+
+    @Override
+    public void updateBirthday(UpdateBirthdayRequestDTO birthdayRequestDTO) {
+        try {
+            LocalDate parsedBirthday = DateUtils.parseDateStrictly(birthdayRequestDTO.getBirthday(), "MM/dd/yyyy")
+                    .toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+            // Validate the birthday is not in the future
+            if(parsedBirthday.isAfter(LocalDate.now())){
+                throw new BirthdayInFutureException();
+            }
+            // Update the account's birthday
+            accountRepository.updateItem(
+                    Account.builder().email(birthdayRequestDTO.getEmail()).birthday(parsedBirthday).build(),
+                    IgnoreNullsMode.SCALAR_ONLY
+            );
+        } catch (ParseException e) {
+            throw new BirthdayFormatParseException(e);
+        }
     }
 
     @Override
@@ -69,8 +103,8 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void followAccount(FollowAccountRequestDTO followAccountRequestDTO) {
-        followServiceClient.followAccount(followAccountRequestDTO);
+    public void follow(FollowRequestDTO followRequestDTO) {
+        followServiceClient.follow(followRequestDTO);
     }
 
 
