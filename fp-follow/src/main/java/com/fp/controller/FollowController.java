@@ -1,16 +1,16 @@
 package com.fp.controller;
 
 
-import com.fp.dto.follow.request.FollowRequestDTO;
-import com.fp.dto.follow.request.UnfollowRequestDTO;
+import com.fp.dto.common.PageResponseDTO;
+import com.fp.dto.follow.request.*;
+import com.fp.dto.follow.response.FollowResponseDTO;
 import com.fp.service.FollowService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "API for Follow Management")
 @RestController
@@ -33,11 +33,10 @@ public class FollowController {
     @Operation(summary = "Follow an account")
     public ResponseEntity<?> follow(@RequestBody FollowRequestDTO followRequestDTO){
         followService.follow(followRequestDTO);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok("Followed successfully");
     }
 
 
-    //TODO TEST THIS ENDPOINT
     @DeleteMapping
     @Operation(summary = "Unfollow an account")
     public ResponseEntity<?> unfollow(@RequestBody UnfollowRequestDTO unfollowRequestDTO){
@@ -46,23 +45,20 @@ public class FollowController {
     }
 
 
-    //TODO TEST THIS ENDPOINT
     @GetMapping("/followers")
-    @Operation(summary = "Get a list of followers of an account")
-    public ResponseEntity<List<String>> listFollower(@RequestParam String accountId){
-        return ResponseEntity.ok(followService.listFollower(accountId));
+    @Operation(summary = "Get a list of followers of an account with cursor pagination")
+    public ResponseEntity<PageResponseDTO<FollowResponseDTO>> listFollower(@Valid ListFollowersRequestDTO listFollowersRequestDTO){
+        return ResponseEntity.ok(followService.listFollowers(listFollowersRequestDTO));
     }
 
-    //TODO TEST THIS ENDPOINT
+
     @GetMapping("/following")
     @Operation(summary = "Get a list of accounts that a user is following")
-    public ResponseEntity<List<String>> getFollowing(@RequestParam String accountId){
-        return ResponseEntity.ok(followService.listFollowing(accountId));
+    public ResponseEntity<PageResponseDTO<FollowResponseDTO>> listFollowing(@Valid ListFollowingsRequestDTO requestDTO){
+        return ResponseEntity.ok(followService.listFollowings(requestDTO));
     }
 
-    //TODO get a list of accounts that a use is following with pagination
 
 
-    //TODO get a list of followers of an account with pagination
 
 }

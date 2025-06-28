@@ -1,9 +1,8 @@
 package com.fp.service;
 
-import com.fp.dto.follow.request.FollowRequestDTO;
-import com.fp.dto.follow.request.UnfollowRequestDTO;
-
-import java.util.List;
+import com.fp.dto.common.PageResponseDTO;
+import com.fp.dto.follow.request.*;
+import com.fp.dto.follow.response.FollowResponseDTO;
 
 public interface FollowService {
 
@@ -13,7 +12,7 @@ public interface FollowService {
 
     void unfollow(UnfollowRequestDTO unfollowRequestDTO);
 
-    List<String> listFollower(String accountId);
+    PageResponseDTO<FollowResponseDTO> listFollowers(ListFollowersRequestDTO listFollowersRequestDTO);
 
-    List<String> listFollowing(String accountId);
+    PageResponseDTO<FollowResponseDTO> listFollowings(ListFollowingsRequestDTO listFollowingsRequestDTO);
 }
