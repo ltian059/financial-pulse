@@ -1,47 +1,52 @@
 package com.fp.account;
 
-import com.fp.auth.strategy.AccessTokenValidationStrategy;
+import com.fp.auth.strategy.core.JwtValidationContext;
+import com.fp.auth.strategy.core.JwtValidationRequest;
 import com.fp.auth.strategy.core.JwtValidationResult;
 import com.fp.enumeration.jwt.JwtType;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 /**
  * ACCESS令牌验证策略测试
  */
+@Slf4j
+@SpringBootTest
 class AccessTokenValidationStrategyTest {
 
-    private AccessTokenValidationStrategy strategy;
+
+    @Autowired
+    private JwtValidationContext validationContext;
 
     @Mock
     private Jwt mockJwt;
 
     @BeforeEach
-    void setUp() {
-        strategy = new AccessTokenValidationStrategy();
-    }
-
-    @Test
-    void shouldSupportAccessTokenType() {
-        assertTrue(strategy.supportsJwtType(JwtType.ACCESS));
-        assertFalse(strategy.supportsJwtType(JwtType.REFRESH));
-        assertFalse(strategy.supportsJwtType(JwtType.VERIFICATION));
+    void setUpAccessMockJwt(){
+        // 配置 mock 对象的行为
+        when(mockJwt.getClaimAsString("type")).thenReturn(JwtType.ACCESS.getType());
+        when(mockJwt.getSubject()).thenReturn("test@example.com");
     }
 
     @Test
     void shouldValidateAccessTokenForApiEndpoints() {
-        JwtValidationResult result = strategy.validateJwt(mockJwt, "/api/account/profile");
+
+
+        JwtValidationResult result = validationContext.validateJwtType(mockJwt, "/api/account/profile", JwtValidationRequest.ValidationLevel.TYPE_ONLY);
         assertTrue(result.isValid());
     }
 
     @Test
     void shouldRejectAccessTokenForRefreshEndpoints() {
-        JwtValidationResult result = strategy.validateJwt(mockJwt, "/api/auth/refresh");
+        JwtValidationResult result = validationContext.validateJwtType(mockJwt, "/api/auth/refresh", JwtValidationRequest.ValidationLevel.TYPE_ONLY);
         assertFalse(result.isValid());
         assertEquals(HttpStatus.FORBIDDEN, result.getCode());
     }

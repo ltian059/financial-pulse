@@ -2,9 +2,9 @@ package com.fp.auth.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fp.auth.strategy.core.JwtValidationContext;
+import com.fp.auth.strategy.core.JwtValidationRequest;
 import com.fp.auth.strategy.core.JwtValidationResult;
 import com.fp.constant.Messages;
-import com.fp.constant.UrlConstant;
 import com.fp.dto.auth.response.AuthResponseDTO;
 import com.fp.util.UnauthorizedAuthClassifier;
 import jakarta.servlet.FilterChain;
@@ -12,16 +12,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import static com.fp.util.HttpUtil.isPublicPath;
 
@@ -48,7 +45,7 @@ public class JwtTypeValidationFilter extends OncePerRequestFilter {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication instanceof JwtAuthenticationToken jwtAuth){
             Jwt jwt = jwtAuth.getToken();
-            JwtValidationResult jwtValidationResult = jwtValidationContext.validateJwt(jwt, requestURI);
+            JwtValidationResult jwtValidationResult = jwtValidationContext.validateJwtType(jwt, requestURI, JwtValidationRequest.ValidationLevel.TYPE_ONLY);
             if (!jwtValidationResult.isValid()){
                 handleInvalidTokenTypeError(response, requestURI);
             }

@@ -25,19 +25,21 @@ public class RefreshTokenValidationStrategy implements JwtValidationStrategy {
         return JwtType.REFRESH.equals(jwtType);
     }
 
+
     @Override
-    public JwtValidationResult validateJwt(Jwt jwt, String requestUri) {
-        String claimAsString = jwt.getClaimAsString(JwtClaimsKey.TYPE);
-        JwtType type;
-        try {
-            type = JwtType.fromString(claimAsString);
-            if (JwtType.REFRESH.equals(type) && isRefreshTokenPath(requestUri)) {
-                return JwtValidationResult.success();
-            }
-            return JwtValidationResult.failure(Messages.Error.Auth.REFRESH_TOKEN_NOT_ALLOWED_ON_PATH + requestUri, HttpStatus.FORBIDDEN);
-        } catch (IllegalArgumentException e) {
-            return JwtValidationResult.failure(Messages.Error.Auth.INVALID_TOKEN_TYPE + claimAsString, HttpStatus.UNAUTHORIZED);
+    public JwtValidationResult validateJwt(Jwt jwt, String requestURI) {
+        //TODO add specific validation logic for refresh tokens if needed.
+        return null;
+    }
+
+    @Override
+    public JwtValidationResult validateJwtType(JwtType jwtType, String requestUri) {
+
+        if (JwtType.REFRESH.equals(jwtType) && isRefreshTokenPath(requestUri)) {
+            return JwtValidationResult.success();
         }
+        return JwtValidationResult.failure(Messages.Error.Auth.REFRESH_TOKEN_NOT_ALLOWED_ON_PATH + requestUri, HttpStatus.FORBIDDEN);
+
     }
 
     @Override

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtValidationContext extends StrategyContext<JwtValidationRequest, JwtValidationResult> {
 
-    public JwtValidationResult validateJwt(Jwt jwt, String requestUri) {
+    public JwtValidationResult validateJwtType(Jwt jwt, String requestUri, JwtValidationRequest.ValidationLevel validationLevel) {
         //1. Get the JwtType from the JWT claims.
         String typeString = jwt.getClaimAsString(JwtClaimsKey.TYPE);
         JwtType type;
@@ -26,9 +26,9 @@ public class JwtValidationContext extends StrategyContext<JwtValidationRequest, 
             return JwtValidationResult.failure("Invalid JWT type: " + typeString, HttpStatus.UNAUTHORIZED);
         }
         //2. Create a JwtValidationRequest with the JWT and request URI.
-        var request = new JwtValidationRequest(jwt, requestUri, type);
+        var request = new JwtValidationRequest(jwt, requestUri, type, validationLevel);
 
-        return executeStrategy(request);
+        return super.executeStrategy(request);
     }
 
 }

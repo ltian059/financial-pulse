@@ -1,8 +1,12 @@
 package com.fp.auth.strategy.core;
 
+import com.fp.constant.JwtClaimsKey;
 import com.fp.enumeration.jwt.JwtType;
 import com.fp.pattern.core.strategy.Strategy;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
+
+import static com.fp.auth.strategy.core.JwtValidationResult.failure;
 
 ///
 /// # Interface for JWT validation strategies.
@@ -15,7 +19,20 @@ public interface JwtValidationStrategy extends Strategy<JwtValidationRequest, Jw
 
     boolean supportsJwtType(JwtType jwtType);
 
-    JwtValidationResult validateJwt(Jwt jwt, String requestUri);
+    JwtValidationResult validateJwt(Jwt jwt, String requestURI);
+
+    JwtValidationResult validateJwtType(JwtType jwtType, String requestURI);
+
+    default JwtValidationResult validateJwtWithLevel(Jwt jwt, String requestURI, JwtValidationRequest.ValidationLevel validationLevel) {
+        return switch (validationLevel) {
+            case TYPE_ONLY -> {
+                JwtType type = JwtType.fromString(jwt.getClaimAsString(JwtClaimsKey.TYPE));
+                yield validateJwtType(type, requestURI);
+            }
+            case FULL_VALIDATION -> validateJwt(jwt, requestURI);
+            default -> validateJwt(jwt, requestURI);
+        };
+    }
 
     /**
      * Default method to implement the method of Strategy interface.
@@ -34,6 +51,7 @@ public interface JwtValidationStrategy extends Strategy<JwtValidationRequest, Jw
      */
     @Override
     default JwtValidationResult execute(JwtValidationRequest input){
-        return validateJwt(input.getJwt(), input.getRequestURI());
+        return validateJwtWithLevel(input.getJwt(), input.getRequestURI(), input.getValidationLevel());
     }
+
 }
