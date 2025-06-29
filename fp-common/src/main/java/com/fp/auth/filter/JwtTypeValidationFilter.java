@@ -1,25 +1,29 @@
-package com.fp.auth;
+package com.fp.auth.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fp.constant.JwtClaimsKey;
+import com.fp.auth.strategy.core.JwtValidationContext;
+import com.fp.auth.strategy.core.JwtValidationResult;
 import com.fp.constant.Messages;
 import com.fp.constant.UrlConstant;
 import com.fp.dto.auth.response.AuthResponseDTO;
-import com.fp.enumeration.jwt.JwtType;
 import com.fp.util.UnauthorizedAuthClassifier;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
+
+import static com.fp.util.HttpUtil.isPublicPath;
 
 /// Filter to validate JWT token type for different endpoints.
 ///
@@ -33,32 +37,20 @@ import java.util.Arrays;
 public class JwtTypeValidationFilter extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper;
-
+    private final JwtValidationContext jwtValidationContext;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
-
         if(isPublicPath(requestURI)) {
             filterChain.doFilter(request, response);
             return;
         }
-        var context = SecurityContextHolder.getContext();
-
-        var authentication = context.getAuthentication();
-
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication instanceof JwtAuthenticationToken jwtAuth){
             Jwt jwt = jwtAuth.getToken();
-            String typeString = jwt.getClaimAsString(JwtClaimsKey.TYPE);
-            JwtType type = JwtType.fromString(typeString);
-            //Even though the token is valid, the type doesn't match the uri it is trying to access.
-            if(JwtType.REFRESH.equals(type) && !isRefreshTokenPath(requestURI)) {
+            JwtValidationResult jwtValidationResult = jwtValidationContext.validateJwt(jwt, requestURI);
+            if (!jwtValidationResult.isValid()){
                 handleInvalidTokenTypeError(response, requestURI);
-                return;
-            }
-
-            if(JwtType.VERIFY.equals(type) && !isVerifyTokenPath(requestURI)){
-                handleInvalidTokenTypeError(response, requestURI);
-                return;
             }
         }
 
@@ -67,7 +59,7 @@ public class JwtTypeValidationFilter extends OncePerRequestFilter {
     }
 
     private void handleInvalidTokenTypeError(HttpServletResponse response, String requestURI) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
@@ -77,17 +69,5 @@ public class JwtTypeValidationFilter extends OncePerRequestFilter {
         objectMapper.writeValue(response.getWriter(), authResp);
     }
 
-    private boolean isPublicPath(String uri){
-        return Arrays.stream(UrlConstant.PUBLIC_PATHS)
-                .anyMatch(uri::startsWith);
-    }
-    private boolean isRefreshTokenPath(String uri) {
-        return Arrays.stream(UrlConstant.REFRESH_TOKEN_ONLY_PATHS)
-                .anyMatch(uri::startsWith);
-    }
-    private boolean isVerifyTokenPath(String uri) {
-        return Arrays.stream(UrlConstant.VERIFY_TOKEN_ONLY_PATHS)
-                .anyMatch(uri::startsWith);
-    }
 
 }

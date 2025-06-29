@@ -4,7 +4,8 @@ package com.fp.autoconfigure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fp.auth.CustomAccessDeniedHandler;
 import com.fp.auth.CustomAuthenticationEntryPoint;
-import com.fp.auth.JwtTypeValidationFilter;
+import com.fp.auth.filter.JwtTypeValidationFilter;
+import com.fp.auth.strategy.core.JwtValidationContext;
 import com.fp.constant.UrlConstant;
 import com.fp.util.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -41,8 +42,8 @@ public class SecurityAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public JwtTypeValidationFilter jwtTokenTypeValidationFilter(ObjectMapper objectMapper) {
-        return new JwtTypeValidationFilter(objectMapper);
+    public JwtTypeValidationFilter jwtTokenTypeValidationFilter(ObjectMapper objectMapper, JwtValidationContext jwtValidationContext) {
+        return new JwtTypeValidationFilter(objectMapper, jwtValidationContext);
     }
 
     /**

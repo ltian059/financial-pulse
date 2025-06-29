@@ -1,6 +1,5 @@
 package com.fp.enumeration.jwt;
 
-import lombok.Data;
 import lombok.Getter;
 
 ///
@@ -19,7 +18,7 @@ public enum JwtType {
     /**
      * verify: Used for verifying account email or other verification processes
      */
-    VERIFY("VERIFY")
+    VERIFICATION("VERIFICATION")
     ;
 
 

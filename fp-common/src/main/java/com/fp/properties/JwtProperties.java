@@ -45,7 +45,7 @@ public class JwtProperties {
         verifyTokenConfig.setExpiration(Duration.ofHours(1));
         verifyTokenConfig.setAudience("financial-pulse-verify");
         verifyTokenConfig.setIssuer(defaultIssuer);
-        verifyTokenConfig.setType(JwtType.VERIFY);
+        verifyTokenConfig.setType(JwtType.VERIFICATION);
     }
     /**
      * JWT Token Configuration

@@ -1,6 +1,6 @@
 package com.fp.util;
 
-import com.fp.auth.JwtPropagationFilter;
+import com.fp.auth.filter.JwtPropagationFilter;
 import org.springframework.web.reactive.function.client.WebClient;
 
 public class WebClientFactory {
