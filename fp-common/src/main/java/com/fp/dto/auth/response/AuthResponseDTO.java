@@ -4,6 +4,7 @@ package com.fp.dto.auth.response;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 import java.time.Instant;
 
@@ -16,7 +17,7 @@ import static com.fp.util.UnauthorizedAuthClassifier.*;
 @Builder
 public class AuthResponseDTO {
     private int statusCode;
-    private HttpStatus status;
+    private HttpStatusCode status;
     private String message;
     private String requestPath;
     private Instant timestamp;

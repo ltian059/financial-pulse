@@ -14,7 +14,6 @@ public interface FollowQueryStrategy extends Strategy<FollowQueryRequest, List<F
      */
     List<Follow> executeQuery(FollowQueryRequest input);
 
-
     @Override
     default List<Follow> execute(FollowQueryRequest input) {
         return executeQuery(input);

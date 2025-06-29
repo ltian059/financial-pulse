@@ -1,5 +1,6 @@
 package com.fp.auth.strategy;
 
+import com.fp.util.UnauthorizedAuthClassifier;
 import lombok.Getter;
 import org.springframework.http.HttpStatusCode;
 
@@ -9,7 +10,7 @@ public class JwtValidationResult {
 
     private final String message;
 
-    private final HttpStatusCode code;
+    private final HttpStatusCode status;
 
     public static JwtValidationResult success(){
         return new JwtValidationResult(true, null, null);
@@ -18,9 +19,9 @@ public class JwtValidationResult {
         return new JwtValidationResult(false, message, code);
     }
 
-    public JwtValidationResult(boolean valid, String message, HttpStatusCode code) {
+    public JwtValidationResult(boolean valid, String message, HttpStatusCode status) {
         this.valid = valid;
         this.message = message;
-        this.code = code;
+        this.status = status;
     }
 }

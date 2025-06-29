@@ -14,7 +14,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @Configuration
 @EnableConfigurationProperties(DynamoDbProperties.class)
 @ConditionalOnClass({DynamoDbClient.class, DynamoDbEnhancedClient.class})
-@ConditionalOnProperty(prefix = "fp.aws.dynamodb", name = "enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(prefix = "fp.aws.dynamodb", name = "enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j
 public class DynamoDbConfiguration {
     private final DynamoDbProperties dynamoDbProperties;

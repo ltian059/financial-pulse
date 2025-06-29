@@ -12,6 +12,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -19,6 +20,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Instant;
 
 import static com.fp.util.HttpUtil.isPublicPath;
 
@@ -31,10 +33,12 @@ import static com.fp.util.HttpUtil.isPublicPath;
 /// Effective after BearerTokenAuthenticationFilter
 ///
 @RequiredArgsConstructor
+@Slf4j
 public class JwtTypeValidationFilter extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper;
     private final JwtValidationContext jwtValidationContext;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
@@ -45,9 +49,16 @@ public class JwtTypeValidationFilter extends OncePerRequestFilter {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication instanceof JwtAuthenticationToken jwtAuth){
             Jwt jwt = jwtAuth.getToken();
-            JwtValidationResult jwtValidationResult = jwtValidationContext.validateJwtType(jwt, requestURI, JwtValidationRequest.ValidationLevel.TYPE_ONLY);
+            // Strategy to validate JWT type based on request URI
+            JwtValidationResult jwtValidationResult = jwtValidationContext.executeValidationStrategy(
+                    JwtValidationRequest.builder()
+                            .jwt(jwt)
+                            .requestURI(requestURI)
+                            .build()
+            );
             if (!jwtValidationResult.isValid()){
-                handleInvalidTokenTypeError(response, requestURI);
+                handleInvalidTokenError(response, jwtValidationResult,requestURI);
+                return;
             }
         }
 
@@ -55,15 +66,38 @@ public class JwtTypeValidationFilter extends OncePerRequestFilter {
 
     }
 
-    private void handleInvalidTokenTypeError(HttpServletResponse response, String requestURI) throws IOException {
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
+    private void handleInvalidTokenError(HttpServletResponse response, JwtValidationResult validationResult, String requestURI) throws IOException {
+        if (response.isCommitted()) {
+            log.warn("Cannot write error response - response already committed for URI: {}", requestURI);
+            return;
+        }
+        try {
+            response.setStatus(validationResult.getStatus().value());
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding("UTF-8");
 
-        var authResp = AuthResponseDTO.unauthorized(requestURI, Messages.Error.Auth.INVALID_TOKEN_TYPE,
-                UnauthorizedAuthClassifier.createErrorInfo(UnauthorizedAuthClassifier.ErrorType.INVALID_TOKEN_TYPE, true));
+            var resp = AuthResponseDTO.builder()
+                    .status(validationResult.getStatus())
+                    .requestPath(requestURI)
+                    .timestamp(Instant.now())
+                    .statusCode(validationResult.getStatus().value())
+                    .message(validationResult.getMessage())
+                    .build();
+            // Use getOutputStream() instead of getWriter() to avoid conflicts
+            String valueAsString = objectMapper.writeValueAsString(resp);
+            response.getOutputStream().write(valueAsString.getBytes("UTF-8"));
+            response.getOutputStream().flush();
+        } catch (Exception e) {
+            log.error("Error writing JWT validation error response for URI: {}", requestURI, e);
+            if (!response.isCommitted()) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                String fallbackResponse = "{\"error\":\"Authentication failed\"}";
+                response.getOutputStream().write(fallbackResponse.getBytes("UTF-8"));
+                response.getOutputStream().flush();
+            }
+        }
 
-        objectMapper.writeValue(response.getWriter(), authResp);
     }
 
 

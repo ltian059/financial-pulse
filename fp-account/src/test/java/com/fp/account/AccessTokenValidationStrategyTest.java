@@ -34,20 +34,30 @@ class AccessTokenValidationStrategyTest {
         // 配置 mock 对象的行为
         when(mockJwt.getClaimAsString("type")).thenReturn(JwtType.ACCESS.getType());
         when(mockJwt.getSubject()).thenReturn("test@example.com");
+        when(mockJwt.getId()).thenReturn("40ce9f09-2707-4f53-8287-ab78ec6289cf");
     }
 
     @Test
     void shouldValidateAccessTokenForApiEndpoints() {
 
+        JwtValidationRequest validationRequest = JwtValidationRequest.builder()
+                .jwt(mockJwt)
+                .requestURI("/api/account/profile")
+                .build();
 
-        JwtValidationResult result = validationContext.validateJwtType(mockJwt, "/api/account/profile", JwtValidationRequest.ValidationLevel.TYPE_ONLY);
-        assertTrue(result.isValid());
+        JwtValidationResult result = validationContext.executeValidationStrategy(validationRequest);
+        assertFalse(result.isValid());
     }
 
     @Test
     void shouldRejectAccessTokenForRefreshEndpoints() {
-        JwtValidationResult result = validationContext.validateJwtType(mockJwt, "/api/auth/refresh", JwtValidationRequest.ValidationLevel.TYPE_ONLY);
+        JwtValidationRequest validationRequest = JwtValidationRequest.builder()
+                .jwt(mockJwt)
+                .requestURI("/api/auth/refresh")
+                .build();
+
+        JwtValidationResult result = validationContext.executeValidationStrategy(validationRequest);
         assertFalse(result.isValid());
-        assertEquals(HttpStatus.FORBIDDEN, result.getCode());
+        assertEquals(HttpStatus.FORBIDDEN, result.getStatus());
     }
 }

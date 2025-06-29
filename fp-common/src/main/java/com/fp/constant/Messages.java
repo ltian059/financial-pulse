@@ -33,6 +33,7 @@ public final class Messages {
             public static final String ACCESS_TOKEN_NOT_ALLOWED_ON_PATH = "Access token cannot be used for this endpoint.";
             public static final String VERIFICATION_TOKEN_NOT_ALLOWED_ON_PATH = "Verification token cannot be used for this endpoint.";
             public static final String REFRESH_TOKEN_NOT_ALLOWED_ON_PATH = "Refresh token cannot be used for this endpoint.";
+            public static final String JWT_REVOKED = "JWT token has been revoked.";
 
             private Auth() {}
             public static final String INVALID_TOKEN_TYPE = "Invalid token type for this request";

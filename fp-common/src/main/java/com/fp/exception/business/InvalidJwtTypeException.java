@@ -7,4 +7,7 @@ public class InvalidJwtTypeException extends BusinessException {
     public InvalidJwtTypeException(String message) {
         super(HttpStatus.UNAUTHORIZED, message);
     }
+    public InvalidJwtTypeException(String message, Throwable cause) {
+        super(HttpStatus.UNAUTHORIZED, message, cause);
+    }
 }

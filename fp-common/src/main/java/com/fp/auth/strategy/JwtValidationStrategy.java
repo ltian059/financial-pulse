@@ -10,36 +10,21 @@ import org.springframework.security.oauth2.jwt.Jwt;
 ///
 ///Implementations of this interface should provide specific JWT validation logic.
 ///
-///@apiNote This interface is part of the strategy pattern for handling JWT validation.
+///@apiNote This interface is part of the strategy pattern for handling JWT post-validation.
 ///
 public interface JwtValidationStrategy extends Strategy<JwtValidationRequest, JwtValidationResult> {
 
-    boolean supportsJwtType(JwtType jwtType);
-
-    JwtValidationResult validateJwt(Jwt jwt, String requestURI);
-
-    JwtValidationResult validateJwtType(JwtType jwtType, String requestURI);
-
-    default JwtValidationResult validateJwtWithLevel(Jwt jwt, String requestURI, JwtValidationRequest.ValidationLevel validationLevel) {
-        return switch (validationLevel) {
-            case TYPE_ONLY -> {
-                JwtType type = JwtType.fromString(jwt.getClaimAsString(JwtClaimsKey.TYPE));
-                yield validateJwtType(type, requestURI);
-            }
-            case FULL_VALIDATION -> validateJwt(jwt, requestURI);
-            default -> validateJwt(jwt, requestURI);
-        };
-    }
-
     /**
-     * Default method to implement the method of Strategy interface.
-     * @param input
+     * The JWT should already be validated by JwtDecoder of expiration, signature, etc.
+     * <p>
+     *
+     * Post-validation method for JWTs includes type validation, revocation checks, etc.
+     * @param jwt
+     * @param requestURI
      * @return
      */
-    @Override
-    default boolean supports(JwtValidationRequest input) {
-        return supportsJwtType(input.getJwtType());
-    }
+    JwtValidationResult postValidateJwt(Jwt jwt, String requestURI);
+
 
     /**
      * Executes the JWT validation strategy.
@@ -48,7 +33,7 @@ public interface JwtValidationStrategy extends Strategy<JwtValidationRequest, Jw
      */
     @Override
     default JwtValidationResult execute(JwtValidationRequest input){
-        return validateJwtWithLevel(input.getJwt(), input.getRequestURI(), input.getValidationLevel());
+        return postValidateJwt(input.getJwt(), input.getRequestURI());
     }
 
 }

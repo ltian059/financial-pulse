@@ -8,6 +8,7 @@ import com.fp.dto.follow.request.FollowRequestDTO;
 import com.fp.dto.account.request.UpdateBirthdayRequestDTO;
 import com.fp.entity.Account;
 import com.fp.repository.AccountRepository;
+import com.fp.repository.RevokedJwtRepository;
 import com.fp.service.AccountService;
 import com.fp.service.SesService;
 import com.fp.constant.Messages;
@@ -34,6 +35,7 @@ public class AccountServiceImpl implements AccountService {
     private final FollowServiceClient followServiceClient;
     private final JwtService jwtService;
     private final SesService sesService;
+    private final RevokedJwtRepository revokedJwtRepository;
 
     /// Only for testing purposes, not used in production
     public void updateVerificationStatus(String email, boolean status){
@@ -58,7 +60,7 @@ public class AccountServiceImpl implements AccountService {
                 .orElseThrow(() -> new JwtContextException(Messages.Error.Account.JWT_CONTEXT_ERROR));
         //2. Revoke access token
         Jwt jwt = jwtService.getJwtFromAuthContext();
-        jwtService.revokeJwt(jwt, "User logged out");
+        revokedJwtRepository.revokeJwt(jwt, "User logged out");
     }
 
     @Override
@@ -86,7 +88,7 @@ public class AccountServiceImpl implements AccountService {
     public Account deleteAccountByEmail(DeleteAccountRequestDTO deleteAccountRequestDTO) {
         Account account = accountRepository.deleteAccount(deleteAccountRequestDTO.getAccountId(), deleteAccountRequestDTO.getEmail());
 
-        jwtService.revokeJwt(jwtService.getJwtFromAuthContext(), "Account deleted: " + account.getEmail());
+        revokedJwtRepository.revokeJwt(jwtService.getJwtFromAuthContext(), "Account deleted: " + account.getEmail());
         return account;
     }
 

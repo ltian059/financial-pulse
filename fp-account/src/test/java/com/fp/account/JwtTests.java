@@ -18,7 +18,7 @@ public class JwtTests {
     public void testJwtTypeGeneration(){
         String accessToken = jwtService.generateVerifyToken("12s", "testverf");
 
-        Jwt jwt = jwtService.decodeAndValidate(accessToken);
+        Jwt jwt = jwtService.decode(accessToken);
         log.info("jwt: {}", jwt);
     }
 
@@ -26,13 +26,13 @@ public class JwtTests {
     public void testRevokeJwt(){
         String testToken = jwtService.generateVerifyToken("12s", "li@sas.com");
         log.info("testToken: {}", testToken);
-        Jwt jwt = jwtService.decodeAndValidate(testToken);
+        Jwt jwt = jwtService.decode(testToken);
     }
     @Test
     public void testIsRevokedJwt(){
         String revokedToken = """
                 eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsaUBzYXMuY29tIiwiYXVkIjoiZmluYW5jaWFsLXB1bHNlLXZlcmlmeSIsImFjY291bnRJZCI6IjEycyIsImlzcyI6ImZpbmFuY2lhbC1wdWxzZS1pc3N1ZXIiLCJleHAiOjE3NTA4OTQxNTYsInR5cGUiOiJWRVJJRlkiLCJpYXQiOjE3NTA4OTA1NTYsImp0aSI6ImMyMTA0ZDE3LWFlNDEtNDhjMy1iNTExLTg5NjBlZmEwMjI1ZCJ9.38a4XHcOnVWYi4TybnMxrgd7gDZQ9HNyPf7VgfIvCho
                 """;
-        jwtService.decodeAndValidate(revokedToken);
+        jwtService.decode(revokedToken);
     }
 }

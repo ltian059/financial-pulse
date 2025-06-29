@@ -29,8 +29,6 @@ public class JwtService {
     private final JwtDecoder jwtDecoder;
     private final JwtProperties jwtProperties;
 
-    @Autowired(required = false) // Not all services have DynamoDB dependency
-    private RevokedJwtRepository revokedJwtRepository;
 
     /**
      * Generate access token using Spring Security JwtEncoder.
@@ -95,49 +93,15 @@ public class JwtService {
      * @param token the JWT token to validate
      * @return the decoded Jwt object if the token is valid
      */
-    public Jwt decodeAndValidate(String token) {
+    public Jwt decode(String token) {
         try {
-            Jwt jwt = jwtDecoder.decode(token);
-            if (isRevokedJwt(jwt)) {
-                throw new JwtRevokedException();
-            }
-            return jwt;
+            return jwtDecoder.decode(token);
         } catch (JwtException e) {
             log.error("Failed to decode JWT: {}", e.getMessage());
             throw e;
         }
     }
 
-    /**
-     * Revoke the JWT token
-     * @param token the JWT token to validate and potentially revoke
-     * @return the decoded Jwt object if the token is valid and not revoked
-     */
-    public Jwt revokeToken(String token, String reason) {
-        try {
-            Jwt jwt = decodeAndValidate(token);
-            revokeJwt(jwt, "Token type:" + jwt.getClaimAsString(JwtClaimsKey.TYPE) + "revoked for reason: " + reason);
-            return jwt;
-        } catch (JwtException e) {
-            throw new JwtRevokingException(e);
-        }
-    }
-
-    private boolean isRevokedJwt(Jwt jwt) {
-        if (revokedJwtRepository == null) {
-            log.warn("RevokedTokenRepository is null: The invoking service does not have DynamoDB service enabled.");
-            throw new JwtRepositoryNotFoundException();
-        }
-        return revokedJwtRepository.exists(jwt);
-    }
-
-    public void revokeJwt(Jwt jwt, String reason) {
-        if(revokedJwtRepository == null){
-            log.warn("RevokedTokenRepository is null: The invoking service does not have DynamoDB service enabled.");
-            throw new JwtRepositoryNotFoundException();
-        }
-        revokedJwtRepository.revokeJwt(jwt, reason);
-    }
 
     public boolean isTokenType(String token, JwtType expectedType) {
         try {
@@ -166,7 +130,7 @@ public class JwtService {
     }
     public Optional<String> getAccountIdFromToken(String token) {
         try {
-            Jwt jwt = decodeAndValidate(token);
+            Jwt jwt = decode(token);
             return Optional.of(jwt.getClaim(JwtClaimsKey.ACCOUNT_ID));
         } catch (JwtException e) {
             log.error("Failed to get account ID from JWT: {}", e.getMessage());
@@ -176,7 +140,7 @@ public class JwtService {
 
     public Optional<String> getEmailFromToken(String token) {
         try {
-            Jwt jwt = decodeAndValidate(token);
+            Jwt jwt = decode(token);
             return Optional.of(jwt.getSubject());
         } catch (JwtException e) {
             log.error("Failed to get email from JWT: {}", e.getMessage());

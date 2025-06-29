@@ -1,5 +1,6 @@
 package com.fp.service.impl;
 
+import com.fp.constant.JwtClaimsKey;
 import com.fp.constant.Messages;
 import com.fp.dto.auth.request.CreateAccountRequestDTO;
 import com.fp.dto.auth.request.LoginRequestDTO;
@@ -7,6 +8,7 @@ import com.fp.entity.Account;
 import com.fp.exception.business.*;
 import com.fp.exception.service.InvalidRefreshTokenException;
 import com.fp.repository.AccountRepository;
+import com.fp.repository.RevokedJwtRepository;
 import com.fp.service.AuthService;
 import com.fp.service.JwtService;
 import com.fp.service.SesService;
@@ -35,6 +37,8 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final SesService sesService;
+    private final RevokedJwtRepository revokedJwtRepository;
+
 
     @Override
     public void createAccount(CreateAccountRequestDTO accountVO) {
@@ -73,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
     public String verifyAccountEmail(String verifyToken) {
         //1. Validate the verify jwt token
         try {
-            Jwt jwt = jwtService.decodeAndValidate(verifyToken);
+            Jwt jwt = jwtService.decode(verifyToken);
             String email = jwt.getSubject();
             //2. Check if the account exists
             Account account = accountRepository.findByEmail(email);
@@ -86,7 +90,9 @@ public class AuthServiceImpl implements AuthService {
             //4. Update the account in the DynamoDB
             accountRepository.updateItem(account, IgnoreNullsMode.SCALAR_ONLY)
                     .orElseThrow(() -> new AccountNotFoundException(Messages.Error.Account.NOT_FOUND + email));
-            jwtService.revokeToken(verifyToken, "Token has been used.");
+
+            revokedJwtRepository.revokeJwt(jwt, "Token has been revoked after successful verification");
+
             return """
             <!DOCTYPE html>
             <html>
@@ -219,7 +225,7 @@ public class AuthServiceImpl implements AuthService {
         } catch (InvalidJwtTypeException | InvalidRefreshTokenException | AccountNotFoundException e ) {
             throw e;
         } finally {
-            jwtService.revokeToken(refreshToken, "refresh validated");
+            revokedJwtRepository.revokeJwt(jwtService.decode(refreshToken), "Refresh token has been used.");
         }
     }
 }

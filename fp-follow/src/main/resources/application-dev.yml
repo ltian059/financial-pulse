@@ -50,5 +50,10 @@ services:
     enabled: false
 
 fp:
+  aws:
+    dynamodb:
+      region: ${AWS_REGION}
+      table-prefix: ${DYNAMODB_TABLE_PREFIX}
+      table-suffix: ${DYNAMODB_TABLE_SUFFIX}
   jwt:
     secret: ${JWT_SECRET}

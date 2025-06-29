@@ -1,10 +1,12 @@
 package com.fp.auth.strategy.impl;
 
+import com.fp.auth.strategy.AbstractJwtValidationStrategy;
 import com.fp.auth.strategy.JwtValidationResult;
 import com.fp.auth.strategy.JwtValidationStrategy;
 import com.fp.constant.Messages;
 import com.fp.enumeration.jwt.JwtType;
 import com.fp.pattern.annotation.StrategyComponent;
+import com.fp.repository.RevokedJwtRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -15,16 +17,15 @@ import static com.fp.util.HttpUtil.isVerificationTokenPath;
         description = "Strategy to validate verification tokens",
         priority = 1
 )
-public class VerificationTokenValidationStrategy implements JwtValidationStrategy {
-    @Override
-    public boolean supportsJwtType(JwtType jwtType) {
-        return JwtType.VERIFICATION.equals(jwtType);
+public class VerificationTokenValidationStrategy extends AbstractJwtValidationStrategy {
+
+    public VerificationTokenValidationStrategy(RevokedJwtRepository revokedJwtRepository) {
+        super(revokedJwtRepository);
     }
 
     @Override
-    public JwtValidationResult validateJwt(Jwt jwt, String requestURI) {
-        //TODO add specific validation logic for verification tokens if needed.
-        return null;
+    public boolean supportsJwtType(JwtType jwtType) {
+        return JwtType.VERIFICATION.equals(jwtType);
     }
 
     @Override
