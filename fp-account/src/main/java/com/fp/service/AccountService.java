@@ -3,6 +3,7 @@ package com.fp.service;
 
 import com.fp.dto.account.request.AccountVerifyRequestDTO;
 import com.fp.dto.account.request.DeleteAccountRequestDTO;
+import com.fp.dto.account.response.AccountResponseDTO;
 import com.fp.dto.follow.request.FollowRequestDTO;
 import com.fp.dto.account.request.UpdateBirthdayRequestDTO;
 import com.fp.entity.Account;
@@ -22,7 +23,7 @@ public interface AccountService {
 
     void updateVerificationStatus(String email, boolean status);
 
-    Account getAccountByEmail(String email);
+    AccountResponseDTO getAccountByEmail(String email);
 
     void logout();
 

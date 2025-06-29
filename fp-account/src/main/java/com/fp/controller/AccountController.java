@@ -2,6 +2,7 @@ package com.fp.controller;
 
 import com.fp.dto.account.request.AccountVerifyRequestDTO;
 import com.fp.dto.account.request.DeleteAccountRequestDTO;
+import com.fp.dto.account.response.AccountResponseDTO;
 import com.fp.dto.follow.request.FollowRequestDTO;
 import com.fp.dto.account.request.UpdateBirthdayRequestDTO;
 import com.fp.entity.Account;
@@ -13,6 +14,8 @@ import io.swagger.v3.oas.annotations.Operation;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -30,9 +33,10 @@ public class AccountController {
 
     @GetMapping("/by-email")
     @Operation(summary = "Get account by email")
-    public ResponseEntity<?> getAccountByEmail(@RequestParam String email) {
-        Account accountByEmail = accountService.getAccountByEmail(email);
-        return new ResponseEntity<>(accountByEmail, HttpStatus.OK);
+    public ResponseEntity<AccountResponseDTO> getAccountByEmail(@RequestParam String email) {
+        AccountResponseDTO accountByEmail = accountService.getAccountByEmail(email);
+
+        return ResponseEntity.ok(accountByEmail);
     }
 
 

@@ -1,26 +1,25 @@
-package com.fp.autoconfigure;
+package com.fp.configuration;
 
 import com.fp.properties.DynamoDbProperties;
 import com.fp.repository.RevokedJwtRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-
-@AutoConfiguration
+@Configuration
 @EnableConfigurationProperties(DynamoDbProperties.class)
 @ConditionalOnClass({DynamoDbClient.class, DynamoDbEnhancedClient.class})
 @ConditionalOnProperty(prefix = "fp.aws.dynamodb", name = "enabled", havingValue = "true", matchIfMissing = false)
 @Slf4j
-public class DynamoDbAutoConfiguration {
+public class DynamoDbConfiguration {
     private final DynamoDbProperties dynamoDbProperties;
 
-    public DynamoDbAutoConfiguration(DynamoDbProperties dynamoDbProperties) {
+    public DynamoDbConfiguration(DynamoDbProperties dynamoDbProperties) {
         this.dynamoDbProperties = dynamoDbProperties;
         log.info("DynamoDbAutoConfiguration initialized");
     }

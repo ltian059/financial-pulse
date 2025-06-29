@@ -1,15 +1,16 @@
-package com.fp.autoconfigure;
+package com.fp.configuration;
 
 import com.fp.properties.JwtProperties;
 import com.fp.service.JwtService;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -18,12 +19,13 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
 import javax.crypto.spec.SecretKeySpec;
 
+@Configuration
 @EnableConfigurationProperties(JwtProperties.class)
-@AutoConfiguration
 @Slf4j
 @ConditionalOnProperty(prefix = "fp.jwt", name = "enabled", havingValue = "true", matchIfMissing = true)
 @ConditionalOnClass(JwtDecoder.class)
-public class JwtAutoConfiguration {
+@Order(1)
+public class JwtConfiguration {
     private final JwtProperties jwtProperties;
     /**
      * Constructor for JwtAutoConfiguration.
@@ -31,7 +33,7 @@ public class JwtAutoConfiguration {
      *
      * @param jwtProperties
      */
-    public JwtAutoConfiguration(JwtProperties jwtProperties) {
+    public JwtConfiguration(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
     }
 

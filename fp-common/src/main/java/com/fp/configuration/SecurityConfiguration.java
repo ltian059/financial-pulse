@@ -1,4 +1,4 @@
-package com.fp.autoconfigure;
+package com.fp.configuration;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,10 +9,10 @@ import com.fp.auth.strategy.JwtValidationContext;
 import com.fp.constant.UrlConstant;
 import com.fp.util.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,11 +20,13 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
+@Configuration
 @Slf4j
-@AutoConfiguration(after = JwtAutoConfiguration.class)
 @ConditionalOnClass(JwtDecoder.class)
-public class SecurityAutoConfiguration {
+@Order(2)
+public class SecurityConfiguration {
     @Bean
+    @ConditionalOnMissingBean
     public ObjectMapper objectMapper() {
         return new ObjectMapper();
     }

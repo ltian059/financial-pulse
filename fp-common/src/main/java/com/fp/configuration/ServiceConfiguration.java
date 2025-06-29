@@ -1,24 +1,24 @@
-package com.fp.autoconfigure;
+package com.fp.configuration;
 
 import com.fp.properties.ServiceProperties;
 import com.fp.util.WebClientFactory;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
-@AutoConfiguration
+@Configuration
 @EnableConfigurationProperties(ServiceProperties.class)
 @ConditionalOnClass(WebClient.class)
-public class ServiceAutoConfiguration {
+public class ServiceConfiguration {
 
     private final ServiceProperties properties;
 
-    public ServiceAutoConfiguration(ServiceProperties properties) {
+    public ServiceConfiguration(ServiceProperties properties) {
         this.properties = properties;
     }
 

@@ -3,6 +3,7 @@ package com.fp.service.impl;
 import com.fp.client.FollowServiceClient;
 import com.fp.dto.account.request.AccountVerifyRequestDTO;
 import com.fp.dto.account.request.DeleteAccountRequestDTO;
+import com.fp.dto.account.response.AccountResponseDTO;
 import com.fp.dto.follow.request.FollowRequestDTO;
 import com.fp.dto.account.request.UpdateBirthdayRequestDTO;
 import com.fp.entity.Account;
@@ -15,6 +16,7 @@ import com.fp.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.enhanced.dynamodb.model.IgnoreNullsMode;
@@ -42,8 +44,11 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account getAccountByEmail(String email) {
-        return accountRepository.findByEmail(email);
+    public AccountResponseDTO getAccountByEmail(String email) {
+        Account byEmail = accountRepository.findByEmail(email);
+        AccountResponseDTO dto = new AccountResponseDTO();
+        BeanUtils.copyProperties(byEmail, dto);
+        return dto;
     }
 
     @Override
