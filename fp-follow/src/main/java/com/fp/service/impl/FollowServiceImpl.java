@@ -3,6 +3,7 @@ package com.fp.service.impl;
 import com.fp.constant.PageConstant;
 import com.fp.dto.common.PageResponseDTO;
 import com.fp.dto.follow.request.*;
+import com.fp.dto.follow.request.FollowPaginationRequestDTO.QueryType;
 import com.fp.dto.follow.response.FollowResponseDTO;
 import com.fp.exception.business.DuplicatedFollowException;
 import com.fp.exception.business.FollowRelationshipNotFoundException;
@@ -11,6 +12,8 @@ import com.fp.exception.business.SelfFollowNotAllowedException;
 import com.fp.entity.Follow;
 import com.fp.repository.FollowRepository;
 import com.fp.service.FollowService;
+import com.fp.strategy.FollowQueryRequest;
+import com.fp.strategy.FollowQueryStrategyContext;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +31,7 @@ import java.util.Optional;
 public class FollowServiceImpl implements FollowService {
     private final FollowRepository followRepository;
 
+    private final FollowQueryStrategyContext queryStrategyContext;
 
     /**
      * Get the number of followers for a specific account.
@@ -82,7 +86,7 @@ public class FollowServiceImpl implements FollowService {
     @Override
     public PageResponseDTO<FollowResponseDTO> listFollowers(ListFollowersRequestDTO listFollowersRequestDTO) {
         var paginationDTO = FollowPaginationRequestDTO.builder()
-                .queryType(FollowPaginationRequestDTO.QueryType.FOLLOWERS)
+                .queryType(QueryType.FOLLOWERS)
                 .order(listFollowersRequestDTO.getOrder())
                 .cursor(listFollowersRequestDTO.getCursor())
                 .accountId(listFollowersRequestDTO.getAccountId())
@@ -94,7 +98,7 @@ public class FollowServiceImpl implements FollowService {
     @Override
     public PageResponseDTO<FollowResponseDTO> listFollowings(ListFollowingsRequestDTO listFollowingsRequestDTO) {
         var paginationDTO = FollowPaginationRequestDTO.builder()
-                .queryType(FollowPaginationRequestDTO.QueryType.FOLLOWINGS)
+                .queryType(QueryType.FOLLOWINGS)
                 .order(listFollowingsRequestDTO.getOrder())
                 .cursor(listFollowingsRequestDTO.getCursor())
                 .accountId(listFollowingsRequestDTO.getAccountId())
@@ -104,54 +108,56 @@ public class FollowServiceImpl implements FollowService {
     }
 
 
+    /**
+     * Refactored listFollow method using Strategy Pattern
+     */
     private PageResponseDTO<FollowResponseDTO> listFollow(FollowPaginationRequestDTO followPaginationRequestDTO) {
-        // Get the list of followers for the account
-
-        var queryType = followPaginationRequestDTO.getQueryType();
-        var isDesc = "desc".equalsIgnoreCase(followPaginationRequestDTO.getOrder());
-        var pageable = PageRequest.of(0, followPaginationRequestDTO.getLimit());
-        var accountId = followPaginationRequestDTO.getAccountId();
-        var cursor = followPaginationRequestDTO.getCursor();
-        List<Follow> follows;
-        if(cursor == null || cursor.trim().isEmpty()){
-            //return first page
-            follows = switch (queryType) {
-                case FOLLOWERS -> isDesc
-                        ? followRepository.findFirstPageFollowersDesc(accountId, pageable)
-                        : followRepository.findFirstPageFollowersAsc(accountId, pageable);
-                case FOLLOWINGS -> isDesc
-                        ? followRepository.findFirstPageFolloweesDesc(accountId, pageable)
-                        : followRepository.findFirstPageFolloweesAsc(accountId, pageable);
-            };
-        }else{
-            Pair<Instant, String> pair = parseCursor(cursor);
-            Instant cursorTimestamp = pair.getLeft();
-            String cursorId = pair.getRight();
-            follows = switch(queryType){
-                case FOLLOWERS -> isDesc
-                        ? followRepository.findAllFollowersWithCursorDesc(accountId, cursorTimestamp, cursorId, pageable)
-                        : followRepository.findAllFollowersWithCursorAsc(accountId, cursorTimestamp, cursorId, pageable);
-                case FOLLOWINGS -> isDesc
-                        ? followRepository.findAllFolloweesWithCursorDesc(accountId, cursorTimestamp, cursorId, pageable)
-                        : followRepository.findAllFolloweesWithCursorAsc(accountId, cursorTimestamp, cursorId, pageable);
-            };
-        }
-        // 3. Map the followers to the response DTO
-        return buildPageResponse(follows, followPaginationRequestDTO.getLimit(), queryType);
+        //1. Build the query request for the strategy pattern
+        FollowQueryRequest followQueryRequest = buildQueryRequest(followPaginationRequestDTO);
+        //2. Use the strategy context to execute the query based on the request
+        List<Follow> follows = queryStrategyContext.executeFollowQuery(followQueryRequest);
+        //3. Build the page response from the follows
+        return buildPageResponse(follows, followPaginationRequestDTO.getLimit(), followPaginationRequestDTO.getQueryType());
     }
 
-    private PageResponseDTO<FollowResponseDTO> buildPageResponse(List<Follow> follows, Integer limit, FollowPaginationRequestDTO.QueryType queryType) {
-        //1. Map the followers to FollowerResponseDTO
-        List<FollowResponseDTO> data = follows.stream()
-                .map(follow -> {
-                    var dto = new FollowResponseDTO();
-                    BeanUtils.copyProperties(follow, dto);
-                    return dto;
-                })
-                .toList();
+    /**
+     * Build query request for strategy pattern.
+     */
+    private FollowQueryRequest buildQueryRequest(FollowPaginationRequestDTO followPaginationRequestDTO) {
+        boolean isFirstPage = followPaginationRequestDTO.getCursor() == null || followPaginationRequestDTO.getCursor().isBlank();
+        var builder = FollowQueryRequest.builder()
+                .accountId(followPaginationRequestDTO.getAccountId())
+                .queryType(followPaginationRequestDTO.getQueryType())
+                .isDescending("desc".equalsIgnoreCase(followPaginationRequestDTO.getOrder()))
+                .isFirstPage(isFirstPage)
+                .pageable(PageRequest.of(0, followPaginationRequestDTO.getLimit()));
+        if (!isFirstPage) {
+            Pair<Instant, String> pair = parseCursor(followPaginationRequestDTO.getCursor());
+            builder.cursorId(pair.getRight())
+                    .cursorTimestamp(pair.getLeft());
+        }
+
+        return builder.build();
+
+    }
+
+    private PageResponseDTO<FollowResponseDTO> buildPageResponse(List<Follow> follows, Integer limit, QueryType queryType) {
+        //1. Map the follows to FollowResponseDTO
+        List<FollowResponseDTO> data = mapToFollowResponseDTOS(follows);
         //2. Check if there are more followers
         boolean hasMore = follows.size() == limit;
-        //3. If so, get the last follower to determine the next cursor
+        //3. Get next cursor
+        String nextCursor = buildNextCursor(follows, queryType, hasMore);
+        //4. Seal the response
+        return PageResponseDTO.<FollowResponseDTO>builder()
+                .limit(limit)
+                .data(data)
+                .nextCursor(nextCursor)
+                .hasMore(hasMore)
+                .build();
+    }
+
+    private String buildNextCursor(List<Follow> follows, QueryType queryType, boolean hasMore) {
         String nextCursor = null;
         if(hasMore && !follows.isEmpty()){
             Follow lastOne = follows.get(follows.size() - 1);
@@ -161,13 +167,19 @@ public class FollowServiceImpl implements FollowService {
                 case FOLLOWINGS -> buildCursor(lastOne.getCreatedAt(), lastOne.getFolloweeId());
             };
         }
-        //4. Seal the response
-        return PageResponseDTO.<FollowResponseDTO>builder()
-                .limit(limit)
-                .data(data)
-                .nextCursor(nextCursor)
-                .hasMore(hasMore)
-                .build();
+        return nextCursor;
+    }
+
+    private List<FollowResponseDTO> mapToFollowResponseDTOS(List<Follow> follows) {
+        //1. Map the followers to FollowerResponseDTO
+        List<FollowResponseDTO> data = follows.stream()
+                .map(follow -> {
+                    var dto = new FollowResponseDTO();
+                    BeanUtils.copyProperties(follow, dto);
+                    return dto;
+                })
+                .toList();
+        return data;
     }
 
     private static String buildCursor(Instant timestamp, String id) {

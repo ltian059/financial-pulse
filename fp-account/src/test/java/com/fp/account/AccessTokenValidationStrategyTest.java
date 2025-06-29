@@ -1,8 +1,8 @@
 package com.fp.account;
 
-import com.fp.auth.strategy.core.JwtValidationContext;
-import com.fp.auth.strategy.core.JwtValidationRequest;
-import com.fp.auth.strategy.core.JwtValidationResult;
+import com.fp.auth.strategy.JwtValidationContext;
+import com.fp.auth.strategy.JwtValidationRequest;
+import com.fp.auth.strategy.JwtValidationResult;
 import com.fp.enumeration.jwt.JwtType;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;

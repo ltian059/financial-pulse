@@ -1,4 +1,4 @@
-package com.fp.auth.strategy.core;
+package com.fp.auth.strategy;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatusCode;

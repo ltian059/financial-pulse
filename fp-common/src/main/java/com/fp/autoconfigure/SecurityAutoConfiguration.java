@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fp.auth.CustomAccessDeniedHandler;
 import com.fp.auth.CustomAuthenticationEntryPoint;
 import com.fp.auth.filter.JwtTypeValidationFilter;
-import com.fp.auth.strategy.core.JwtValidationContext;
+import com.fp.auth.strategy.JwtValidationContext;
 import com.fp.constant.UrlConstant;
 import com.fp.util.HttpUtil;
 import lombok.extern.slf4j.Slf4j;

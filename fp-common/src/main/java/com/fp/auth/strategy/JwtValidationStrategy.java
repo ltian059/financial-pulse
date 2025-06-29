@@ -1,12 +1,9 @@
-package com.fp.auth.strategy.core;
+package com.fp.auth.strategy;
 
 import com.fp.constant.JwtClaimsKey;
 import com.fp.enumeration.jwt.JwtType;
 import com.fp.pattern.core.strategy.Strategy;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
-
-import static com.fp.auth.strategy.core.JwtValidationResult.failure;
 
 ///
 /// # Interface for JWT validation strategies.

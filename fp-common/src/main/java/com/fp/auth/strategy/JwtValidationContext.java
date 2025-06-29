@@ -1,4 +1,4 @@
-package com.fp.auth.strategy.core;
+package com.fp.auth.strategy;
 
 import com.fp.constant.JwtClaimsKey;
 import com.fp.enumeration.jwt.JwtType;

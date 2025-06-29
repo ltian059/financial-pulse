@@ -1,17 +1,12 @@
-package com.fp.auth.strategy;
+package com.fp.auth.strategy.impl;
 
-import com.fp.auth.strategy.core.JwtValidationResult;
-import com.fp.auth.strategy.core.JwtValidationStrategy;
-import com.fp.constant.JwtClaimsKey;
+import com.fp.auth.strategy.JwtValidationResult;
+import com.fp.auth.strategy.JwtValidationStrategy;
 import com.fp.constant.Messages;
-import com.fp.constant.UrlConstant;
 import com.fp.enumeration.jwt.JwtType;
 import com.fp.pattern.annotation.StrategyComponent;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.util.AntPathMatcher;
-
-import java.util.Arrays;
 
 import static com.fp.util.HttpUtil.isVerificationTokenPath;
 

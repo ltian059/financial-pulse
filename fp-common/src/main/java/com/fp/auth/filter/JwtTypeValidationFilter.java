@@ -1,9 +1,9 @@
 package com.fp.auth.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fp.auth.strategy.core.JwtValidationContext;
-import com.fp.auth.strategy.core.JwtValidationRequest;
-import com.fp.auth.strategy.core.JwtValidationResult;
+import com.fp.auth.strategy.JwtValidationContext;
+import com.fp.auth.strategy.JwtValidationRequest;
+import com.fp.auth.strategy.JwtValidationResult;
 import com.fp.constant.Messages;
 import com.fp.dto.auth.response.AuthResponseDTO;
 import com.fp.util.UnauthorizedAuthClassifier;
