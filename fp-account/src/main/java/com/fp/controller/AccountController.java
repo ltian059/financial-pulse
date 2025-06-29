@@ -12,6 +12,7 @@ import com.fp.constant.Messages;
 import com.fp.service.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -27,6 +28,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/account")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearer-jwt")
 public class AccountController {
     private final AccountService accountService;
     private final JwtService jwtService;
