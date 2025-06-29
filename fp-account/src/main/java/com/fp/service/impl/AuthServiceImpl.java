@@ -1,6 +1,5 @@
 package com.fp.service.impl;
 
-import com.fp.constant.JwtClaimsKey;
 import com.fp.constant.Messages;
 import com.fp.dto.auth.request.CreateAccountRequestDTO;
 import com.fp.dto.auth.request.LoginRequestDTO;

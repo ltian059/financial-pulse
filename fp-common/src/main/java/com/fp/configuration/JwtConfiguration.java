@@ -1,7 +1,6 @@
 package com.fp.configuration;
 
 import com.fp.properties.JwtProperties;
-import com.fp.service.JwtService;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -69,11 +68,5 @@ public class JwtConfiguration {
         return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey));
     }
 
-
-    @Bean
-    @ConditionalOnMissingBean
-    public JwtService jwtUtil(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder, JwtProperties jwtProperties) {
-        return new JwtService(jwtEncoder, jwtDecoder, jwtProperties);
-    }
 
 }
