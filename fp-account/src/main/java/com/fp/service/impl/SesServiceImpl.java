@@ -2,7 +2,7 @@ package com.fp.service.impl;
 
 import com.fp.entity.Account;
 import com.fp.properties.SesProperties;
-import com.fp.service.JwtService;
+import com.fp.auth.service.JwtService;
 import com.fp.service.SesService;
 import com.fp.constant.UrlConstant;
 import lombok.RequiredArgsConstructor;

@@ -1,5 +1,6 @@
 package com.fp.service.impl;
 
+import com.fp.auth.service.RevokedJwtValidationService;
 import com.fp.constant.Messages;
 import com.fp.dto.auth.request.CreateAccountRequestDTO;
 import com.fp.dto.auth.request.LoginRequestDTO;
@@ -9,7 +10,7 @@ import com.fp.exception.service.InvalidRefreshTokenException;
 import com.fp.repository.AccountRepository;
 import com.fp.repository.RevokedJwtRepository;
 import com.fp.service.AuthService;
-import com.fp.service.JwtService;
+import com.fp.auth.service.JwtService;
 import com.fp.service.SesService;
 import com.fp.dto.auth.response.LoginResponseDTO;
 import com.fp.dto.auth.response.RefreshTokenResponseDTO;
@@ -36,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final SesService sesService;
-    private final RevokedJwtRepository revokedJwtRepository;
+    private final RevokedJwtValidationService revokedJwtValidationService;
 
 
     @Override
@@ -90,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
             accountRepository.updateItem(account, IgnoreNullsMode.SCALAR_ONLY)
                     .orElseThrow(() -> new AccountNotFoundException(Messages.Error.Account.NOT_FOUND + email));
 
-            revokedJwtRepository.revokeJwt(jwt, "Token has been revoked after successful verification");
+            revokedJwtValidationService.revokeJwt(jwt, "Token has been revoked after successful verification");
 
             return """
             <!DOCTYPE html>
@@ -224,7 +225,7 @@ public class AuthServiceImpl implements AuthService {
         } catch (InvalidJwtTypeException | InvalidRefreshTokenException | AccountNotFoundException e ) {
             throw e;
         } finally {
-            revokedJwtRepository.revokeJwt(jwtService.decode(refreshToken), "Refresh token has been used.");
+            revokedJwtValidationService.revokeToken(refreshToken, "Refresh token has been used.");
         }
     }
 }

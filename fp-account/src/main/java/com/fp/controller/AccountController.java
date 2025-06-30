@@ -9,7 +9,7 @@ import com.fp.entity.Account;
 import com.fp.exception.business.JwtContextException;
 import com.fp.service.AccountService;
 import com.fp.constant.Messages;
-import com.fp.service.JwtService;
+import com.fp.auth.service.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

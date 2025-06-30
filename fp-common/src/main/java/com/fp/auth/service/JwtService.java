@@ -1,4 +1,4 @@
-package com.fp.service;
+package com.fp.auth.service;
 
 import com.fp.enumeration.jwt.JwtType;
 import org.springframework.security.oauth2.jwt.*;

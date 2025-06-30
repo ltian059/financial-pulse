@@ -10,7 +10,7 @@ import com.fp.entity.Account;
 import com.fp.repository.AccountRepository;
 import com.fp.repository.RevokedJwtRepository;
 import com.fp.service.AccountService;
-import com.fp.service.JwtService;
+import com.fp.auth.service.JwtService;
 import com.fp.service.SesService;
 import com.fp.constant.Messages;
 import com.fp.exception.business.*;

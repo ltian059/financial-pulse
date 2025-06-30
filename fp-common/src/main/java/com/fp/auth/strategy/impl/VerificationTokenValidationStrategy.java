@@ -1,12 +1,12 @@
 package com.fp.auth.strategy.impl;
 
 import com.fp.auth.strategy.AbstractJwtValidationStrategy;
+import com.fp.auth.strategy.JwtValidationRequest;
 import com.fp.auth.strategy.JwtValidationResult;
-import com.fp.auth.strategy.JwtValidationStrategy;
+import com.fp.constant.JwtClaimsKey;
 import com.fp.constant.Messages;
 import com.fp.enumeration.jwt.JwtType;
 import com.fp.pattern.annotation.StrategyComponent;
-import com.fp.repository.RevokedJwtRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -18,18 +18,11 @@ import static com.fp.util.HttpUtil.isVerificationTokenPath;
         priority = 1
 )
 public class VerificationTokenValidationStrategy extends AbstractJwtValidationStrategy {
-
-    public VerificationTokenValidationStrategy(RevokedJwtRepository revokedJwtRepository) {
-        super(revokedJwtRepository);
-    }
-
     @Override
-    public boolean supportsJwtType(JwtType jwtType) {
-        return JwtType.VERIFICATION.equals(jwtType);
-    }
-
-    @Override
-    public JwtValidationResult validateJwtType(JwtType type, String requestUri) {
+    protected JwtValidationResult validateJwt(JwtValidationRequest jwtValidationRequest) {
+        Jwt jwt = jwtValidationRequest.getJwt();
+        JwtType type = JwtType.fromString(jwt.getClaimAsString(JwtClaimsKey.TYPE));
+        String requestUri = jwtValidationRequest.getRequestURI();
         if(JwtType.VERIFICATION.equals(type) && isVerificationTokenPath(requestUri)) {
             return JwtValidationResult.success();
         }
@@ -38,8 +31,15 @@ public class VerificationTokenValidationStrategy extends AbstractJwtValidationSt
     }
 
     @Override
+    public boolean supports(JwtValidationRequest type) {
+        Jwt jwt = type.getJwt();
+        JwtType jwtType = JwtType.fromString(jwt.getClaimAsString(JwtClaimsKey.TYPE));
+        return jwtType.equals(JwtType.VERIFICATION);
+    }
+
+    @Override
     public String getStrategyName() {
-        return this.getClass().getSimpleName();
+        return "verificationTokenValidationStrategy";
     }
 
 }

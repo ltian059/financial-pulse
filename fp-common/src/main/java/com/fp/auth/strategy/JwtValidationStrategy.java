@@ -19,11 +19,8 @@ public interface JwtValidationStrategy extends Strategy<JwtValidationRequest, Jw
      * <p>
      *
      * Post-validation method for JWTs includes type validation, revocation checks, etc.
-     * @param jwt
-     * @param requestURI
-     * @return
      */
-    JwtValidationResult postValidateJwt(Jwt jwt, String requestURI);
+    JwtValidationResult postValidateJwt(JwtValidationRequest jwtValidationRequest);
 
 
     /**
@@ -33,7 +30,7 @@ public interface JwtValidationStrategy extends Strategy<JwtValidationRequest, Jw
      */
     @Override
     default JwtValidationResult execute(JwtValidationRequest input){
-        return postValidateJwt(input.getJwt(), input.getRequestURI());
+        return postValidateJwt(input);
     }
 
 }

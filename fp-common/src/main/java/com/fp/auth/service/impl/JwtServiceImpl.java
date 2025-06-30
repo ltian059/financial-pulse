@@ -1,10 +1,10 @@
-package com.fp.service.impl;
+package com.fp.auth.service.impl;
 
 import com.fp.constant.JwtClaimsKey;
 import com.fp.enumeration.jwt.JwtType;
 import com.fp.exception.business.AccountNotFoundException;
 import com.fp.properties.JwtProperties;
-import com.fp.service.JwtService;
+import com.fp.auth.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;

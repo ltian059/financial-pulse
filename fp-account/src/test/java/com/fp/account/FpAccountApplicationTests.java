@@ -1,7 +1,7 @@
 package com.fp.account;
 
 import com.fp.properties.JwtProperties;
-import com.fp.service.JwtService;
+import com.fp.auth.service.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

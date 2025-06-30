@@ -4,12 +4,10 @@ import com.fp.constant.JwtClaimsKey;
 import com.fp.entity.RevokedJwt;
 import com.fp.enumeration.jwt.JwtType;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 
 import java.time.Instant;
 
-@Repository
 public class RevokedJwtRepository extends DynamoDbRepository<RevokedJwt>{
     /**
      * Revoke token
