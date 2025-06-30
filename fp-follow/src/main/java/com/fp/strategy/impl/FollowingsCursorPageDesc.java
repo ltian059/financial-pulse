@@ -9,7 +9,7 @@ import com.fp.strategy.FollowQueryStrategyType;
 
 import java.util.List;
 
-@StrategyComponent(priority = 1)
+@StrategyComponent
 public class FollowingsCursorPageDesc extends AbstractFollowQueryStrategy {
     public FollowingsCursorPageDesc(FollowRepository followRepository) {
         super(followRepository);

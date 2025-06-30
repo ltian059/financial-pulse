@@ -1,6 +1,6 @@
 package com.fp.service.impl;
 
-import com.fp.auth.service.RevokedJwtValidationService;
+import com.fp.auth.service.RevokedJwtService;
 import com.fp.constant.Messages;
 import com.fp.dto.auth.request.CreateAccountRequestDTO;
 import com.fp.dto.auth.request.LoginRequestDTO;
@@ -8,7 +8,6 @@ import com.fp.entity.Account;
 import com.fp.exception.business.*;
 import com.fp.exception.service.InvalidRefreshTokenException;
 import com.fp.repository.AccountRepository;
-import com.fp.repository.RevokedJwtRepository;
 import com.fp.service.AuthService;
 import com.fp.auth.service.JwtService;
 import com.fp.service.SesService;
@@ -37,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final SesService sesService;
-    private final RevokedJwtValidationService revokedJwtValidationService;
+    private final RevokedJwtService revokedJwtService;
 
 
     @Override
@@ -73,7 +72,6 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    //TODO Use AOP to revoke token
     public String verifyAccountEmail(String verifyToken) {
         //1. Validate the verify jwt token
         try {
@@ -90,9 +88,6 @@ public class AuthServiceImpl implements AuthService {
             //4. Update the account in the DynamoDB
             accountRepository.updateItem(account, IgnoreNullsMode.SCALAR_ONLY)
                     .orElseThrow(() -> new AccountNotFoundException(Messages.Error.Account.NOT_FOUND + email));
-
-            revokedJwtValidationService.revokeJwt(jwt, "Token has been revoked after successful verification");
-
             return """
             <!DOCTYPE html>
             <html>
@@ -225,7 +220,7 @@ public class AuthServiceImpl implements AuthService {
         } catch (InvalidJwtTypeException | InvalidRefreshTokenException | AccountNotFoundException e ) {
             throw e;
         } finally {
-            revokedJwtValidationService.revokeToken(refreshToken, "Refresh token has been used.");
+            revokedJwtService.revokeToken(refreshToken, "Refresh token has been used.");
         }
     }
 }

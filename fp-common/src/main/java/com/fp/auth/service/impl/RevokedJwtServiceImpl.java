@@ -1,7 +1,7 @@
 package com.fp.auth.service.impl;
 
 import com.fp.auth.service.JwtService;
-import com.fp.auth.service.RevokedJwtValidationService;
+import com.fp.auth.service.RevokedJwtService;
 import com.fp.repository.RevokedJwtRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -11,7 +11,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 
 @Service
 @RequiredArgsConstructor
-public class RevokedJwtValidationServiceImpl implements RevokedJwtValidationService {
+public class RevokedJwtServiceImpl implements RevokedJwtService {
     private final RevokedJwtRepository revokedJwtRepository;
     private final JwtService jwtService;
 

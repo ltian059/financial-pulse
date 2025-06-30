@@ -1,5 +1,6 @@
 package com.fp.service.impl;
 
+import com.fp.annotation.RevokeJwt;
 import com.fp.client.FollowServiceClient;
 import com.fp.dto.account.request.AccountVerifyRequestDTO;
 import com.fp.dto.account.request.DeleteAccountRequestDTO;
@@ -55,12 +56,6 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void logout() {
-        //1. Get the account info from the JWT context
-        String email = jwtService.getEmailFromAuthContext()
-                .orElseThrow(() -> new JwtContextException(Messages.Error.Account.JWT_CONTEXT_ERROR));
-        //2. Revoke access token
-        Jwt jwt = jwtService.getJwtFromAuthContext();
-        revokedJwtRepository.revokeJwt(jwt, "User logged out");
     }
 
     @Override
@@ -86,10 +81,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Account deleteAccountByEmail(DeleteAccountRequestDTO deleteAccountRequestDTO) {
-        Account account = accountRepository.deleteAccount(deleteAccountRequestDTO.getAccountId(), deleteAccountRequestDTO.getEmail());
-
-        revokedJwtRepository.revokeJwt(jwtService.getJwtFromAuthContext(), "Account deleted: " + account.getEmail());
-        return account;
+        return accountRepository.deleteAccount(deleteAccountRequestDTO.getAccountId(), deleteAccountRequestDTO.getEmail());
     }
 
 

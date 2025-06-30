@@ -34,6 +34,7 @@ public final class Messages {
             public static final String VERIFICATION_TOKEN_NOT_ALLOWED_ON_PATH = "Verification token cannot be used for this endpoint.";
             public static final String REFRESH_TOKEN_NOT_ALLOWED_ON_PATH = "Refresh token cannot be used for this endpoint.";
             public static final String JWT_REVOKED = "JWT token has been revoked.";
+            public static final String JWT_CONTEXT_REQUEST_BODY_ERROR = "Cannot extract the fields from the request body needed for validating JWT authentication context.";
 
             private Auth() {}
             public static final String INVALID_TOKEN_TYPE = "Invalid token type for this request";

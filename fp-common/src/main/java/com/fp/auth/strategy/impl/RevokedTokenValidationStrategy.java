@@ -1,6 +1,6 @@
 package com.fp.auth.strategy.impl;
 
-import com.fp.auth.service.RevokedJwtValidationService;
+import com.fp.auth.service.RevokedJwtService;
 import com.fp.auth.strategy.AbstractJwtValidationStrategy;
 import com.fp.auth.strategy.JwtValidationRequest;
 import com.fp.auth.strategy.JwtValidationResult;
@@ -18,11 +18,11 @@ import org.springframework.security.oauth2.jwt.Jwt;
 @RequiredArgsConstructor
 public class RevokedTokenValidationStrategy extends AbstractJwtValidationStrategy {
 
-    private final RevokedJwtValidationService revokedJwtValidationService;
+    private final RevokedJwtService revokedJwtService;
 
     @Override
     protected JwtValidationResult validateJwt(JwtValidationRequest jwtValidationRequest) {
-        return revokedJwtValidationService.isTokenRevoked(jwtValidationRequest.getJwt())
+        return revokedJwtService.isTokenRevoked(jwtValidationRequest.getJwt())
                 ? JwtValidationResult.failure(Messages.Error.Auth.JWT_REVOKED, HttpStatus.UNAUTHORIZED)
                 : JwtValidationResult.success();
     }

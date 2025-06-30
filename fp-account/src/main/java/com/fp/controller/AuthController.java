@@ -1,5 +1,6 @@
 package com.fp.controller;
 
+import com.fp.annotation.RevokeJwt;
 import com.fp.dto.auth.request.LoginRequestDTO;
 import com.fp.dto.auth.request.CreateAccountRequestDTO;
 import com.fp.dto.auth.request.RefreshTokenRequestDTO;
@@ -46,8 +47,7 @@ public class AuthController {
 
     @GetMapping("/verify")
     @Operation(summary = "Verify account email")
-    //TODO USE AOP to revoke the token after successful verification
-    public ResponseEntity<?> verifyAccountEmail(@RequestParam String token){
+    public ResponseEntity<?> verifyAccountEmail(@RevokeJwt @RequestParam String token){
         var htmlResponse = authService.verifyAccountEmail(token);
 
         return ResponseEntity.ok()

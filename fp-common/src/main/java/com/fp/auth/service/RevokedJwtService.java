@@ -9,7 +9,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
  * This interface abstracts the revoked token validation logic, allowing
  * different implementations (local DynamoDB, remote service calls, etc.)
  */
-public interface RevokedJwtValidationService {
+public interface RevokedJwtService {
 
     /**
      * Check if a JWT token has been revoked.

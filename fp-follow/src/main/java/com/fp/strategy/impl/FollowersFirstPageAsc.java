@@ -8,7 +8,7 @@ import com.fp.strategy.FollowQueryRequest;
 import com.fp.strategy.FollowQueryStrategyType;
 
 import java.util.List;
-@StrategyComponent(priority = 1)
+@StrategyComponent
 public class FollowersFirstPageAsc extends AbstractFollowQueryStrategy {
     public FollowersFirstPageAsc(FollowRepository followRepository) {
         super(followRepository);

@@ -22,9 +22,9 @@ public class ListFollowingsRequestDTO {
     ///
     /// # Cursor for pagination, indicating the position to start fetching followers.
     ///
-    /// cursor format: createdAt timestamp:followerId
+    /// cursor format: createdAt Instant timestamp#followerId
     ///
-    /// Example: 1700000000:uuid-1234-5678-90ab-cdef12345678
+    /// Example: 2025-06-29-11:50:3233545Z#uuid-1234-5678-90ab-cdef12345678
     ///
     /// createdAt_timestamp: Unix timestamp in milliseconds
     ///
