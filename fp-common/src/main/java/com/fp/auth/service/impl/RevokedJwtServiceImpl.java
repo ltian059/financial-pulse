@@ -2,7 +2,7 @@ package com.fp.auth.service.impl;
 
 import com.fp.auth.service.JwtService;
 import com.fp.auth.service.RevokedJwtService;
-import com.fp.repository.RevokedJwtRepository;
+import com.fp.dynamodb.repository.RevokedJwtRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtException;

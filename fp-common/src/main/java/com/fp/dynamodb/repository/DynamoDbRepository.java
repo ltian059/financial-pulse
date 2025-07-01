@@ -1,4 +1,4 @@
-package com.fp.repository;
+package com.fp.dynamodb.repository;
 
 import com.fp.properties.DynamoDbProperties;
 import jakarta.annotation.PostConstruct;

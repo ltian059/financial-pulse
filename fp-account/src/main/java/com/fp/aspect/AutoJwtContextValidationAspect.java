@@ -79,22 +79,22 @@ public class AutoJwtContextValidationAspect {
         validateRequestBodyParameters(joinPoint, jwtAccountIdOpt.get(), jwtEmailOpt.get());
     }
 
-    @After("writeOperations()")
-    public void handleAfterWriteOperation(JoinPoint joinPoint) {
-        log.info("🔄 [@After] 写操作完成 - 方法: {}", joinPoint.getSignature().getName());
-
-        // 检查是否有@RevokeJwt注解
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
-        RevokeJwt revokeAnnotation = method.getAnnotation(RevokeJwt.class);
-
-        if (revokeAnnotation != null && revokeAnnotation.revokeTokenAfter() == RevokeJwt.RevokeTokenAfter.SUCCESS) {
-            log.info("✅ 发现@RevokeJwt注解，执行令牌撤销");
-//            processTokenRevocation(joinPoint, revokeAnnotation);
-        } else {
-            log.info("ℹ️ 未发现@RevokeJwt注解或时机不匹配，跳过令牌撤销");
-        }
-    }
+//    @After("writeOperations()")
+//    public void handleAfterWriteOperation(JoinPoint joinPoint) {
+//        log.info("🔄 [@After] 写操作完成 - 方法: {}", joinPoint.getSignature().getName());
+//
+//        // 检查是否有@RevokeJwt注解
+//        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+//        Method method = signature.getMethod();
+//        RevokeJwt revokeAnnotation = method.getAnnotation(RevokeJwt.class);
+//
+//        if (revokeAnnotation != null && revokeAnnotation.revokeTokenAfter() == RevokeJwt.RevokeTokenAfter.SUCCESS) {
+//            log.info("✅ 发现@RevokeJwt注解，执行令牌撤销");
+////            processTokenRevocation(joinPoint, revokeAnnotation);
+//        } else {
+//            log.info("ℹ️ 未发现@RevokeJwt注解或时机不匹配，跳过令牌撤销");
+//        }
+//    }
 
     /**
      * After retrieving the JWT context, this method validates the request body parameters

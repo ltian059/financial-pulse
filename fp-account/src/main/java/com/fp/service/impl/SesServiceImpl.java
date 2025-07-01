@@ -1,5 +1,6 @@
 package com.fp.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fp.entity.Account;
 import com.fp.properties.SesProperties;
 import com.fp.auth.service.JwtService;
@@ -13,6 +14,10 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.*;
 
+
+/**
+ * Email consumer service that processes email messages from SQS
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -21,6 +26,7 @@ public class SesServiceImpl implements SesService {
     private final SesClient sesClient;
     private final JwtService jwtService;
     private final SesProperties sesProperties;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Async

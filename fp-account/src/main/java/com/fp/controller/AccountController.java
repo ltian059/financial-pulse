@@ -5,20 +5,15 @@ import com.fp.dto.account.request.*;
 import com.fp.dto.account.response.AccountResponseDTO;
 import com.fp.dto.follow.request.FollowRequestDTO;
 import com.fp.entity.Account;
-import com.fp.exception.business.JwtContextException;
 import com.fp.service.AccountService;
 import com.fp.constant.Messages;
-import com.fp.auth.service.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @Tag(name = "API for Account Management")
 @RestController
@@ -90,25 +85,4 @@ public class AccountController {
         accountService.updateBirthday(birthdayRequestDTO);
         return  ResponseEntity.ok("Birthday updated successfully");
     }
-
-//    /**
-//     * Validate the JWT context with the request parameters.
-//     * @param accountIdInRequest the account ID from the request
-//     * @param emailInRequest the email from the request
-//     */
-//    private void validateJwtContextWithRequest(String accountIdInRequest, String emailInRequest) {
-//        //Check if the accountId and email from JWT context is present
-//        Jwt jwt = jwtService.getJwtFromAuthContext();
-//        Optional<String> idOpt = jwtService.getAccountIdFromToken(jwt.getTokenValue());
-//        Optional<String> emailOpt = jwtService.getEmailFromToken(jwt.getTokenValue());
-//        if(idOpt.isEmpty() || emailOpt.isEmpty()){
-//            throw new JwtContextException(Messages.Error.Account.JWT_CONTEXT_ERROR);
-//        }
-//        //Check if the accountId from JWT matches account info from the method parameter
-//        String jwtAccountId = idOpt.get();
-//        String jwtEmail = emailOpt.get();
-//        if(!jwtAccountId.equals(accountIdInRequest) || !jwtEmail.equals(emailInRequest)){
-//            throw new JwtContextException(Messages.Error.Account.JWT_CONTEXT_ERROR);
-//        }
-//    }
 }

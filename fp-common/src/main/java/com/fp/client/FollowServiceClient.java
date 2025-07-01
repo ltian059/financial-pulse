@@ -22,7 +22,6 @@ public class FollowServiceClient {
     private final WebClient followWebClient;
 
 
-    //TODO SQS handle asynchronously the get follower count request; SQS or Kafka can be used for this purpose
     public Long getFollowerCountById(String accountId) {
         try {
             return followWebClient.get()
@@ -42,9 +41,6 @@ public class FollowServiceClient {
 
     public void follow(FollowRequestDTO followRequestDTO) {
         try {
-            //TODO Asynchronously handle the follow request; SQS or Kafka can be used for this purpose
-
-            //TODO SQS handle dead letter queue for failed follow requests
             followWebClient.method(FollowServiceAPI.FOLLOW_ACCOUNT.getMethod())
                     .uri(uriBuilder -> uriBuilder
                             .path(FollowServiceAPI.FOLLOW_ACCOUNT.getPath())

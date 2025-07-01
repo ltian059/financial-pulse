@@ -1,12 +1,17 @@
 package com.fp.controller;
 
 import com.fp.annotation.RevokeJwt;
+import com.fp.dto.account.response.AccountResponseDTO;
 import com.fp.dto.auth.request.LoginRequestDTO;
 import com.fp.dto.auth.request.CreateAccountRequestDTO;
 import com.fp.dto.auth.request.RefreshTokenRequestDTO;
+import com.fp.service.AccountService;
 import com.fp.service.AuthService;
 import com.fp.dto.auth.response.LoginResponseDTO;
 import com.fp.dto.auth.response.RefreshTokenResponseDTO;
+import com.fp.sqs.EmailMessage;
+import com.fp.sqs.VerificationEmailMessage;
+import com.fp.sqs.service.SqsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final AccountService accountService;
+    private final SqsService accountSqsService;
 
     @PostMapping("/create-account")
     @Operation(summary = "Create a new account")
@@ -55,4 +62,18 @@ public class AuthController {
                 .body(htmlResponse);
     }
 
+
+    @PostMapping("/test-send-verification-message")
+    @Operation(summary = "Test sending verification email message")
+    public ResponseEntity<?> testSendVerificationMessage() {
+        AccountResponseDTO accountByEmail = accountService.getAccountByEmail("tianli0927@gmail.com");
+        accountSqsService.sendEmailMessage(VerificationEmailMessage.builder()
+                .email(accountByEmail.getEmail())
+                .name(accountByEmail.getName())
+                .source("test-auth-sending")
+                .accountId(accountByEmail.getAccountId())
+                .verificationToken("12356666661sadas")
+                .build());
+        return ResponseEntity.ok("Verification message sent successfully");
+    }
 }

@@ -37,3 +37,11 @@ fp:
       app-base-url: ${SERVICES_ACCOUNT_URL}
       from-email: ${AWS_SES_FROM_EMAIL}
       from-name: Financial Pulse
+    sqs:
+      region: ${AWS_REGION}
+      email-queue:
+        queue-url: ${SQS_EMAIL_QUEUE_URL}
+      dead-letter-queue:
+        queue-url: ${SQS_DEAD_LETTER_QUEUE_URL}
+      follower-notification-queue:
+        queue-url: ${SQS_FOLLOWER_NOTIFICATION_QUEUE_URL}

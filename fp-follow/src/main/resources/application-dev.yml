@@ -55,5 +55,13 @@ fp:
       region: ${AWS_REGION}
       table-prefix: ${DYNAMODB_TABLE_PREFIX}
       table-suffix: ${DYNAMODB_TABLE_SUFFIX}
+    sqs:
+      region: ${AWS_REGION}
+      email-queue:
+        queue-url: ${SQS_EMAIL_QUEUE_URL}
+      dead-letter-queue:
+        queue-url: ${SQS_DEAD_LETTER_QUEUE_URL}
+      follower-notification-queue:
+        queue-url: ${SQS_FOLLOWER_NOTIFICATION_QUEUE_URL}
   jwt:
     secret: ${JWT_SECRET}

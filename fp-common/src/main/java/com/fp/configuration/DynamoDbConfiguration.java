@@ -1,7 +1,7 @@
 package com.fp.configuration;
 
 import com.fp.properties.DynamoDbProperties;
-import com.fp.repository.RevokedJwtRepository;
+import com.fp.dynamodb.repository.RevokedJwtRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

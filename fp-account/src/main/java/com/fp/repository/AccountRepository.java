@@ -1,5 +1,6 @@
 package com.fp.repository;
 
+import com.fp.dynamodb.repository.DynamoDbRepository;
 import com.fp.entity.Account;
 import com.fp.exception.business.AccountNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,7 @@ import java.util.stream.Stream;
 
 @Repository
 @Slf4j
-public class AccountRepository extends DynamoDbRepository<Account>{
+public class AccountRepository extends DynamoDbRepository<Account> {
 
     public Account findByEmail(String email) {
         Key key = Key.builder().partitionValue(email).build();

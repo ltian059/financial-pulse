@@ -1,7 +1,7 @@
 package com.fp.service.impl;
 
-import com.fp.annotation.RevokeJwt;
 import com.fp.client.FollowServiceClient;
+import com.fp.constant.JwtClaimsKey;
 import com.fp.dto.account.request.AccountVerifyRequestDTO;
 import com.fp.dto.account.request.DeleteAccountRequestDTO;
 import com.fp.dto.account.response.AccountResponseDTO;
@@ -9,7 +9,7 @@ import com.fp.dto.follow.request.FollowRequestDTO;
 import com.fp.dto.account.request.UpdateBirthdayRequestDTO;
 import com.fp.entity.Account;
 import com.fp.repository.AccountRepository;
-import com.fp.repository.RevokedJwtRepository;
+import com.fp.dynamodb.repository.RevokedJwtRepository;
 import com.fp.service.AccountService;
 import com.fp.auth.service.JwtService;
 import com.fp.service.SesService;
@@ -103,6 +103,16 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void follow(FollowRequestDTO followRequestDTO) {
+        // Fill some fields in the follow request DTO
+        Account followee = accountRepository.findByEmail(followRequestDTO.getFolloweeEmail());
+
+        Jwt jwt = jwtService.getJwtFromAuthContext();
+        String followerName = jwt.getClaimAsString(JwtClaimsKey.NAME);
+
+        followRequestDTO.setFollowerName(followerName);
+        followRequestDTO.setFolloweeEmail(followee.getEmail());
+        followRequestDTO.setFolloweeName(followee.getName());
+        followRequestDTO.setFolloweeId(followee.getAccountId());
         followServiceClient.follow(followRequestDTO);
     }
 
