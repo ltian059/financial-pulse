@@ -5,6 +5,7 @@ import com.fp.lambda.message.impl.FollowerNotificationMessage;
 import com.fp.lambda.message.impl.VerificationEmailMessage;
 import com.fp.lambda.service.LambdaEmailService;
 import com.fp.lambda.util.EmailTemplate;
+import com.fp.lambda.config.ApplicationConfig;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ses.SesClient;
@@ -16,11 +17,15 @@ public class LambdaEmailServiceImpl implements LambdaEmailService {
     private final String fromEmail;
     private final String fromName;
     private final String appBaseUrl;
-    public LambdaEmailServiceImpl() {
-        String region = System.getenv("AWS_REGION");
-        this.fromEmail = System.getenv("AWS_SES_FROM_EMAIL");
-        this.fromName = "Financial Pulse";
-        this.appBaseUrl = System.getenv("SERVICES_ACCOUNT_URL");
+
+    public LambdaEmailServiceImpl(ApplicationConfig applicationConfig) {
+        ApplicationConfig.LambdaConfig lambdaConfig = applicationConfig.getLambda();
+        ApplicationConfig.ServicesConfig services = applicationConfig.getServices();
+        String region = lambdaConfig.getSes().getRegion();
+
+        this.fromEmail = lambdaConfig.getSes().getFromEmail();
+        this.fromName = lambdaConfig.getSes().getFromName();
+        this.appBaseUrl = services.getAccountUrl();
 
         if(fromEmail == null || fromEmail.isEmpty()){
             throw new IllegalArgumentException("FROM_EMAIL environment variable is required");
@@ -32,7 +37,7 @@ public class LambdaEmailServiceImpl implements LambdaEmailService {
 
     @Override
     public void processMessage(com.fp.lambda.message.Message message) {
-        log.info("Processing email message: {}", message.getMessageType());
+        log.debug("Processing email message: {}", message.getMessageType());
         if(message instanceof EmailMessage emailMessage) {
             switch (emailMessage.getEmailType()){
                 case VERIFICATION -> sendVerificationEmail(emailMessage);

@@ -14,10 +14,10 @@ import com.fp.dto.auth.response.LoginResponseDTO;
 import com.fp.dto.auth.response.RefreshTokenResponseDTO;
 import com.fp.sqs.impl.MessageFactory;
 import com.fp.sqs.service.EmailSqsService;
-import com.fp.sqs.service.SqsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtException;
@@ -28,6 +28,8 @@ import software.amazon.awssdk.enhanced.dynamodb.model.IgnoreNullsMode;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Service
 @Slf4j
@@ -38,8 +40,8 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RevokedJwtService revokedJwtService;
-
     private final EmailSqsService emailSqsService;
+    private final ThreadPoolTaskExecutor taskExecutor;
 
     @Override
     public void createAccount(CreateAccountRequestDTO accountVO) {
@@ -63,19 +65,21 @@ public class AuthServiceImpl implements AuthService {
         //set default values
         accountRepository.save(account);
         // Send verification email asynchronously using SQS
-        try {
-            publishSendingVerificationEmailEvent(account);
-            log.info("Verification email request sent to SQS for account: {}", account.getEmail());
-        } catch (Exception e) {
-            throw new EmailSendingException("Failed to send verification email for account: " + account.getEmail(), e);
-        }
 
+        CompletableFuture
+                .runAsync(() -> {
+                    sendVerificationEmailMessage(account);
+                    log.info("Verification email request sent to SQS for account: {}", account.getEmail());
+                }, taskExecutor)
+                .exceptionally(throwable -> {
+                    throw new EmailSendingException("Failed to send verification email for account: " + account.getEmail(), throwable);
+                });
     }
 
     /**
      * Publish a message to SQS, driving SES service to send verification email asynchronously using SQS
      */
-    private void publishSendingVerificationEmailEvent(Account account) {
+    private void sendVerificationEmailMessage(Account account) {
         var verificationEmailMessage = MessageFactory.createVerificationEmailMessage(
                 jwtService.generateVerifyToken(account.getAccountId(), account.getEmail()),
                 account.getAccountId(),

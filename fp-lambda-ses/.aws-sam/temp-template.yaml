@@ -13,4 +13,9 @@ Resources:
         Variables:
           AWS_REGION: us-west-1
           AWS_SES_FROM_EMAIL: li.tian2000@outlook.com
-          SERVICES_ACCOUNT_URL: localhost:8080
+          LOG_LEVEL: WARN
+          ROOT_LOG_LEVEL: warn
+          SERVICES_ACCOUNT_URL: http://localhost:8080
+          SES_FROM_NAME: Financial Pulse
+          SQS_DEAD_LETTER_QUEUE_URL: https://sqs.us-west-1.amazonaws.com/885525300554/DeadLetterQueue
+          SQS_EMAIL_QUEUE_URL: https://sqs.us-west-1.amazonaws.com/885525300554/EmailQueue

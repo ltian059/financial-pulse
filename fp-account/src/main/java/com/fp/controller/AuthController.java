@@ -10,6 +10,7 @@ import com.fp.service.AccountService;
 import com.fp.service.AuthService;
 import com.fp.dto.auth.response.LoginResponseDTO;
 import com.fp.dto.auth.response.RefreshTokenResponseDTO;
+import com.fp.sqs.email.EmailMessage;
 import com.fp.sqs.impl.MessageFactory;
 import com.fp.sqs.impl.VerificationEmailMessage;
 import com.fp.sqs.service.EmailSqsService;
@@ -20,6 +21,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -65,6 +69,29 @@ public class AuthController {
     }
 
 
+    @PostMapping("/test-send-verification-message-batch")
+    @Operation(summary = "Test sending verification email message")
+    public ResponseEntity<?> testSendVerificationMessageBatch() {
+        AccountResponseDTO accountByEmail = accountService.getAccountByEmail("tianli0927@gmail.com");
+        List<EmailMessage> messages = new ArrayList<>();
+        for(int i = 0; i < 10; i++) {
+            VerificationEmailMessage verificationEmailMessage = MessageFactory.createVerificationEmailMessage(
+                    "12356666661sadas" + i,
+                    accountByEmail.getAccountId(),
+                    accountByEmail.getEmail(),
+                    accountByEmail.getName(),
+                    "test-auth-sending"
+            );
+            messages.add(verificationEmailMessage);
+            log.info("Sending verification email message for account: {}", accountByEmail.getEmail());
+        }
+
+        EmailMessage[] messageArray = messages.toArray(EmailMessage[]::new);
+        emailSqsService.sendEmailMessageBatch(messageArray);
+
+        return ResponseEntity.ok("Verification message sent successfully:send batch messages of 10");
+    }
+
     @PostMapping("/test-send-verification-message")
     @Operation(summary = "Test sending verification email message")
     public ResponseEntity<?> testSendVerificationMessage() {
@@ -76,8 +103,8 @@ public class AuthController {
                 accountByEmail.getName(),
                 "test-auth-sending"
         );
-        emailSqsService.sendEmailMessage(verificationEmailMessage);
-        return ResponseEntity.ok("Verification message sent successfully");
-    }
+        emailSqsService.sendEmailMessageBatch(verificationEmailMessage);
 
+        return ResponseEntity.ok("Verification message sent successfully:send 1 message ");
+    }
 }

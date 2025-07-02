@@ -26,4 +26,9 @@ public class EmailSqsServiceImpl extends AbstractSqsService implements EmailSqsS
     public void sendEmailMessage(EmailMessage message) {
         sendEmailMessage(message, sqsProperties.getEmailQueue().getQueueUrl());
     }
+
+    public void sendEmailMessageBatch(EmailMessage ... messages) {
+        String queueUrl = sqsProperties.getEmailQueue().getQueueUrl();
+        super.sendMessageBatch(queueUrl, null, messages);
+    }
 }

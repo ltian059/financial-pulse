@@ -17,7 +17,6 @@ import software.amazon.awssdk.services.ses.SesClient;
 @EnableConfigurationProperties(SesProperties.class)
 @ConditionalOnProperty(name = "fp.aws.ses.enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j
-@EnableAsync
 @RequiredArgsConstructor
 public class SesConfig {
     private final SesProperties sesProperties;

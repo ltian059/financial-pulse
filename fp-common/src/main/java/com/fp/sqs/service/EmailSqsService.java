@@ -18,4 +18,6 @@ public interface EmailSqsService extends SqsService {
      * @param queueUrl the target queue URL
      */
     void sendEmailMessage(EmailMessage emailMessage, String queueUrl);
+
+    void sendEmailMessageBatch(EmailMessage ... messages);
 }

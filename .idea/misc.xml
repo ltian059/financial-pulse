@@ -10,6 +10,7 @@
         <option value="$PROJECT_DIR$/fp-content/pom.xml" />
         <option value="$PROJECT_DIR$/fp-lambda-common/pom.xml" />
         <option value="$PROJECT_DIR$/fp-lambda-parent/pom.xml" />
+        <option value="$PROJECT_DIR$/fp-lambda-ses/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">

@@ -24,4 +24,6 @@ public interface SqsService {
      */
     void sendMessage(String queueUrl, Message message);
 
+    void sendMessageBatch(String queueUrl, String messageGroupId, Message... messages);
+
 }

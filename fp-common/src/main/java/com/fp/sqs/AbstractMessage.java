@@ -18,7 +18,7 @@ public abstract class AbstractMessage implements Message{
 
     @Override
     public Integer getRetryCount() {
-        return 0;
+        return 3;
     }
 
     protected abstract void validateSpecific();

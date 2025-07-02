@@ -1,15 +1,16 @@
 package com.fp.sqs.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fp.sqs.Message;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
-import software.amazon.awssdk.services.sqs.model.SqsException;
+import software.amazon.awssdk.services.sqs.model.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -55,5 +56,49 @@ public abstract class AbstractSqsService implements SqsService {
     @Override
     public void sendMessage(String queueUrl, Message message) {
         sendMessage(queueUrl, message, null);
+    }
+
+    @Override
+    public void sendMessageBatch(String queueUrl, String messageGroupId, Message... messages) {
+        List<SendMessageBatchRequestEntry> entries = new ArrayList<>();
+        for(int i = 0; i < messages.length; i++) {
+            Message message = messages[i];
+            message.validate();
+            try {
+                String serializedBody = objectMapper.writeValueAsString(message.getMessageBody());
+                SendMessageBatchRequestEntry.Builder entryBuilder = SendMessageBatchRequestEntry.builder();
+
+                if (messageGroupId != null && !messageGroupId.trim().isEmpty()) {
+                    entryBuilder.messageGroupId(messageGroupId);
+                    // For FIFO queues, we can also set deduplication ID
+                    entryBuilder.messageDeduplicationId(UUID.randomUUID().toString());
+                }
+                entryBuilder.messageBody(serializedBody)
+                        .messageAttributes(message.getMessageAttributes())
+                        .delaySeconds(message.getDelaySeconds())
+                        .id(String.valueOf(i));
+
+                entries.add(entryBuilder.build());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if(!entries.isEmpty()){
+            SendMessageBatchResponse response = sqsClient.sendMessageBatch(
+                    SendMessageBatchRequest.builder()
+                            .queueUrl(queueUrl)
+                            .entries(entries)
+                            .build()
+            );
+
+            log.info("Sent batch of {} messages to SQS queue: {}, {} successfull, {} failed",
+                    entries.size(), queueUrl, response.successful().size(), response.failed().size());
+        }
+
+    }
+
+
+    public void sendMessageBatch(String queueUrl, Message... messages) {
+        sendMessageBatch(queueUrl, null, messages);
     }
 }
