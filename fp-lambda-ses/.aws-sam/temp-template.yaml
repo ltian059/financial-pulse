@@ -1,0 +1,16 @@
+Resources:
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 300
+      MemorySize: 128
+      Handler: com.fp.lambda.EmailProcessorHandler
+      CodeUri: D:\Java Projects\Financial Pulse\financial-pulse\fp-lambda-ses
+      Runtime: java17
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          AWS_REGION: us-west-1
+          AWS_SES_FROM_EMAIL: li.tian2000@outlook.com
+          SERVICES_ACCOUNT_URL: localhost:8080

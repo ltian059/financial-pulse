@@ -1,0 +1,33 @@
+{
+  "Records": [
+    {
+      "messageId": "19dd0b57-b21e-4ac1-bd88-01bbb068cb78",
+      "receiptHandle": "EmailProcessorHandler",
+      "body": "{\"accountId\":\"442b1032-2b7d-4107-ad23-8f5787b7bab6\",\"name\":\"litian\",\"verificationToken\":\"12356666661sadas\",\"email\":\"tianli0927@gmail.com\"}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "123456789012",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {
+        "messageType": {
+          "stringValue": "email.verification",
+          "dataType": "String"
+        },
+        "source": {
+          "stringValue": "follow-service",
+          "dataType": "String"
+        },
+        "domain": {
+          "stringValue": "gmail.com",
+          "dataType": "String"
+        }
+      },
+      "md5OfBody": "7b270e59b47ff90a553787216d55d91d",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:{partition}:sqs:{region}:123456789012:MyQueue",
+      "awsRegion": "{region}"
+    }
+  ]
+}
