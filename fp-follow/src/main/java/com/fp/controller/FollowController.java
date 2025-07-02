@@ -5,7 +5,7 @@ import com.fp.dto.common.PageResponseDTO;
 import com.fp.dto.follow.request.*;
 import com.fp.dto.follow.response.FollowResponseDTO;
 import com.fp.service.FollowService;
-import com.fp.sqs.FollowerNotificationMessage;
+import com.fp.sqs.impl.MessageFactory;
 import com.fp.sqs.service.SqsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 public class FollowController {
 
     private final FollowService followService;
-    private final SqsService followSqsService;
 
 
     @GetMapping("/count-follower")
@@ -37,17 +36,6 @@ public class FollowController {
     @Operation(summary = "Follow an account")
     public ResponseEntity<?> follow(@RequestBody FollowRequestDTO followRequestDTO){
         followService.follow(followRequestDTO);
-        //Send a message to SQS to notify the followee that they have a new follower
-        followSqsService.sendFollowerNotificationMessage(FollowerNotificationMessage
-                .builder()
-                        .followerId(followRequestDTO.getAccountId())
-                        .followerEmail(followRequestDTO.getEmail())
-                        .followerName(followRequestDTO.getFollowerName())
-                        .followeeEmail(followRequestDTO.getFolloweeEmail())
-                        .followeeName(followRequestDTO.getFolloweeName())
-                        .followeeId(followRequestDTO.getFolloweeId())
-                        .source("follow-service: follow operation-account followed by another user.")
-                .build());
         return ResponseEntity.ok("Followed successfully");
     }
 
@@ -72,7 +60,6 @@ public class FollowController {
     public ResponseEntity<PageResponseDTO<FollowResponseDTO>> listFollowing(@Valid ListFollowingsRequestDTO requestDTO){
         return ResponseEntity.ok(followService.listFollowings(requestDTO));
     }
-
 
 
 }

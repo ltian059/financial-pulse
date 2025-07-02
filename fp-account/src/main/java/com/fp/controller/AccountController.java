@@ -4,6 +4,7 @@ import com.fp.annotation.RevokeJwt;
 import com.fp.dto.account.request.*;
 import com.fp.dto.account.response.AccountResponseDTO;
 import com.fp.dto.follow.request.FollowRequestDTO;
+import com.fp.dto.follow.request.UnfollowRequestDTO;
 import com.fp.entity.Account;
 import com.fp.service.AccountService;
 import com.fp.constant.Messages;
@@ -46,6 +47,12 @@ public class AccountController {
         return ResponseEntity.ok(Messages.Success.Follow.FOLLOWED_SUCCESSFULLY);
     }
 
+    @DeleteMapping("/unfollow")
+    @Operation(summary = "Unfollow an account")
+    public ResponseEntity<String > unfollow(@RequestBody UnfollowRequestDTO unfollowRequestDTO){
+        accountService.unfollow(unfollowRequestDTO);
+        return ResponseEntity.ok(Messages.Success.Follow.UNFOLLOWED_SUCCESSFULLY);
+    }
 
 
     @DeleteMapping

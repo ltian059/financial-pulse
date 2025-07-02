@@ -22,9 +22,12 @@ public abstract class AbstractSqsService implements SqsService {
     public void sendMessage(String queueUrl, Message message, String messageGroupId){
         try {
             message.validate();
+
+            String serializedBody = objectMapper.writeValueAsString(message.getMessageBody());
+
             SendMessageRequest.Builder requestBuilder = SendMessageRequest.builder()
                     .queueUrl(queueUrl)
-                    .messageBody(objectMapper.writeValueAsString(message.getMessageBody()))
+                    .messageBody(serializedBody)
                     .messageAttributes(message.getMessageAttributes())
                     .delaySeconds(message.getDelaySeconds());
 

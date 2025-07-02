@@ -1,16 +1,18 @@
-package com.fp.sqs;
+package com.fp.sqs.impl;
 
-import lombok.*;
+import com.fp.sqs.email.AbstractEmailMessage;
+import com.fp.sqs.email.EmailType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FollowerNotificationMessage implements EmailMessage {
-    private String followerId;
+public class FollowerNotificationMessage extends AbstractEmailMessage {
     private String followerName;
-    private String followerEmail;
 
     private String followeeId;
     private String followeeName;
@@ -20,6 +22,22 @@ public class FollowerNotificationMessage implements EmailMessage {
     @Override
     public EmailType getEmailType() {
         return EmailType.FOLLOWER_NOTIFICATION;
+    }
+
+    @Override
+    protected void validateEmailSpecific() {
+        if(followeeId == null || followeeId.isEmpty()) {
+            throw new IllegalArgumentException("Followee ID cannot be null or empty");
+        }
+        if(followeeEmail == null || followeeEmail.isEmpty()) {
+            throw new IllegalArgumentException("Followee Email cannot be null or empty");
+        }
+        if(followeeName == null || followeeName.isEmpty()) {
+            throw new IllegalArgumentException("Followee Name cannot be null or empty");
+        }
+        if(followerName == null || followerName.isEmpty()) {
+            throw new IllegalArgumentException("Follower Name cannot be null or empty");
+        }
     }
 
     /**
@@ -46,13 +64,13 @@ public class FollowerNotificationMessage implements EmailMessage {
         return source;
     }
 
+    public Map<String, Object> getMessageBodyAsMap() {
+        return Map.of();
+    }
 
-    @Override
     public Map<String, Object> getMessageBody() {
         return Map.of(
-                "followerId", followerId,
                 "followerName", followerName,
-                "followerEmail", followerEmail,
                 "followeeId", followeeId,
                 "followeeName", followeeName,
                 "followeeEmail", followeeEmail

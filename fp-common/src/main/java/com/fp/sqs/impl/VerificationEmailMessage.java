@@ -1,6 +1,9 @@
-package com.fp.sqs;
+package com.fp.sqs.impl;
 
-import com.fp.sqs.constant.EmailMessageBodyKey;
+import com.fp.sqs.MessageType;
+import com.fp.sqs.email.AbstractEmailMessage;
+import com.fp.sqs.email.EmailMessageBodyKey;
+import com.fp.sqs.email.EmailType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,7 +12,7 @@ import java.util.Map;
 
 @Getter
 @Builder
-public class VerificationEmailMessage implements EmailMessage {
+public class VerificationEmailMessage extends AbstractEmailMessage {
 
     private String verificationToken;
     private String accountId;
@@ -18,21 +21,24 @@ public class VerificationEmailMessage implements EmailMessage {
     private String source;
 
     @Override
+    public MessageType getMessageType() {
+        return EmailType.VERIFICATION;
+    }
+
+    @Override
     public EmailType getEmailType() {
         return EmailType.VERIFICATION;
     }
 
 
     @Override
-    public void validate() {
+    public void validateEmailSpecific() {
         if (this.verificationToken == null ||  verificationToken.isEmpty()) {
             throw new IllegalArgumentException("Verification token must not be null or empty for verification email message");
         }
-        EmailMessage.super.validate();
     }
 
 
-    @Override
     public Map<String, Object> getMessageBody() {
         Map<String, Object> body = new HashMap<>();
         body.put(EmailMessageBodyKey.ACCOUNT_ID, accountId);
@@ -40,11 +46,6 @@ public class VerificationEmailMessage implements EmailMessage {
         body.put(EmailMessageBodyKey.EMAIL, email);
         body.put(EmailMessageBodyKey.VERIFICATION_TOKEN, verificationToken);
         return body;
-    }
-
-    @Override
-    public EmailType getMessageType() {
-        return EmailType.VERIFICATION;
     }
 
 

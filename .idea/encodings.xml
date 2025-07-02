@@ -6,6 +6,12 @@
     <file url="file://$PROJECT_DIR$/fp-common/src/main/resources/META-INF/spring.factories" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/fp-content/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/fp-follow/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fp-lambda-parent/fp-lambda-common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fp-lambda-parent/fp-lambda-common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fp-lambda-parent/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fp-lambda-parent/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fp-lambda-ses/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fp-lambda-ses/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>

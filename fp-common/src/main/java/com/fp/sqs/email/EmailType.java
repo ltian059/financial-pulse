@@ -1,4 +1,6 @@
-package com.fp.sqs;
+package com.fp.sqs.email;
+
+import com.fp.sqs.MessageType;
 
 public enum EmailType implements MessageType {
     VERIFICATION("email.verification", "Verification Email"),

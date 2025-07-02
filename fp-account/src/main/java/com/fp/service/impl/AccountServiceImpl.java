@@ -7,6 +7,8 @@ import com.fp.dto.account.request.DeleteAccountRequestDTO;
 import com.fp.dto.account.response.AccountResponseDTO;
 import com.fp.dto.follow.request.FollowRequestDTO;
 import com.fp.dto.account.request.UpdateBirthdayRequestDTO;
+import com.fp.dto.follow.request.FollowerNotificationDTO;
+import com.fp.dto.follow.request.UnfollowRequestDTO;
 import com.fp.entity.Account;
 import com.fp.repository.AccountRepository;
 import com.fp.dynamodb.repository.RevokedJwtRepository;
@@ -15,18 +17,27 @@ import com.fp.auth.service.JwtService;
 import com.fp.service.SesService;
 import com.fp.constant.Messages;
 import com.fp.exception.business.*;
+import com.fp.sqs.impl.FollowerNotificationMessage;
+import com.fp.sqs.impl.MessageFactory;
+import com.fp.sqs.service.EmailSqsService;
+import com.fp.sqs.service.SqsService;
+import com.fp.util.ServiceExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import software.amazon.awssdk.enhanced.dynamodb.model.IgnoreNullsMode;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,9 +45,8 @@ import java.time.ZoneId;
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final FollowServiceClient followServiceClient;
-    private final JwtService jwtService;
     private final SesService sesService;
-    private final RevokedJwtRepository revokedJwtRepository;
+    private final EmailSqsService sqsService;
 
     /// Only for testing purposes, not used in production
     public void updateVerificationStatus(String email, boolean status){
@@ -80,6 +90,11 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public void unfollow(UnfollowRequestDTO unfollowRequestDTO) {
+        followServiceClient.unfollow(unfollowRequestDTO);
+    }
+
+    @Override
     public Account deleteAccountByEmail(DeleteAccountRequestDTO deleteAccountRequestDTO) {
         return accountRepository.deleteAccount(deleteAccountRequestDTO.getAccountId(), deleteAccountRequestDTO.getEmail());
     }
@@ -103,19 +118,46 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void follow(FollowRequestDTO followRequestDTO) {
-        // Fill some fields in the follow request DTO
-        Account followee = accountRepository.findByEmail(followRequestDTO.getFolloweeEmail());
+        //1. Send follow request to follow service
+        try {
+            followServiceClient.follow(followRequestDTO);
+            //2. if the followee is open to receive follower notifications, find the followee account and send a notification asynchronously
+            sendFollowerNotificationMessage(followRequestDTO.getEmail(), followRequestDTO.getFolloweeId());
+        } catch (WebClientResponseException e) {
+            throw ServiceExceptionHandler.handleFollowServiceWebClientException(e);
+        }
 
-        Jwt jwt = jwtService.getJwtFromAuthContext();
-        String followerName = jwt.getClaimAsString(JwtClaimsKey.NAME);
 
-        followRequestDTO.setFollowerName(followerName);
-        followRequestDTO.setFolloweeEmail(followee.getEmail());
-        followRequestDTO.setFolloweeName(followee.getName());
-        followRequestDTO.setFolloweeId(followee.getAccountId());
-        followServiceClient.follow(followRequestDTO);
     }
 
+    /**
+     * General second index searching in dynamodb is slower, so we use async to avoid blocking the main thread.
+     */
+    @Async
+    protected void sendFollowerNotificationMessage(String followerEmail, String followeeId) {
+        Account follower = accountRepository.findByEmail(followerEmail);
+        Optional<Account> followee = accountRepository.
+                findByAccountId(followeeId);
+        if (followee.isEmpty()) {
+            throw new AccountNotFoundException(Messages.Error.Account.NOT_FOUND + followeeId);
+        }
+        //Check followee account setting, if the followee is willing to receive follower notifications, publish a notification message to SQS
+        //TODO add account setting
+
+        var followerNotificationMessage = MessageFactory.createFollowerNotificationMessage(
+                follower.getName(),
+                followeeId,
+                followee.get().getName(),
+                followee.get().getEmail(),
+                "account-service: sendFollowerNotificationMessage"
+        );
+        //Push the message to SQS
+        try {
+            sqsService.sendEmailMessage(followerNotificationMessage);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed sending follower notification", e);
+        }
+    }
 
 
 }

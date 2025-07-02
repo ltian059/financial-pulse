@@ -1,4 +1,4 @@
-package com.fp.sqs.constant;
+package com.fp.sqs.email;
 
 public class EmailMessageBodyKey {
     public static final String EMAIL = "email";

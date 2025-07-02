@@ -5,12 +5,14 @@ import com.fp.dto.account.response.AccountResponseDTO;
 import com.fp.dto.auth.request.LoginRequestDTO;
 import com.fp.dto.auth.request.CreateAccountRequestDTO;
 import com.fp.dto.auth.request.RefreshTokenRequestDTO;
+import com.fp.properties.SqsProperties;
 import com.fp.service.AccountService;
 import com.fp.service.AuthService;
 import com.fp.dto.auth.response.LoginResponseDTO;
 import com.fp.dto.auth.response.RefreshTokenResponseDTO;
-import com.fp.sqs.EmailMessage;
-import com.fp.sqs.VerificationEmailMessage;
+import com.fp.sqs.impl.MessageFactory;
+import com.fp.sqs.impl.VerificationEmailMessage;
+import com.fp.sqs.service.EmailSqsService;
 import com.fp.sqs.service.SqsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -27,7 +29,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final AccountService accountService;
-    private final SqsService accountSqsService;
+    private final EmailSqsService emailSqsService;
 
     @PostMapping("/create-account")
     @Operation(summary = "Create a new account")
@@ -67,13 +69,15 @@ public class AuthController {
     @Operation(summary = "Test sending verification email message")
     public ResponseEntity<?> testSendVerificationMessage() {
         AccountResponseDTO accountByEmail = accountService.getAccountByEmail("tianli0927@gmail.com");
-        accountSqsService.sendEmailMessage(VerificationEmailMessage.builder()
-                .email(accountByEmail.getEmail())
-                .name(accountByEmail.getName())
-                .source("test-auth-sending")
-                .accountId(accountByEmail.getAccountId())
-                .verificationToken("12356666661sadas")
-                .build());
+        VerificationEmailMessage verificationEmailMessage = MessageFactory.createVerificationEmailMessage(
+                "12356666661sadas",
+                accountByEmail.getAccountId(),
+                accountByEmail.getEmail(),
+                accountByEmail.getName(),
+                "test-auth-sending"
+        );
+        emailSqsService.sendEmailMessage(verificationEmailMessage);
         return ResponseEntity.ok("Verification message sent successfully");
     }
+
 }

@@ -8,7 +8,14 @@
         <option value="$PROJECT_DIR$/fp-account/pom.xml" />
         <option value="$PROJECT_DIR$/fp-follow/pom.xml" />
         <option value="$PROJECT_DIR$/fp-content/pom.xml" />
+        <option value="$PROJECT_DIR$/fp-lambda-common/pom.xml" />
+        <option value="$PROJECT_DIR$/fp-lambda-parent/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/fp-lambda-parent/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="17" project-jdk-type="JavaSDK">

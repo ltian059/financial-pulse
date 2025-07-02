@@ -14,7 +14,8 @@ public enum FollowServiceAPI {
      * @Description: Endpoint to follow an account
      * @apiNote Implementation is in FollowController#followAccount(Long, Long)
      */
-    FOLLOW_ACCOUNT("/api/follow", HttpMethod.POST);
+    FOLLOW_ACCOUNT("/api/follow", HttpMethod.POST),
+    UNFOLLOW_ACCOUNT("/api/follow", HttpMethod.DELETE);
 
     private final String path;
     private final HttpMethod method;

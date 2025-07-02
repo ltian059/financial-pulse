@@ -4,18 +4,16 @@ import com.fp.auth.service.RevokedJwtService;
 import com.fp.constant.Messages;
 import com.fp.dto.auth.request.CreateAccountRequestDTO;
 import com.fp.dto.auth.request.LoginRequestDTO;
-import com.fp.sqs.EmailMessage;
 import com.fp.entity.Account;
-import com.fp.sqs.EmailType;
 import com.fp.exception.business.*;
 import com.fp.exception.service.InvalidRefreshTokenException;
 import com.fp.repository.AccountRepository;
 import com.fp.service.AuthService;
 import com.fp.auth.service.JwtService;
-import com.fp.service.SesService;
 import com.fp.dto.auth.response.LoginResponseDTO;
 import com.fp.dto.auth.response.RefreshTokenResponseDTO;
-import com.fp.sqs.VerificationEmailMessage;
+import com.fp.sqs.impl.MessageFactory;
+import com.fp.sqs.service.EmailSqsService;
 import com.fp.sqs.service.SqsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final RevokedJwtService revokedJwtService;
 
-    private final SqsService accountSqsService;
+    private final EmailSqsService emailSqsService;
 
     @Override
     public void createAccount(CreateAccountRequestDTO accountVO) {
@@ -78,14 +76,14 @@ public class AuthServiceImpl implements AuthService {
      * Publish a message to SQS, driving SES service to send verification email asynchronously using SQS
      */
     private void publishSendingVerificationEmailEvent(Account account) {
-        EmailMessage emailMessage = VerificationEmailMessage.builder()
-                .email(account.getEmail())
-                .accountId(account.getAccountId())
-                .name(account.getName())
-                .verificationToken(jwtService.generateVerifyToken(account.getAccountId(), account.getEmail()))
-                .source("auth-service: createAccount")
-                .build();
-        accountSqsService.sendEmailMessage(emailMessage);
+        var verificationEmailMessage = MessageFactory.createVerificationEmailMessage(
+                jwtService.generateVerifyToken(account.getAccountId(), account.getEmail()),
+                account.getAccountId(),
+                account.getEmail(),
+                account.getName(),
+                "auth-service: createAccount"
+        );
+        emailSqsService.sendEmailMessage(verificationEmailMessage);
     }
 
 

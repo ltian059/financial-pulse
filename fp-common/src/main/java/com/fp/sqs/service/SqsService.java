@@ -1,6 +1,6 @@
 package com.fp.sqs.service;
 
-import com.fp.sqs.EmailMessage;
+import com.fp.sqs.email.EmailMessage;
 import com.fp.sqs.Message;
 
 /**
@@ -8,9 +8,6 @@ import com.fp.sqs.Message;
  */
 public interface SqsService {
 
-    default void sendEmailMessage(EmailMessage message){}
-
-    default void sendFollowerNotificationMessage(Message message){}
 
     /**
      * Send a generic message to specified queue (publish)
@@ -26,4 +23,5 @@ public interface SqsService {
      * @param message the message object
      */
     void sendMessage(String queueUrl, Message message);
+
 }

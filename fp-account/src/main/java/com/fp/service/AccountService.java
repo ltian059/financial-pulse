@@ -6,6 +6,7 @@ import com.fp.dto.account.request.DeleteAccountRequestDTO;
 import com.fp.dto.account.response.AccountResponseDTO;
 import com.fp.dto.follow.request.FollowRequestDTO;
 import com.fp.dto.account.request.UpdateBirthdayRequestDTO;
+import com.fp.dto.follow.request.UnfollowRequestDTO;
 import com.fp.entity.Account;
 
 public interface AccountService {
@@ -28,4 +29,6 @@ public interface AccountService {
     void logout();
 
     void updateBirthday(UpdateBirthdayRequestDTO birthdayRequestDTO);
+
+    void unfollow(UnfollowRequestDTO unfollowRequestDTO);
 }

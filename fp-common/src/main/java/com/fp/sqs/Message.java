@@ -8,35 +8,21 @@ import java.util.Map;
  * All message sent to SQS should implement this interface.
  */
 public interface Message {
-    Map<String, Object> getMessageBody();
 
     /**
      * Get the message attributes.
      */
     Map<String, MessageAttributeValue> getMessageAttributes();
-
-
     MessageType getMessageType();
+    Map<String, Object> getMessageBody();
+    String getSource();
 
-    default Integer getPriority() {
-        return 5;
-    }
 
-    default Integer getDelaySeconds() {
-        return 0;
-    }
+    Integer getPriority();
+    Integer getDelaySeconds();
+    Integer getRetryCount();
 
-    default Integer getRetryCount() {
-        return 0;
-    }
+    void validate();
 
-    default void validate() {
-        if(getMessageBody() == null){
-            throw new IllegalArgumentException("Message body cannot be null or empty");
-        }
-        if(getMessageType() == null){
-            throw new IllegalArgumentException("Message type cannot be null");
-        }
-    }
 
 }

@@ -12,6 +12,8 @@ public class UnfollowRequestDTO {
      * The email of the account that is unfollowing another account.
      */
     private String email;
+
+    //TODO USE followee email instead of followeeId
     /**
      * The ID of the account that is being unfollowed.
      */

@@ -1,6 +1,7 @@
 package com.fp.client;
 
 import com.fp.dto.follow.request.FollowRequestDTO;
+import com.fp.dto.follow.request.UnfollowRequestDTO;
 import com.fp.enumeration.api.FollowServiceAPI;
 import com.fp.util.ServiceExceptionHandler;
 import lombok.RequiredArgsConstructor;
@@ -55,4 +56,19 @@ public class FollowServiceClient {
         }
     }
 
+    public void unfollow(UnfollowRequestDTO unfollowRequestDTO) {
+        try {
+            followWebClient.method(FollowServiceAPI.UNFOLLOW_ACCOUNT.getMethod())
+                    .uri(uriBuilder -> uriBuilder
+                            .path(FollowServiceAPI.UNFOLLOW_ACCOUNT.getPath())
+                            .build()
+                    )
+                    .bodyValue(unfollowRequestDTO)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+        } catch (WebClientResponseException e) {
+            throw ServiceExceptionHandler.handleFollowServiceWebClientException(e);
+        }
+    }
 }
