@@ -1,0 +1,182 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Financial Pulse Lambda Email Service for SES email processing'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, test, prod]
+    Description: Environment name
+
+  LambdaCodeBucket:
+    Type: String
+    Description: S3 bucket containing Lambda deployment package
+    Default: fp-lambda-deployments
+
+  LambdaCodeKey:
+    Type: String
+    Description: S3 key for Lambda deployment package
+    Default: fp-lambda-ses.jar
+
+  SQSStackName:
+    Type: String
+    Default: fp-sqs-dev
+    Description: SQS Stack name to import queue ARNs
+
+  # Environment Variables
+  SESFromEmail:
+    Type: String
+    Description: SES from email address
+    Default: li.tian2000@outlook.com
+
+  SESFromName:
+    Type: String
+    Description: SES from name
+    Default: Financial Pulse
+
+  ServicesAccountUrl:
+    Type: String
+    Description: Account service URL
+    Default: http://localhost:8080
+
+  LogLevel:
+    Type: String
+    Default: WARN
+    AllowedValues: [DEBUG, INFO, WARN, ERROR]
+    Description: Application log level
+
+  RootLogLevel:
+    Type: String
+    Default: warn
+    AllowedValues: [debug, info, warn, error]
+    Description: Root log level
+
+
+Resources:
+  # IAM Role for Lambda
+  LambdaEmailProcessorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub fp-lambda-email-processor-role-${Environment}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
+      Policies:
+        - PolicyName: SESAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:SendRawEmail
+                  - ses:SendTemplatedEmail
+                Resource: '*'
+        - PolicyName: SQSAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:SendMessage
+                Resource:
+                  - Fn::ImportValue: !Sub ${SQSStackName}-EmailQueueArn
+                  - Fn::ImportValue: !Sub ${SQSStackName}-DeadLetterQueueArn
+      Tags:
+        - Key: Name
+          Value: !Sub fp-lambda-email-processor-role-${Environment}
+        - Key: Service
+          Value: lambda-email-processor
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Lambda Function for Email Processing
+  EmailProcessorLambda:
+    Type: AWS::Lambda::Function
+    DependsOn: LambdaEmailProcessorRole
+    Properties:
+      FunctionName: !Sub fp-email-processor-${Environment}
+      Runtime: java17
+      Handler: com.fp.lambda.EmailProcessorHandler
+      Role: !GetAtt LambdaEmailProcessorRole.Arn
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LambdaCodeKey
+      Timeout: 300
+      MemorySize: 512
+      Environment:
+        Variables:
+          AWS_SES_FROM_EMAIL: !Ref SESFromEmail
+          SES_FROM_NAME: !Ref SESFromName
+          LOG_LEVEL: !Ref LogLevel
+          ROOT_LOG_LEVEL: !Ref RootLogLevel
+          SERVICES_ACCOUNT_URL: !Ref ServicesAccountUrl
+          SQS_EMAIL_QUEUE_URL:
+            Fn::ImportValue: !Sub ${SQSStackName}-EmailQueueUrl
+          SQS_DEAD_LETTER_QUEUE_URL:
+            Fn::ImportValue: !Sub ${SQSStackName}-DeadLetterQueueUrl
+      Tags:
+        - Key: Name
+          Value: !Sub fp-email-processor-${Environment}
+        - Key: Service
+          Value: lambda-email-processor
+        - Key: Environment
+          Value: !Ref Environment
+
+  # SQS Event Source Mapping with Batch Response
+  EmailQueueEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn:
+        Fn::ImportValue: !Sub ${SQSStackName}-EmailQueueArn
+      FunctionName: !Ref EmailProcessorLambda
+      BatchSize: 10
+      MaximumBatchingWindowInSeconds: 5
+      FunctionResponseTypes:
+        - ReportBatchItemFailures
+      Enabled: true
+
+  # CloudWatch Log Group
+  EmailProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/fp-email-processor-${Environment}
+      RetentionInDays: 14
+
+  # Lambda Permission for SQS
+  SQSInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref EmailProcessorLambda
+      Action: lambda:InvokeFunction
+      Principal: sqs.amazonaws.com
+      SourceArn:
+        Fn::ImportValue: !Sub ${SQSStackName}-EmailQueueArn
+Outputs:
+  LambdaFunctionArn:
+    Description: ARN of the Email Processor Lambda function
+    Value: !GetAtt EmailProcessorLambda.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-LambdaFunctionArn
+
+  LambdaFunctionName:
+    Description: Name of the Email Processor Lambda function
+    Value: !Ref EmailProcessorLambda
+    Export:
+      Name: !Sub ${AWS::StackName}-LambdaFunctionName
+
+  LambdaRoleArn:
+    Description: ARN of the Lambda execution role
+    Value: !GetAtt LambdaEmailProcessorRole.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-LambdaRoleArn

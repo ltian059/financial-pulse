@@ -7,7 +7,6 @@ import com.fp.lambda.service.LambdaEmailService;
 import com.fp.lambda.util.EmailTemplate;
 import com.fp.lambda.config.ApplicationConfig;
 import lombok.extern.slf4j.Slf4j;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.*;
 
@@ -31,7 +30,6 @@ public class LambdaEmailServiceImpl implements LambdaEmailService {
             throw new IllegalArgumentException("FROM_EMAIL environment variable is required");
         }
         sesClient = SesClient.builder()
-                .region(Region.of(region))
                 .build();
     }
 

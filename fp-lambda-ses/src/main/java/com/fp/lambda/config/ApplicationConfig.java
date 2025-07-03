@@ -110,12 +110,10 @@ public class ApplicationConfig {
             if (config.lambda.ses != null) {
                 config.lambda.ses.fromEmail = resolveProperty(config.lambda.ses.fromEmail);
                 config.lambda.ses.fromName = resolveProperty(config.lambda.ses.fromName);
-                config.lambda.ses.region = resolveProperty(config.lambda.ses.region);
             }
 
             // 处理SQS配置
             if (config.lambda.sqs != null) {
-                config.lambda.sqs.region = resolveProperty(config.lambda.sqs.region);
                 if (config.lambda.sqs.queues != null) {
                     config.lambda.sqs.queues.replaceAll((key, value) -> resolveProperty(value));
                 }

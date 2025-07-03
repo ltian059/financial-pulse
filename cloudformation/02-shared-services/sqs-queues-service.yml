@@ -1,0 +1,201 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Financial Pulse SQS Queues for Email Processing'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, test, prod]
+    Description: Environment name
+
+  MessageRetentionPeriod:
+    Type: Number
+    Default: 345600
+    Description: Message retention period in seconds (Max 14 days)
+    MinValue: 60
+    MaxValue: 1209600
+
+  VisibilityTimeout:
+    Type: Number
+    Default: 300
+    Description: Visibility timeout in seconds (should match Lambda timeout)
+    MinValue: 0
+    MaxValue: 43200
+
+  MaxReceiveCount:
+    Type: Number
+    Default: 3
+    Description: Maximum number of receives before sending to DLQ
+    MinValue: 1
+    MaxValue: 1000
+
+  DelaySeconds:
+    Type: Number
+    Default: 0
+    Description: Delay seconds for message delivery
+    MinValue: 0
+    MaxValue: 900
+
+Resources:
+  # Dead Letter Queue (must be created first)
+  DeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub fp-dead-letter-queue-${Environment}
+      MessageRetentionPeriod: !Ref MessageRetentionPeriod
+      VisibilityTimeout: !Ref VisibilityTimeout
+      DelaySeconds: !Ref DelaySeconds
+      Tags:
+        - Key: Name
+          Value: !Sub fp-dead-letter-queue-${Environment}
+        - Key: Service
+          Value: email-processing
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: QueueType
+          Value: DeadLetter
+
+  # Main Email Queue with DLQ configuration
+  EmailQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub fp-email-queue-${Environment}
+      MessageRetentionPeriod: !Ref MessageRetentionPeriod
+      VisibilityTimeout: !Ref VisibilityTimeout
+      DelaySeconds: !Ref DelaySeconds
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
+        maxReceiveCount: !Ref MaxReceiveCount
+      Tags:
+        - Key: Name
+          Value: !Sub fp-email-queue-${Environment}
+        - Key: Service
+          Value: email-processing
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: QueueType
+          Value: Main
+
+  # Queue Policy for Cross-Service Access
+  EmailQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref EmailQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowServiceAccess
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - sqs:SendMessage
+              - sqs:ReceiveMessage
+              - sqs:DeleteMessage
+              - sqs:GetQueueAttributes
+            Resource: !GetAtt EmailQueue.Arn
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Ref AWS::AccountId
+
+  # Dead Letter Queue Policy
+  DeadLetterQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref DeadLetterQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowServiceAccess
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - sqs:ReceiveMessage
+              - sqs:DeleteMessage
+              - sqs:GetQueueAttributes
+            Resource: !GetAtt DeadLetterQueue.Arn
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Ref AWS::AccountId
+          - Sid: AllowSQSRedrive
+            Effect: Allow
+            Principal:
+              Service: sqs.amazonaws.com
+            Action:
+              - sqs:SendMessage
+            Resource: !GetAtt DeadLetterQueue.Arn
+
+  # CloudWatch Alarms for Monitoring
+  EmailQueueDepthAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub fp-email-queue-depth-${Environment}
+      AlarmDescription: Monitor Email Queue depth
+      MetricName: ApproximateNumberOfVisibleMessages
+      Namespace: AWS/SQS
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 100
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt EmailQueue.QueueName
+      TreatMissingData: notBreaching
+
+  DeadLetterQueueDepthAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub fp-dead-letter-queue-depth-${Environment}
+      AlarmDescription: Monitor Dead Letter Queue depth
+      MetricName: ApproximateNumberOfVisibleMessages
+      Namespace: AWS/SQS
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt DeadLetterQueue.QueueName
+      TreatMissingData: notBreaching
+
+Outputs:
+  EmailQueueUrl:
+    Description: URL of the Email Queue
+    Value: !Ref EmailQueue
+    Export:
+      Name: !Sub ${AWS::StackName}-EmailQueueUrl
+
+  EmailQueueArn:
+    Description: ARN of the Email Queue
+    Value: !GetAtt EmailQueue.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-EmailQueueArn
+
+  EmailQueueName:
+    Description: Name of the Email Queue
+    Value: !GetAtt EmailQueue.QueueName
+    Export:
+      Name: !Sub ${AWS::StackName}-EmailQueueName
+
+  DeadLetterQueueUrl:
+    Description: URL of the Dead Letter Queue
+    Value: !Ref DeadLetterQueue
+    Export:
+      Name: !Sub ${AWS::StackName}-DeadLetterQueueUrl
+
+  DeadLetterQueueArn:
+    Description: ARN of the Dead Letter Queue
+    Value: !GetAtt DeadLetterQueue.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-DeadLetterQueueArn
+
+  DeadLetterQueueName:
+    Description: Name of the Dead Letter Queue
+    Value: !GetAtt DeadLetterQueue.QueueName
+    Export:
+      Name: !Sub ${AWS::StackName}-DeadLetterQueueName
