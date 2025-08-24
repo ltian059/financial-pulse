@@ -88,6 +88,9 @@ jobs:
     environment: ${{ github.event.inputs.environment }}
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -101,12 +104,18 @@ jobs:
           name: account-service-jar
           path: ./
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
       - name: Install boto3
         run: pip install boto3
 
       - name: Create temporary SSM endpoints
         run: |
           python scripts/manage_stack.py create fp-ssm-endpoints ./cloudformation/01-foundation/vpc-ssm-endpoints.yml
+          
 
       - name: Setup SSH key
         run: |
