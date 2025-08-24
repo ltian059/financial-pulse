@@ -4,10 +4,12 @@ import com.fp.properties.SqsProperties;
 import com.fp.sqs.email.EmailMessage;
 import com.fp.sqs.service.AbstractSqsService;
 import com.fp.sqs.service.EmailSqsService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
 @Service
+@ConditionalOnBean(SqsClient.class)
 public class EmailSqsServiceImpl extends AbstractSqsService implements EmailSqsService {
     private final SqsProperties sqsProperties;
 

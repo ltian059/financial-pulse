@@ -2,6 +2,8 @@ package com.fp.sqs.service;
 
 import com.fp.sqs.email.EmailMessage;
 import com.fp.sqs.Message;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import software.amazon.awssdk.services.sqs.SqsClient;
 
 /**
  * SQS service interface for sending messages to queues.

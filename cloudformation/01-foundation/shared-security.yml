@@ -44,6 +44,12 @@ Resources:
           Description: Direct HTTP access from admin IPv4
 
         - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref MyIP
+          Description: Direct HTTP access from the public internet
+
+        - IpProtocol: tcp
           FromPort: 8080
           ToPort: 8082
           CidrIp: 0.0.0.0/0

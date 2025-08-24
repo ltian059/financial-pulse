@@ -45,10 +45,10 @@ Parameters:
     Description: Aurora Database Stack name
 
   # EIP AllocationId
-  ElasticIPAllocationId:
-    Type: String
-    Description: Allocation ID of existing Elastic IP
-    Default: eipalloc-05dd1a67802d57d3c
+#  ElasticIPAllocationId:
+#    Type: String
+#    Description: Allocation ID of existing Elastic IP
+#    Default: eipalloc-05dd1a67802d57d3c
 
   # Database Configuration
   DatabaseName:
@@ -94,7 +94,7 @@ Resources:
       SecurityGroupIds:
         - Fn::ImportValue: !Sub ${SecurityStackName}-ApplicationSecurityGroupId
       SubnetId:
-        Fn::ImportValue: !Sub ${VPCStackName}-PublicSubnet1Id
+        Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet1Id
       UserData: !Base64
         Fn::Sub: |
           #!/bin/bash
@@ -133,11 +133,11 @@ Resources:
           Value: follow
 
   # Associate Elastic IP with Instance
-  FollowServiceEIPAssociation:
-    Type: AWS::EC2::EIPAssociation
-    Properties:
-      AllocationId: !Ref ElasticIPAllocationId
-      InstanceId: !Ref FollowServiceInstance
+#  FollowServiceEIPAssociation:
+#    Type: AWS::EC2::EIPAssociation
+#    Properties:
+#      AllocationId: !Ref ElasticIPAllocationId
+#      InstanceId: !Ref FollowServiceInstance
 
 Outputs:
   InstanceId:
@@ -146,25 +146,15 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-InstanceId
 
-  InstancePublicIP:
-    Description: Public IP of the EC2 instance
-    Value: !GetAtt FollowServiceInstance.PublicIp
-    Export:
-      Name: !Sub ${AWS::StackName}-PublicIP
-
   PrivateIP:
     Description: Private IP of the EC2 instance
     Value: !GetAtt FollowServiceInstance.PrivateIp
     Export:
       Name: !Sub ${AWS::StackName}-PrivateIP
 
-  SSHCommand:
-    Description: SSH command to connect to the instance
-    Value: !Sub "ssh -i fp-keypair.pem ec2-user@${FollowServiceInstance.PublicIp}"
-
   ServiceEndpoint:
-    Description: Service endpoint
-    Value: !Sub "http://${FollowServiceInstance.PublicIp}:8082"
+    Description: Internal service endpoint (private IP)
+    Value: !Sub "http://${FollowServiceInstance.PrivateIp}:8082"
     Export:
       Name: !Sub ${AWS::StackName}-ServiceEndpoint
 

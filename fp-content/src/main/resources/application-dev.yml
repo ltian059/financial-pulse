@@ -46,3 +46,11 @@ services:
 fp:
   jwt:
     secret: ${JWT_SECRET}
+  aws:
+    dynamodb:
+      enabled: true
+      region: ${AWS_REGION}
+      table-prefix: ${DYNAMODB_TABLE_PREFIX}
+      table-suffix: ${DYNAMODB_TABLE_SUFFIX}
+    sqs:
+      enabled: false
