@@ -11,6 +11,7 @@ public class UrlConstant {
 
     public static final String[] PROTECTED_PATHS = {
             "/v3/api-docs/**", "/swagger-ui/**",
+
     };
 
 

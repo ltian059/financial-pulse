@@ -102,8 +102,9 @@ public class SecurityConfiguration {
         log.info("Creating default SecurityFilterChain for non-API paths");
         return http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpUtil::isLocalhostRequest).permitAll()
-                        .anyRequest().authenticated()  // 所有其他路径都需要认证
+//                        .requestMatchers(HttpUtil::isLocalhostRequest).permitAll()
+                        .requestMatchers(UrlConstant.PUBLIC_PATHS).permitAll()
+                        .anyRequest().authenticated()  // All other paths need to be authenticated by form login
                 )
                 .formLogin(form -> form
                         // 使用默认登录页面
