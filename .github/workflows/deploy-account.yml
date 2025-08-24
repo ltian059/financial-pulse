@@ -67,6 +67,13 @@ jobs:
     environment: ${{ github.event.inputs.environment }}
 
     steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
@@ -245,54 +252,77 @@ jobs:
           
           # Make scripts executable
           chmod +x start.sh stop.sh
-      - name: Deploy to EC2
+
+      - name: Deploy via S3 and Systems Manager
         run: |
-          EC2_HOST=${{ vars.EC2_ACCOUNT_HOST }}
+          BUCKET_NAME="financial-pulse-deployment-artifacts"
+          S3_KEY="account/fp-account-${{ github.sha }}.jar"
+          INSTANCE_ID="${{ vars.EC2_ACCOUNT_INSTANCE_ID }}"
           
-          echo "Deploying to EC2 instance: $EC2_HOST"
+          echo "Uploading JAR to S3..."
+          aws s3 cp ${{ needs.build.outputs.jar-name }} \
+            s3://$BUCKET_NAME/$S3_KEY
           
-          # Copy JAR file
-          echo "Copying JAR file..."
-          scp -i /tmp/fp-keypair.pem -o StrictHostKeyChecking=no \
-            ${{ needs.build.outputs.jar-name }} \
-            ec2-user@$EC2_HOST:/opt/app/fp-account.jar
+          echo "Uploading configuration files to S3..."
+          aws s3 cp .env s3://$BUCKET_NAME/account/.env-${{ github.sha }}
+          aws s3 cp start.sh s3://$BUCKET_NAME/account/start.sh
+          aws s3 cp stop.sh s3://$BUCKET_NAME/account/stop.sh
           
-          # Copy environment configuration
-          echo "Copying environment configuration..."
-          scp -i /tmp/fp-keypair.pem -o StrictHostKeyChecking=no \
-            .env \
-            ec2-user@$EC2_HOST:/opt/app/.env
+          echo "Deploying via Systems Manager..."
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids $INSTANCE_ID \
+            --document-name "AWS-RunShellScript" \
+            --parameters "commands=[
+              'echo \"=== Financial Pulse Deployment Starting ===\"',
+              'cd /opt/app',
+              'echo \"Downloading from S3...\"',
+              'aws s3 cp s3://$BUCKET_NAME/$S3_KEY ./fp-account.jar',
+              'aws s3 cp s3://$BUCKET_NAME/account/.env-${{ github.sha }} ./.env',
+              'aws s3 cp s3://$BUCKET_NAME/account/start.sh ./start.sh',
+              'aws s3 cp s3://$BUCKET_NAME/account/stop.sh ./stop.sh',
+              'echo \"Setting permissions...\"',
+              'chmod +x start.sh stop.sh',
+              'chmod 644 .env fp-account.jar',
+              'echo \"Stopping existing service...\"',
+              './stop.sh || true',
+              'echo \"Starting new service...\"',
+              './start.sh',
+              'sleep 5',
+              'echo \"Checking service status...\"',
+              'if pgrep -f \"fp-account.jar\"; then echo \"✅ Service started successfully\"; else echo \"❌ Service failed to start\"; exit 1; fi',
+              'echo \"=== Deployment completed successfully ===\"'
+            ]" \
+            --output text --query 'Command.CommandId')
           
-          # Copy start script
-          echo "Copying start script..."
-          scp -i /tmp/fp-keypair.pem -o StrictHostKeyChecking=no \
-            start.sh \
-            ec2-user@$EC2_HOST:/opt/app/start.sh
+          echo "Command ID: $COMMAND_ID"
+          echo "Waiting for command execution..."
           
-          # Copy stop script
-          echo "Copying stop script..."
-            scp -i /tmp/fp-keypair.pem -o StrictHostKeyChecking=no \
-              stop.sh \
-              ec2-user@$EC2_HOST:/opt/app/stop.sh
-          
-          # Deploy using custom scripts only
-          echo "Deploying application using custom scripts..."
-          ssh -i /tmp/fp-keypair.pem -o StrictHostKeyChecking=no \
-            ec2-user@$EC2_HOST << 'REMOTE_SCRIPT'
-            # Navigate to the application directory
-            cd /opt/app
-            # Ensure proper permissions
-            chmod 644 .env
-            chmod 644 fp-account.jar
-            chmod +x start.sh
-            chmod +x stop.sh
-          
-            # stop existing service
-            ./stop.sh || true
-          
-            # start new service
-            ./start.sh
-          
-          REMOTE_SCRIPT
-          
-          echo "Deployment completed!"
+          # 等待命令执行完成
+          for i in {1..30}; do
+            STATUS=$(aws ssm get-command-invocation \
+              --command-id $COMMAND_ID \
+              --instance-id $INSTANCE_ID \
+              --query 'Status' --output text 2>/dev/null || echo "InProgress")
+            
+            echo "Status: $STATUS (attempt $i/30)"
+            
+            if [ "$STATUS" = "Success" ]; then
+              echo "✅ Deployment successful!"
+              echo "=== Command Output ==="
+              aws ssm get-command-invocation \
+                --command-id $COMMAND_ID \
+                --instance-id $INSTANCE_ID \
+                --query 'StandardOutputContent' --output text
+              break
+            elif [ "$STATUS" = "Failed" ]; then
+              echo "❌ Deployment failed!"
+              echo "=== Error Output ==="
+              aws ssm get-command-invocation \
+                --command-id $COMMAND_ID \
+                --instance-id $INSTANCE_ID \
+                --query 'StandardErrorContent' --output text
+              exit 1
+            fi
+            
+            sleep 10
+          done

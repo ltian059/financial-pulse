@@ -38,14 +38,14 @@ Parameters:
 
   DynamoDBStackName:
     Type: String
-    Default: fp-dynamodb-dev
+    Default: fp-dynamo-dev
     Description: DynamoDB Tables Stack name
 
   #EIP AllocationId
-  ElasticIPAllocationId:
-    Type: String
-    Description: Allocation ID of existing Elastic IP (e.g., eipalloc-1234567890abcdef0)
-    Default: eipalloc-00306762fa828833d
+#  ElasticIPAllocationId:
+#    Type: String
+#    Description: Allocation ID of existing Elastic IP (e.g., eipalloc-1234567890abcdef0)
+#    Default: eipalloc-00306762fa828833d
 
 Resources:
   AccountServiceRole:
@@ -61,6 +61,8 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
         - arn:aws:iam::aws:policy/AmazonSESFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       Tags:
         - Key: Name
           Value: !Sub fp-account-role-${Environment}
@@ -84,14 +86,25 @@ Resources:
         - Fn::ImportValue: !Sub ${SecurityStackName}-ApplicationSecurityGroupId
       SubnetId:
         Fn::ImportValue: !Sub ${VPCStackName}-PublicSubnet1Id
+      # 公网 IP 通过子网设置或 EIP 分配
       UserData: !Base64
         Fn::Sub: |
           #!/bin/bash
           # Update system
           yum update -y
           
-          # Install Java 17
-          yum install -y java-17-amazon-corretto-headless wget
+          # Install Java 17, AWS CLI v2, and SSM
+          yum install -y java-17-amazon-corretto-headless wget unzip
+          
+          # Install AWS CLI v2
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
+          
+          # Install and start SSM Agent
+          yum install -y amazon-ssm-agent
+          systemctl enable amazon-ssm-agent
+          systemctl start amazon-ssm-agent
           
           # Create app directory
           mkdir -p /opt/app
@@ -120,11 +133,11 @@ Resources:
         - Key: Name
           Value: fp-account-service-${Environment}
   # Associate Elastic IP with Instance
-  AccountServiceEIPAssociation:
-    Type: AWS::EC2::EIPAssociation
-    Properties:
-      AllocationId: !Ref ElasticIPAllocationId
-      InstanceId: !Ref AccountServiceInstance
+#  AccountServiceEIPAssociation:
+#    Type: AWS::EC2::EIPAssociation
+#    Properties:
+#      AllocationId: !Ref ElasticIPAllocationId
+#      InstanceId: !Ref AccountServiceInstance
 
 Outputs:
   InstanceId:
@@ -133,25 +146,21 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-InstanceId
 
-  InstancePublicIP:
-    Description: Public IP of the EC2 instance
-    Value: !GetAtt AccountServiceInstance.PublicIp
-    Export:
-      Name: !Sub ${AWS::StackName}-PublicIP
-
   PrivateIP:
     Description: Private IP of the EC2 instance
     Value: !GetAtt AccountServiceInstance.PrivateIp
     Export:
       Name: !Sub ${AWS::StackName}-PrivateIP
 
-  SSHCommand:
-    Description: SSH command to connect to the instance
-    Value: !Sub "ssh -i fp-keypair.pem ec2-user@${AccountServiceInstance.PublicIp}"
+  PublicIp:
+    Description: Public IP of the EC2 instance
+    Value: !GetAtt AccountServiceInstance.PublicIp
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicIp
 
   ServiceEndpoint:
-    Description: Service endpoint
-    Value: !Sub "http://${AccountServiceInstance.PublicIp}:8080"
+    Description: Internal service endpoint (private IP)
+    Value: !Sub "http://${AccountServiceInstance.PrivateIp}:8080"
     Export:
       Name: !Sub ${AWS::StackName}-ServiceEndpoint
 

@@ -61,6 +61,7 @@ Resources:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
 
+
   # Public Subnets
   PublicSubnet1:
     Type: AWS::EC2::Subnet
@@ -74,6 +75,8 @@ Resources:
           Value: !Sub fp-public-subnet-1-${Environment}
         - Key: Type
           Value: Public
+        - Key: Purpose
+          Value: ALB
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
@@ -87,8 +90,10 @@ Resources:
           Value: !Sub fp-public-subnet-2-${Environment}
         - Key: Type
           Value: Public
+        - Key: Purpose
+          Value: ALB
 
-  # Private Subnets (for RDS)
+  # Private Subnets (for EC2 microservices and RDS)
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
@@ -100,6 +105,8 @@ Resources:
           Value: !Sub fp-private-subnet-1-${Environment}
         - Key: Type
           Value: Private
+        - Key: Purpose
+          Value: Microservices
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
@@ -112,6 +119,8 @@ Resources:
           Value: !Sub fp-private-subnet-2-${Environment}
         - Key: Type
           Value: Private
+        - Key: Purpose
+          Value: Microservices
 
   # Route Tables
   PublicRouteTable:
@@ -137,6 +146,8 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
+
+
 
   PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -209,3 +220,4 @@ Outputs:
     Value: !Ref VPCCidr
     Export:
       Name: !Sub ${AWS::StackName}-VPCCidr
+
