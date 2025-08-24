@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'VPC Endpoints for Financial Pulse - Development Only'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    Description: Environment name
+  
+  VPCStackName:
+    Type: String
+    Default: fp-vpc-dev
+    Description: VPC Stack name to import VPC resources
+
+Resources:
+  # Security Group for VPC Endpoints
+  VPCEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for VPC endpoints
+      VpcId: 
+        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 
+            Fn::ImportValue: !Sub ${VPCStackName}-VPCCidr
+          Description: Allow HTTPS from VPC
+      Tags:
+        - Key: Name
+          Value: !Sub fp-vpc-endpoint-sg-${Environment}
+
+  # S3 VPC Endpoint (Gateway Endpoint)
+  S3VPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: 
+        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateRouteTable1
+
+  # SSM VPC Endpoints (Interface Endpoints)
+  SSMVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: 
+        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.ssm
+      VpcEndpointType: Interface
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet1Id
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet2Id
+      SecurityGroupIds:
+        - !Ref VPCEndpointSecurityGroup
+      PrivateDnsEnabled: true
+
+  SSMMessagesVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: 
+        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.ssmmessages
+      VpcEndpointType: Interface
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet1Id
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet2Id
+      SecurityGroupIds:
+        - !Ref VPCEndpointSecurityGroup
+      PrivateDnsEnabled: true
+
+  EC2MessagesVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: 
+        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.ec2messages
+      VpcEndpointType: Interface
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet1Id
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet2Id
+      SecurityGroupIds:
+        - !Ref VPCEndpointSecurityGroup
+      PrivateDnsEnabled: true
+
+Outputs:
+  VPCEndpointSecurityGroupId:
+    Description: VPC Endpoint Security Group ID
+    Value: !Ref VPCEndpointSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-VPCEndpointSecurityGroupId
+      
+  S3VPCEndpointId:
+    Description: S3 VPC Endpoint ID
+    Value: !Ref S3VPCEndpoint
+    Export:
+      Name: !Sub ${AWS::StackName}-S3VPCEndpointId

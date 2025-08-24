@@ -85,8 +85,7 @@ Resources:
       SecurityGroupIds:
         - Fn::ImportValue: !Sub ${SecurityStackName}-ApplicationSecurityGroupId
       SubnetId:
-        Fn::ImportValue: !Sub ${VPCStackName}-PublicSubnet1Id
-      # 公网 IP 通过子网设置或 EIP 分配
+        Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet1Id
       UserData: !Base64
         Fn::Sub: |
           #!/bin/bash
@@ -152,11 +151,11 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-PrivateIP
 
-  PublicIp:
-    Description: Public IP of the EC2 instance
-    Value: !GetAtt AccountServiceInstance.PublicIp
-    Export:
-      Name: !Sub ${AWS::StackName}-PublicIp
+#  PublicIp:
+#    Description: Public IP of the EC2 instance
+#    Value: !GetAtt AccountServiceInstance.PublicIp
+#    Export:
+#      Name: !Sub ${AWS::StackName}-PublicIp
 
   ServiceEndpoint:
     Description: Internal service endpoint (private IP)
