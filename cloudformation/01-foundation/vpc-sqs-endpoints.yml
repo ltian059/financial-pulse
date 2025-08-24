@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'VPC Endpoints for Financial Pulse - Development Only'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    Description: Environment name
+
+  VPCStackName:
+    Type: String
+    Default: fp-vpc-dev
+    Description: VPC Stack name to import VPC resources
+
+Resources:
+  # SQS VPC Endpoint (Interface Endpoint - Required for private subnet SQS access)
+  SQSVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId:
+        Fn::ImportValue: !Sub "${VPCStackName}-VPCId"
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.sqs
+      VpcEndpointType: Interface
+      SubnetIds:
+        - Fn::ImportValue: !Sub "${VPCStackName}-PrivateSubnet1Id"
+        - Fn::ImportValue: !Sub "${VPCStackName}-PrivateSubnet2Id"
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub "${VPCStackName}-CoreVPCEndpointSecurityGroupId"
+
+      PrivateDnsEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub fp-sqs-endpoint-${Environment}

@@ -215,23 +215,6 @@ Resources:
         - Key: Name
           Value: !Sub fp-core-vpc-endpoint-sg-${Environment}
 
-  # SQS VPC Endpoint (Interface Endpoint - Required for private subnet SQS access)
-  SQSVPCEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcId: !Ref VPC
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.sqs
-      VpcEndpointType: Interface
-      SubnetIds:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
-      SecurityGroupIds:
-        - !Ref CoreVPCEndpointSecurityGroup
-      PrivateDnsEnabled: true
-      Tags:
-        - Key: Name
-          Value: !Sub fp-sqs-endpoint-${Environment}
-
 Outputs:
   VPCId:
     Description: VPC ID

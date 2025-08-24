@@ -101,6 +101,13 @@ jobs:
           name: account-service-jar
           path: ./
 
+      - name: Install boto3
+        run: pip install boto3
+
+      - name: Create temporary SSM endpoints
+        run: |
+          python scripts/manage_stack.py create fp-ssm-endpoints ./cloudformation/01-foundation/vpc-ssm-endpoints.yml
+
       - name: Setup SSH key
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/fp-keypair.pem
@@ -362,3 +369,8 @@ jobs:
             
             sleep 10
           done
+
+      - name: Delete temporary SSM endpoints
+        if: success()
+        run: |
+          python scripts/manage_stack.py delete fp-ssm-endpoints
