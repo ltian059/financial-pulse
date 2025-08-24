@@ -13,26 +13,6 @@ Parameters:
     Description: VPC Stack name to import VPC resources
 
 Resources:
-  # Security Group for VPC Endpoints
-  VPCEndpointSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Security group for VPC endpoints
-      VpcId: 
-        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 
-            Fn::ImportValue: !Sub ${VPCStackName}-VPCCidr
-          Description: Allow HTTPS from VPC
-      Tags:
-        - Key: Name
-          Value: !Sub fp-vpc-endpoint-sg-${Environment}
-
-
-
   # SSM VPC Endpoints (Interface Endpoints)
   SSMVPCEndpoint:
     Type: AWS::EC2::VPCEndpoint
@@ -45,8 +25,11 @@ Resources:
         - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet1Id
         - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet2Id
       SecurityGroupIds:
-        - !Ref VPCEndpointSecurityGroup
+        - Fn::ImportValue: !Sub ${VPCStackName}-CoreVPCEndpointSecurityGroupId
       PrivateDnsEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub fp-ssm-endpoint-${Environment}
 
   SSMMessagesVPCEndpoint:
     Type: AWS::EC2::VPCEndpoint
@@ -59,8 +42,11 @@ Resources:
         - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet1Id
         - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet2Id
       SecurityGroupIds:
-        - !Ref VPCEndpointSecurityGroup
+        - Fn::ImportValue: !Sub ${VPCStackName}-CoreVPCEndpointSecurityGroupId
       PrivateDnsEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub fp-ssmmessages-endpoint-${Environment}
 
   EC2MessagesVPCEndpoint:
     Type: AWS::EC2::VPCEndpoint
@@ -73,12 +59,10 @@ Resources:
         - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet1Id
         - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet2Id
       SecurityGroupIds:
-        - !Ref VPCEndpointSecurityGroup
+        - Fn::ImportValue: !Sub ${VPCStackName}-CoreVPCEndpointSecurityGroupId
       PrivateDnsEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub fp-ec2messages-endpoint-${Environment}
 
-Outputs:
-  VPCEndpointSecurityGroupId:
-    Description: VPC Endpoint Security Group ID
-    Value: !Ref VPCEndpointSecurityGroup
-    Export:
-      Name: !Sub ${AWS::StackName}-VPCEndpointSecurityGroupId
+# No outputs needed - using shared security group from vpc-core

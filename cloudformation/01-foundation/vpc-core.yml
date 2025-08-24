@@ -183,6 +183,9 @@ Resources:
       VpcEndpointType: Gateway
       RouteTableIds:
         - !Ref PrivateRouteTable1
+      Tags:
+        - Key: Name
+          Value: !Sub fp-s3-endpoint-${Environment}
 
   DynamoDbVPCEndpoint:
     Type: AWS::EC2::VPCEndpoint
@@ -192,6 +195,42 @@ Resources:
       VpcEndpointType: Gateway
       RouteTableIds:
         - !Ref PrivateRouteTable1
+      Tags:
+        - Key: Name
+          Value: !Sub fp-dynamodb-endpoint-${Environment}
+
+  # Security Group for Interface VPC Endpoints
+  CoreVPCEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for core VPC endpoints
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref VPCCidr
+          Description: Allow HTTPS from VPC
+      Tags:
+        - Key: Name
+          Value: !Sub fp-core-vpc-endpoint-sg-${Environment}
+
+  # SQS VPC Endpoint (Interface Endpoint - Required for private subnet SQS access)
+  SQSVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.sqs
+      VpcEndpointType: Interface
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      SecurityGroupIds:
+        - !Ref CoreVPCEndpointSecurityGroup
+      PrivateDnsEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub fp-sqs-endpoint-${Environment}
 
 Outputs:
   VPCId:
@@ -240,4 +279,10 @@ Outputs:
     Value: !Ref VPCCidr
     Export:
       Name: !Sub ${AWS::StackName}-VPCCidr
+
+  CoreVPCEndpointSecurityGroupId:
+    Description: Core VPC Endpoint Security Group ID
+    Value: !Ref CoreVPCEndpointSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-CoreVPCEndpointSecurityGroupId
 

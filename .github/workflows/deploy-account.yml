@@ -19,8 +19,29 @@ on:
           - account-prod
 
 jobs:
+  validate-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyYAML
+
+      - name: Validate environment variables
+        run: |
+          python scripts/validate-env-vars.py account
+
   build:
     runs-on: ubuntu-latest
+    needs: [validate-env]
     outputs:
       jar-name: ${{steps.build.outputs.jar-name}}
     steps:
@@ -102,13 +123,20 @@ jobs:
           # JWT Configuration
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           # AWS Configuration
+          
           AWS_REGION=${{ vars.AWS_REGION }}
           # Server port
           SERVER_PORT=8080
-          #Dynamodb configuration
+          # DynamoDB configuration
           DYNAMODB_TABLE_PREFIX=${{ vars.DYNAMODB_TABLE_PREFIX }}
           DYNAMODB_TABLE_SUFFIX=${{ vars.DYNAMODB_TABLE_SUFFIX }}
-                    
+          # SQS Configuration
+          SQS_EMAIL_QUEUE_URL=${{ vars.SQS_EMAIL_QUEUE_URL }}
+          SQS_FOLLOWER_NOTIFICATION_QUEUE_URL=${{ vars.SQS_FOLLOWER_NOTIFICATION_QUEUE_URL }}
+          SQS_DEAD_LETTER_QUEUE_URL=${{ vars.SQS_DEAD_LETTER_QUEUE_URL }}
+          
+          AWS_SQS_ENABLED=true
+          # SES Configuration
           AWS_SES_FROM_EMAIL=${{ secrets.AWS_SES_FROM_EMAIL }}
           EOF
 
@@ -168,6 +196,15 @@ jobs:
             if [ ${#JWT_SECRET} -lt 10 ]; then
             log_error "JWT_SECRET is too short (minimum 10 characters)"
             exit 1
+            fi
+          
+            # Check SQS Configuration (if enabled)
+            if [ "$AWS_SQS_ENABLED" = "true" ]; then
+              if [ -z "$SQS_EMAIL_QUEUE_URL" ]; then
+                log_error "SQS_EMAIL_QUEUE_URL is not set but SQS is enabled"
+                exit 1
+              fi
+              log_info "SQS configuration validated"
             fi
           
             log_info "Configuration validation completed"

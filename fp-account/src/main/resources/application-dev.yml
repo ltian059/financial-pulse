@@ -34,7 +34,6 @@ fp:
       table-suffix: ${DYNAMODB_TABLE_SUFFIX}
     ses:
       region: ${AWS_REGION}
-      app-base-url: ${SERVICES_ACCOUNT_URL}
       from-email: ${AWS_SES_FROM_EMAIL}
       from-name: Financial Pulse
     sqs:
