@@ -31,16 +31,7 @@ Resources:
         - Key: Name
           Value: !Sub fp-vpc-endpoint-sg-${Environment}
 
-  # S3 VPC Endpoint (Gateway Endpoint)
-  S3VPCEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcId: 
-        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
-      VpcEndpointType: Gateway
-      RouteTableIds:
-        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateRouteTable1
+
 
   # SSM VPC Endpoints (Interface Endpoints)
   SSMVPCEndpoint:
@@ -91,9 +82,3 @@ Outputs:
     Value: !Ref VPCEndpointSecurityGroup
     Export:
       Name: !Sub ${AWS::StackName}-VPCEndpointSecurityGroupId
-      
-  S3VPCEndpointId:
-    Description: S3 VPC Endpoint ID
-    Value: !Ref S3VPCEndpoint
-    Export:
-      Name: !Sub ${AWS::StackName}-S3VPCEndpointId

@@ -105,11 +105,10 @@ jobs:
           AWS_REGION=${{ vars.AWS_REGION }}
           # Server port
           SERVER_PORT=8080
-          # External Services Configuration
-          SERVICES_ACCOUNT_URL=${{ vars.SERVICES_ACCOUNT_URL }}
-          SERVICES_CONTENT_URL=${{ vars.SERVICES_CONTENT_URL }}
-          SERVICES_FOLLOW_URL=${{ vars.SERVICES_FOLLOW_URL }}
-          
+          #Dynamodb configuration
+          DYNAMODB_TABLE_PREFIX=${{ vars.DYNAMODB_TABLE_PREFIX }}
+          DYNAMODB_TABLE_SUFFIX=${{ vars.DYNAMODB_TABLE_SUFFIX }}
+                    
           AWS_SES_FROM_EMAIL=${{ secrets.AWS_SES_FROM_EMAIL }}
           EOF
 

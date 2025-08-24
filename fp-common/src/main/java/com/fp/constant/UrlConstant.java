@@ -6,11 +6,11 @@ public class UrlConstant {
      */
     public static final String[] PUBLIC_PATHS = {
             "/api/auth/**",
+            "/actuator/health/**"
     };
 
     public static final String[] PROTECTED_PATHS = {
             "/v3/api-docs/**", "/swagger-ui/**",
-            "/actuator/**",
     };
 
 
