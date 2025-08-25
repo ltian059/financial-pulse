@@ -1,6 +1,7 @@
 import boto3
 import sys
 import time
+from botocore.exceptions import ClientError, WaiterError
 
 
 """
@@ -34,9 +35,27 @@ def get_stack_status(stack_name):
         raise
 
 def create_stack(stack_name, template_file, params):
+    """
+    Creates a CloudFormation stack.
+    This function is idempotent:
+    - If the stack exists and is stable, it does nothing.
+    - If the stack exists in a failed state, it deletes and recreates it.
+    - If the stack doesn't exist, it creates it.
+    """
+    status = get_stack_status(stack_name)
+    print(f"Current status of stack '{stack_name}': {status}")
+    # If stack is already created and stable, no action is needed.
+    if status in ["CREATE_COMPLETE", "UPDATE_COMPLETE"]:
+        print(f"✅ Stack '{stack_name}' already exists and is in a stable state. Skipping creation.")
+        return
+    # If stack exists but is in a failed/transient state, delete it first.
+    if status not in ["NOT_FOUND", "DELETE_COMPLETE"]:
+        print(f"⚠️ Stack '{stack_name}' exists but is in a failed state ({status}).")
+        print("Attempting to delete the stack before recreating...")
+        delete_stack(stack_name)
+    print(f"🚀 Creating stack: {stack_name}")
     with open(template_file, "r") as f:
         template_body = f.read()
-    print(f" Creating stack: {stack_name}")
     try:
         cf.create_stack(
             StackName=stack_name,
@@ -46,13 +65,17 @@ def create_stack(stack_name, template_file, params):
         )
         wait_for_stack(stack_name, "create")
     except WaiterError as e:
-        status = get_stack_status(stack_name)
-        if status in ("ROLLBACK_COMPLETE", "CREATE_FAILED"):
-            print(f"⚠️ Cleaning up failed stack {stack_name}...")
-            delete_stack(stack_name)
+        # If waiting fails, the stack is in a bad state. Attempt cleanup.
+        print(f"Stack creation failed. Attempting cleanup of failed stack '{stack_name}'...")
+        delete_stack(stack_name)
         sys.exit(1)
 
 def delete_stack(stack_name):
+    """Deletes a CloudFormation stack and waits for completion."""
+    # Check if stack exists before trying to delete
+    if get_stack_status(stack_name) == "NOT_FOUND":
+        print(f"Stack '{stack_name}' does not exist. Nothing to delete.")
+        return
     print(f" Deleting stack: {stack_name}")
     cf.delete_stack(StackName=stack_name)
     try:

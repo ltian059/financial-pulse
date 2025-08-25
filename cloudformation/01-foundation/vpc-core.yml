@@ -7,7 +7,10 @@ Parameters:
     Default: dev
     AllowedValues: [dev, test, prod]
     Description: Environment name
-
+  SecurityStackName:
+    Type: String
+    Default: fp-security-dev
+    Description: Security Stack name to import Security Group IDs
   VPCCidr:
     Type: String
     Default: 10.0.0.0/16
@@ -209,8 +212,10 @@ Resources:
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-          CidrIp: !Ref VPCCidr
-          Description: Allow HTTPS from VPC
+#          CidrIp: !Ref VPCCidr
+          SourceSecurityGroupId:
+            Fn::ImportValue: !Sub ${SecurityStackName}-ApplicationSecurityGroupId
+          Description: Allow HTTPS from Application Security Group
       Tags:
         - Key: Name
           Value: !Sub fp-core-vpc-endpoint-sg-${Environment}
