@@ -146,10 +146,10 @@ jobs:
       - name: Prepare deployment scripts
         run: |
           # Copy Python scripts from fp-deployment module and make them executable
-          cp fp-deployment/scripts/account_start.py start.py
-          cp fp-deployment/scripts/account_stop.py stop.py
+          cp fp-deployment/scripts/account_start.py ./
+          cp fp-deployment/scripts/account_stop.py ./
           cp fp-deployment/scripts/logutil.py logutil.py
-          chmod +x start.py stop.py
+          chmod +x account_start.py account_stop.py
           echo "✅ Python deployment scripts prepared"
 
       - name: Upload files to S3
@@ -162,8 +162,8 @@ jobs:
           echo "📤 Uploading files to S3..."
           aws s3 cp ./artifacts/account-service-jar/$JAR_NAME s3://$BUCKET_NAME/$S3_JAR_KEY
           aws s3 cp .env s3://$BUCKET_NAME/$S3_ENV_KEY
-          aws s3 cp start.py s3://$BUCKET_NAME/account/start.py
-          aws s3 cp stop.py s3://$BUCKET_NAME/account/stop.py
+          aws s3 cp account_start.py s3://$BUCKET_NAME/account/
+          aws s3 cp account_stop.py s3://$BUCKET_NAME/account/
           aws s3 cp logutil.py s3://$BUCKET_NAME/account/logutil.py
           echo "✅ All files uploaded to S3"
 
@@ -190,19 +190,19 @@ jobs:
           echo "📥 Downloading from S3..."
           aws s3 cp s3://financial-pulse-deployment-artifacts/account/fp-account-${{ github.sha }}.jar ./fp-account.jar
           aws s3 cp s3://financial-pulse-deployment-artifacts/account/.env-${{ github.sha }} ./.env
-          aws s3 cp s3://financial-pulse-deployment-artifacts/account/start.py ./start.py
-          aws s3 cp s3://financial-pulse-deployment-artifacts/account/stop.py ./stop.py
+          aws s3 cp s3://financial-pulse-deployment-artifacts/account/account_start.py ./
+          aws s3 cp s3://financial-pulse-deployment-artifacts/account/account_stop.py ./
           aws s3 cp s3://financial-pulse-deployment-artifacts/account/logutil.py ./logutil.py
           
           echo "🔧 Setting permissions..."
-          chmod +x start.py stop.py
+          chmod +x account_start.py account_stop.py
           chmod 644 .env fp-account.jar
           
           echo "🛑 Stopping existing service..."
-          python3 stop.py || true
+          python3 account_stop.py || true
           
           echo "▶️ Starting new service..."
-          python3 start.py
+          python3 account_start.py
           
           echo "⏳ Waiting for service to initialize..."
           sleep 10

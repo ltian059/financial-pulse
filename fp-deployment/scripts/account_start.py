@@ -160,13 +160,6 @@ class AccountServiceManager():
 
         try:
             os.chdir(self.app_dir)
-            stop_res = subprocess.run(
-                ["python3", "account_stop.py", str(self.app_dir)],
-                capture_output=True
-            ) # Stop any existing instance
-            if stop_res != 0:
-                log.error("The previous instance may not have stopped cleanly.")
-                sys.exit(1)
             env_vars = self._load_environment()
             self._check_jar_file()
             self._start_java_application(env_vars)
