@@ -1,5 +1,6 @@
 package com.fp.service.impl;
 
+import com.fp.auth.service.JwtService;
 import com.fp.client.FollowServiceClient;
 import com.fp.dto.account.request.AccountVerifyRequestDTO;
 import com.fp.dto.account.request.DeleteAccountRequestDTO;
@@ -10,7 +11,6 @@ import com.fp.dto.follow.request.UnfollowRequestDTO;
 import com.fp.entity.Account;
 import com.fp.repository.AccountRepository;
 import com.fp.service.AccountService;
-import com.fp.service.SesService;
 import com.fp.constant.Messages;
 import com.fp.exception.business.*;
 import com.fp.sqs.impl.MessageFactory;
@@ -38,9 +38,9 @@ import java.util.concurrent.CompletableFuture;
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final FollowServiceClient followServiceClient;
-    private final SesService sesService;
     private final EmailSqsService sqsService;
     private final ThreadPoolTaskExecutor taskExecutor;
+    private final JwtService jwtService;
 
     /// Only for testing purposes, not used in production
     public void updateVerificationStatus(String email, boolean status){
@@ -102,7 +102,20 @@ public class AccountServiceImpl implements AccountService {
         if(account.getVerified()){
             throw new AccountAlreadyVerifiedException(Messages.Error.Account.ALREADY_VERIFIED + verifyRequestDTO.getEmail());
         }
-        sesService.sendVerificationEmail(account);
+        CompletableFuture
+                .runAsync(() -> {
+                    sqsService.sendEmailMessage(MessageFactory.createVerificationEmailMessage(
+                            jwtService.generateVerifyToken(account.getAccountId(), account.getEmail()),
+                            account.getAccountId(),
+                            account.getEmail(),
+                            account.getName(),
+                            "account-service: sendVerificationEmail"
+                    ));
+                    log.info("Verification email request sent to SQS for account: {}", account.getEmail());
+                }, taskExecutor)
+                .exceptionally(throwable -> {
+                    throw new EmailSendingException("Failed to send verification email for account: " + account.getEmail(), throwable);
+                });
     }
 
     @Override

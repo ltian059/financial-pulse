@@ -41,11 +41,6 @@ Parameters:
     Default: fp-dynamo-dev
     Description: DynamoDB Tables Stack name
 
-  #EIP AllocationId
-#  ElasticIPAllocationId:
-#    Type: String
-#    Description: Allocation ID of existing Elastic IP (e.g., eipalloc-1234567890abcdef0)
-#    Default: eipalloc-00306762fa828833d
 
 Resources:
   AccountServiceRole:
@@ -60,7 +55,7 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
-        - arn:aws:iam::aws:policy/AmazonSESFullAccess
+        - arn:aws:iam::aws:policy/AmazonSQSFullAccess
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       Tags:
