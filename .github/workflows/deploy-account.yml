@@ -83,7 +83,7 @@ jobs:
       - name: Validate configuration templates
         run: |
           echo "🔍 Validating configuration templates against workflow variables..."
-          python scripts/validate-env-vars.py account
+          python fp-deployment/scripts/validate-env-vars.py account
 
       - name: Determine Spring Profile
         id: profile
@@ -123,7 +123,7 @@ jobs:
       - name: Validate actual environment file
         run: |
           echo "🔍 Validating actual environment variables..."
-          python scripts/validate-env-file.py .env
+          python fp-deployment/scripts/validate-env-file.py .env
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -145,9 +145,10 @@ jobs:
 
       - name: Prepare deployment scripts
         run: |
-          # Copy Python scripts from repository and make them executable
-          cp scripts/account-start.py start.py
-          cp scripts/account-stop.py stop.py
+          # Copy Python scripts from fp-deployment module and make them executable
+          cp fp-deployment/scripts/account_start.py start.py
+          cp fp-deployment/scripts/account_stop.py stop.py
+          cp fp-deployment/scripts/logutil.py logutil.py
           chmod +x start.py stop.py
           echo "✅ Python deployment scripts prepared"
 
@@ -163,6 +164,7 @@ jobs:
           aws s3 cp .env s3://$BUCKET_NAME/$S3_ENV_KEY
           aws s3 cp start.py s3://$BUCKET_NAME/account/start.py
           aws s3 cp stop.py s3://$BUCKET_NAME/account/stop.py
+          aws s3 cp logutil.py s3://$BUCKET_NAME/account/logutil.py
           echo "✅ All files uploaded to S3"
 
       - name: Deploy via SSH through EC2 Instance Connect
@@ -190,6 +192,7 @@ jobs:
           aws s3 cp s3://financial-pulse-deployment-artifacts/account/.env-${{ github.sha }} ./.env
           aws s3 cp s3://financial-pulse-deployment-artifacts/account/start.py ./start.py
           aws s3 cp s3://financial-pulse-deployment-artifacts/account/stop.py ./stop.py
+          aws s3 cp s3://financial-pulse-deployment-artifacts/account/logutil.py ./logutil.py
           
           echo "🔧 Setting permissions..."
           chmod +x start.py stop.py

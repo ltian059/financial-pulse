@@ -32,10 +32,6 @@ fp:
       region: ${AWS_REGION}
       table-prefix: ${DYNAMODB_TABLE_PREFIX}
       table-suffix: ${DYNAMODB_TABLE_SUFFIX}
-    ses:
-      region: ${AWS_REGION}
-      from-email: ${AWS_SES_FROM_EMAIL}
-      from-name: Financial Pulse
     sqs:
       region: ${AWS_REGION}
       email-queue:

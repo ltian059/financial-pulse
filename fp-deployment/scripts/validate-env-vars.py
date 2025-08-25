@@ -6,6 +6,7 @@ Environment Variables Validation Script (Simple Version)
 import os
 import sys
 import re
+from logutil import log
 
 # Service configuration mapping
 service_configs = {
@@ -48,14 +49,14 @@ def validate_service(service_name):
     """Validate a single service configuration"""
     config = service_configs.get(service_name)
     if not config:
-        print(f"ERROR: Unknown service: {service_name}")
+        log.error(f"Unknown service: {service_name}")
         return False
 
     print(f"\n=== Validating {config['service_name']} ===")
 
     # Check if workflow file exists
     if not os.path.exists(config['workflow_file']):
-        print(f"ERROR: Workflow file not found: {config['workflow_file']}")
+        log.error(f"Workflow file not found: {config['workflow_file']}")
         return False
 
     # Collect all placeholders from configuration files
@@ -63,7 +64,7 @@ def validate_service(service_name):
     
     for config_file in config['config_files']:
         if not os.path.exists(config_file):
-            print(f"WARNING: Configuration file not found: {config_file}")
+            log.warning(f"Configuration file not found: {config_file}")
             continue
 
         try:
@@ -71,18 +72,18 @@ def validate_service(service_name):
                 config_content = file.read()
                 placeholders = extract_placeholders(config_content)
                 
-                print(f"Found {len(placeholders)} placeholders in {config_file}")
+                log.info(f"Found {len(placeholders)} placeholders in {config_file}")
                 if placeholders:
                     print(f"   Variables: {', '.join(placeholders)}")
                 
                 all_placeholders.update(placeholders)
                 
         except Exception as e:
-            print(f"ERROR: Error processing {config_file}: {e}")
+            log.error(f"Error processing {config_file}: {e}")
             return False
 
     if not all_placeholders:
-        print("OK: No placeholders found - nothing to validate")
+        log.info("No placeholders found - nothing to validate")
         return True
 
     # Extract variables from workflow file
@@ -91,12 +92,12 @@ def validate_service(service_name):
             workflow_content = file.read()
             workflow_variables = extract_workflow_variables(workflow_content)
             
-            print(f"Found {len(workflow_variables)} variables in workflow")
+            log.info(f"Found {len(workflow_variables)} variables in workflow")
             if workflow_variables:
                 print(f"   Variables: {', '.join(workflow_variables)}")
                 
     except Exception as e:
-        print(f"ERROR: Error processing workflow file {config['workflow_file']}: {e}")
+        log.error(f"Error processing workflow file {config['workflow_file']}: {e}")
         return False
 
     # Compare placeholders with workflow variables
@@ -112,12 +113,12 @@ def validate_service(service_name):
 
     # Report results
     if defined_variables:
-        print(f"OK: Properly defined variables ({len(defined_variables)}):")
+        log.info(f"Properly defined variables ({len(defined_variables)}):")
         for variable in sorted(defined_variables):
             print(f"   [+] {variable}")
 
     if missing_variables:
-        print(f"ERROR: Missing variables in workflow ({len(missing_variables)}):")
+        log.error(f"Missing variables in workflow ({len(missing_variables)}):")
         for variable in sorted(missing_variables):
             print(f"   [-] {variable}")
         return False
@@ -125,7 +126,7 @@ def validate_service(service_name):
     # Check for unused workflow variables
     unused_variables = [var for var in workflow_variables if var not in all_placeholders]
     if unused_variables:
-        print(f"WARNING: Variables defined in workflow but not used ({len(unused_variables)}):")
+        log.warning(f"Variables defined in workflow but not used ({len(unused_variables)}):")
         for variable in sorted(unused_variables):
             print(f"   [?] {variable}")
 
@@ -140,8 +141,8 @@ def main():
     print("======================================")
     
     if target_service and target_service not in service_configs:
-        print(f"ERROR: Unknown service '{target_service}'")
-        print(f"Available services: {', '.join(service_configs.keys())}")
+        log.error(f"Unknown service '{target_service}'")
+        log.error(f"Available services: {', '.join(service_configs.keys())}")
         sys.exit(1)
 
     services_to_validate = [target_service] if target_service else list(service_configs.keys())
