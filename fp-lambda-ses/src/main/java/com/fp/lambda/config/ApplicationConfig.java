@@ -14,13 +14,22 @@ import java.util.Map;
 public class ApplicationConfig {
     private LoggingConfig logging;
     private LambdaConfig lambda;
-    private ServicesConfig services;
+
+    // Replace individual service URLs with a single API Gateway URL
+//    private ServicesConfig services;
+    private GatewayConfig gateway;
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ServicesConfig{
-        private String accountUrl = "http://localhost:8080";
+    public static class GatewayConfig{
+        private String url;
     }
+
+//    @Data
+//    @JsonIgnoreProperties(ignoreUnknown = true)
+//    public static class ServicesConfig{
+//        private String accountUrl = "http://localhost:8080";
+//    }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -66,6 +75,9 @@ public class ApplicationConfig {
 
         if (lambda.ses.fromEmail == null || lambda.ses.fromEmail.isEmpty()) {
             throw new IllegalStateException("SES from email is required");
+        }
+        if (gateway.url == null || gateway.url.isEmpty()) {
+            throw new IllegalStateException("Gateway URL is required");
         }
         // 验证日志级别
         validateLogLevel(logging.level);
@@ -120,9 +132,14 @@ public class ApplicationConfig {
             }
         }
 
-        // 处理Services配置
-        if (config.services != null) {
-            config.services.accountUrl = resolveProperty(config.services.accountUrl);
+//        // 处理Services配置， 已经替换为api gateway
+//        if (config.services != null) {
+//            config.services.accountUrl = resolveProperty(config.services.accountUrl);
+//        }
+
+        // 处理Gateway配置
+        if (config.gateway != null) {
+            config.gateway.url = resolveProperty(config.gateway.url);
         }
 
         return config;
@@ -142,10 +159,8 @@ public class ApplicationConfig {
 
             if (envValue != null) {
                 return envValue;
-            } else if (defaultValue != null) {
-                return defaultValue;
             } else {
-                return value; // 返回原值
+                return defaultValue; // If env var is not set, use default (which may be null)
             }
         }
 

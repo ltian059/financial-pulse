@@ -7,10 +7,9 @@ lambda:
       email: ${SQS_EMAIL_QUEUE_URL}
       deadLetter: ${SQS_DEAD_LETTER_QUEUE_URL}
 
-services:
-  accountUrl: ${SERVICES_ACCOUNT_URL}
 
-
+gateway:
+  url: ${GATEWAY_URL}
 
 
 logging:

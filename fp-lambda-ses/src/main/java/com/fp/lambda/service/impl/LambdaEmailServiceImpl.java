@@ -15,16 +15,16 @@ public class LambdaEmailServiceImpl implements LambdaEmailService {
     private final SesClient sesClient;
     private final String fromEmail;
     private final String fromName;
-    private final String appBaseUrl;
+    private final String gatewayUrl;
 
     public LambdaEmailServiceImpl(ApplicationConfig applicationConfig) {
         ApplicationConfig.LambdaConfig lambdaConfig = applicationConfig.getLambda();
-        ApplicationConfig.ServicesConfig services = applicationConfig.getServices();
+        ApplicationConfig.GatewayConfig gateway = applicationConfig.getGateway();
         String region = lambdaConfig.getSes().getRegion();
 
         this.fromEmail = lambdaConfig.getSes().getFromEmail();
         this.fromName = lambdaConfig.getSes().getFromName();
-        this.appBaseUrl = services.getAccountUrl();
+        this.gatewayUrl = gateway.getUrl();
 
         if(fromEmail == null || fromEmail.isEmpty()){
             throw new IllegalArgumentException("FROM_EMAIL environment variable is required");
@@ -120,13 +120,11 @@ public class LambdaEmailServiceImpl implements LambdaEmailService {
     }
 
     private String buildVerifyURL(String verifyToken) {
-        String baseURL = appBaseUrl != null ? appBaseUrl : "http://localhost:8080"; // Default to localhost if not set
-        return baseURL + "/api/auth/verify?token=" + verifyToken;
+        return gatewayUrl + "/api/auth/verify?token=" + verifyToken;
     }
 
     private String buildPasswordResetURL(String resetPasswordToken) {
-        String baseURL = appBaseUrl != null ? appBaseUrl : "http://localhost:8080"; // Default to localhost if not set
-        return baseURL + "/api/auth/reset-password?token=" + resetPasswordToken;
+        return gatewayUrl + "/api/auth/reset-password?token=" + resetPasswordToken;
     }
 
     /**
