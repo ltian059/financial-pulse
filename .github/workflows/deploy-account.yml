@@ -181,6 +181,8 @@ jobs:
           set -e
           
           echo "=== Financial Pulse Deployment Starting ==="
+          sudo chown -R ec2-user:ec2-user /opt/app
+          
           cd /opt/app
           
           echo "📥 Downloading from S3..."
