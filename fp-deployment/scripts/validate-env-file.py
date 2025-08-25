@@ -13,7 +13,7 @@ Examples:
 
 import sys
 from pathlib import Path
-from scripts.logutil import log, Colors
+from logutil import log, Colors
 
 class EnvFileValidator:
     def __init__(self, env_file_path=".env"):

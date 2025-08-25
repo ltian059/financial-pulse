@@ -6,7 +6,7 @@ Environment Variables Validation Script (Simple Version)
 import os
 import sys
 import re
-from scripts.logutil import log
+from logutil import log
 
 # Service configuration mapping
 service_configs = {
