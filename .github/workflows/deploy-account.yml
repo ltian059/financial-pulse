@@ -94,37 +94,6 @@ jobs:
           echo "Spring Profile: $SPRING_PROFILE"
           echo "profile=$SPRING_PROFILE" >> $GITHUB_OUTPUT
 
-      - name: Create environment configuration
-        run: |
-          echo "📝 Creating environment configuration..."
-          cat > .env << 'EOF'
-          # Application Configuration
-          SPRING_PROFILES_ACTIVE=${{ steps.profile.outputs.profile }}
-          # JWT Configuration
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          # AWS Configuration
-          AWS_REGION=${{ vars.AWS_REGION }}
-          # Server port
-          SERVER_PORT=8080
-          # DynamoDB configuration
-          DYNAMODB_TABLE_PREFIX=${{ vars.DYNAMODB_TABLE_PREFIX }}
-          DYNAMODB_TABLE_SUFFIX=${{ vars.DYNAMODB_TABLE_SUFFIX }}
-          # SQS Configuration
-          SQS_EMAIL_QUEUE_URL=${{ vars.SQS_EMAIL_QUEUE_URL }}
-          SQS_FOLLOWER_NOTIFICATION_QUEUE_URL=${{ vars.SQS_FOLLOWER_NOTIFICATION_QUEUE_URL }}
-          SQS_DEAD_LETTER_QUEUE_URL=${{ vars.SQS_DEAD_LETTER_QUEUE_URL }}
-          AWS_SQS_ENABLED=true
-          # SES Configuration
-          AWS_SES_FROM_EMAIL=${{ secrets.AWS_SES_FROM_EMAIL }}
-          EOF
-  
-          echo "✅ Environment configuration created"
-
-      - name: Validate actual environment file
-        run: |
-          echo "🔍 Validating actual environment variables..."
-          python fp-deployment/scripts/validate-env-file.py .env
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -141,16 +110,43 @@ jobs:
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/fp-keypair.pem
           chmod 600 /tmp/fp-keypair.pem
-          
 
-      - name: Prepare deployment scripts
+      - name: Create environment variable file.
         run: |
-          # Copy Python scripts from fp-deployment module and make them executable
-          cp fp-deployment/scripts/account_start.py ./
-          cp fp-deployment/scripts/account_stop.py ./
-          cp fp-deployment/scripts/logutil.py logutil.py
-          chmod +x account_start.py account_stop.py
-          echo "✅ Python deployment scripts prepared"
+          echo " Creating environment configuration..."
+          cat > .env << 'EOF'
+          # Application Configuration
+          SPRING_PROFILES_ACTIVE=${{ steps.profile.outputs.profile }}
+          
+          # JWT Configuration
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          
+          # AWS Configuration
+          AWS_REGION=${{ vars.AWS_REGION }}
+          
+          # Server port
+          SERVER_PORT=8080
+          
+          # DynamoDB configuration
+          DYNAMODB_TABLE_PREFIX=${{ vars.DYNAMODB_TABLE_PREFIX }}
+          DYNAMODB_TABLE_SUFFIX=${{ vars.DYNAMODB_TABLE_SUFFIX }}
+          
+          # SQS Configuration
+          SQS_EMAIL_QUEUE_URL=${{ vars.SQS_EMAIL_QUEUE_URL }}
+          SQS_FOLLOWER_NOTIFICATION_QUEUE_URL=${{ vars.SQS_FOLLOWER_NOTIFICATION_QUEUE_URL }}
+          SQS_DEAD_LETTER_QUEUE_URL=${{ vars.SQS_DEAD_LETTER_QUEUE_URL }}
+          AWS_SQS_ENABLED=true
+          
+          # SES Configuration
+          AWS_SES_FROM_EMAIL=${{ secrets.AWS_SES_FROM_EMAIL }}
+          
+          EOF
+          
+          echo " Environment configuration created"
+          
+          echo "🔍 Validating actual environment variables..."
+          python fp-deployment/scripts/validate-env-file.py .env
+
 
       - name: Upload files to S3
         run: |
@@ -158,13 +154,19 @@ jobs:
           JAR_NAME=${{ needs.build.outputs.jar-name }}
           S3_JAR_KEY="account/fp-account-${{ github.sha }}.jar"
           S3_ENV_KEY="account/.env-${{ github.sha }}"
+          # Copy Python scripts from fp-deployment module and make them executable
+          START_SCRIPT_NAME="start.py"
+          STOP_SCRIPT_NAME="stop.py"
+          LOGUTIL_SCRIPT_NAME="logutil.py"
+          
+          SCRIPT_PATH="fp-deployment/scripts"
           
           echo "📤 Uploading files to S3..."
           aws s3 cp ./artifacts/account-service-jar/$JAR_NAME s3://$BUCKET_NAME/$S3_JAR_KEY
           aws s3 cp .env s3://$BUCKET_NAME/$S3_ENV_KEY
-          aws s3 cp account_start.py s3://$BUCKET_NAME/account/
-          aws s3 cp account_stop.py s3://$BUCKET_NAME/account/
-          aws s3 cp logutil.py s3://$BUCKET_NAME/account/logutil.py
+          aws s3 cp $SCRIPT_PATH/$START_SCRIPT_NAME s3://$BUCKET_NAME/account/start.py
+          aws s3 cp $SCRIPT_PATH/$STOP_SCRIPT_NAME s3://$BUCKET_NAME/account/stop.py
+          aws s3 cp $SCRIPT_PATH/$LOGUTIL_SCRIPT_NAME s3://$BUCKET_NAME/account/logutil.py
           echo "✅ All files uploaded to S3"
 
       - name: Deploy via SSH through EC2 Instance Connect
@@ -178,6 +180,7 @@ jobs:
           -o ProxyCommand="aws ec2-instance-connect open-tunnel --instance-id $INSTANCE_ID" \
           -o StrictHostKeyChecking=no \
           -o UserKnownHostsFile=/dev/null \
+          
           << 'SSH_COMMANDS'
           
           set -e
@@ -190,35 +193,21 @@ jobs:
           echo "📥 Downloading from S3..."
           aws s3 cp s3://financial-pulse-deployment-artifacts/account/fp-account-${{ github.sha }}.jar ./fp-account.jar
           aws s3 cp s3://financial-pulse-deployment-artifacts/account/.env-${{ github.sha }} ./.env
-          aws s3 cp s3://financial-pulse-deployment-artifacts/account/account_start.py ./
-          aws s3 cp s3://financial-pulse-deployment-artifacts/account/account_stop.py ./
-          aws s3 cp s3://financial-pulse-deployment-artifacts/account/logutil.py ./logutil.py
+          aws s3 cp s3://financial-pulse-deployment-artifacts/account/start.py ./
+          aws s3 cp s3://financial-pulse-deployment-artifacts/account/stop.py ./
+          aws s3 cp s3://financial-pulse-deployment-artifacts/account/logutil.py ./
           
           echo "🔧 Setting permissions..."
-          chmod +x account_start.py account_stop.py
+          chmod +x start.py stop.py
           chmod 644 .env fp-account.jar
           
-          echo "🛑 Stopping existing service..."
-          python3 account_stop.py || true
+          echo " Stopping existing service..."
+          python3 stop.py fp-account.jar || true
           
-          echo "▶️ Starting new service..."
-          python3 account_start.py
+          echo " Starting new service..."
+          python3 start.py fp-account.jar
           
-          echo "⏳ Waiting for service to initialize..."
-          sleep 10
-          
-          echo "🔍 Checking service status..."
-          if pgrep -f "fp-account.jar"; then 
-            echo "✅ Service started successfully"
-            echo "Service PID: $(pgrep -f 'fp-account.jar')"
-          else 
-            echo "❌ Service failed to start"
-            echo "Checking logs:"
-            tail -20 /opt/app/app.log || echo "No logs found"
-            exit 1
-          fi
-          
-          echo "🏥 Performing health check..."
+          echo " Performing health check..."
           for i in {1..10}; do
             if curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
               echo "✅ Health check passed!"
@@ -230,6 +219,7 @@ jobs:
             
             if [ $i -eq 10 ]; then
               echo "❌ Health check failed after 10 attempts"
+              tail -n 50 /opt/app/app.log
               exit 1
             fi
           done

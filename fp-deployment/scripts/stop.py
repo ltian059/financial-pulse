@@ -3,7 +3,7 @@
 """
 Financial Pulse Account Service Stop Script
 
-Usage: python scripts/account-stop.py [app-dir]
+Usage: python3 stop.py jar_name [app_dir]
 """
 
 import os
@@ -14,11 +14,11 @@ import subprocess
 from pathlib import Path
 from logutil import log
 
-class AccountServiceStopper:
-    def __init__(self, app_dir="/opt/app"):
+class ServiceStopper:
+    def __init__(self, jar_name, app_dir="/opt/app"):
         self.app_dir = Path(app_dir)
         self.pid = self.app_dir / "app.pid"
-        self.jar = "fp-account.jar"
+        self.jar = jar_name
 
     def _is_process_running(self, pid):
         try:
@@ -135,8 +135,13 @@ class AccountServiceStopper:
 
 
 def main():
-    app_dir = sys.argv[1] if len(sys.argv) > 1 else "/opt/app"
-    stopper = AccountServiceStopper(app_dir)
+    jar_name = sys.argv[1] if len(sys.argv) > 1 else None
+    if not jar_name:
+        print("Usage: python3 stop.py jar_name [app_dir]")
+        print("Example: python3 stop.py fp-account.jar /opt/app")
+        sys.exit(1)
+    app_dir = sys.argv[2] if len(sys.argv) > 2 else "/opt/app"
+    stopper = ServiceStopper(jar_name, app_dir)
     stopper.run()
 
 

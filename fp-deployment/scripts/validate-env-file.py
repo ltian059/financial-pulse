@@ -11,10 +11,9 @@ Examples:
   python scripts/validate-env-file.py (defaults to .env)
 """
 
-import os
 import sys
 from pathlib import Path
-from logutil import log, Colors
+from scripts.logutil import log, Colors
 
 class EnvFileValidator:
     def __init__(self, env_file_path=".env"):

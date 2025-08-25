@@ -4,28 +4,17 @@
 """
 Financial Pulse Account Service java process start script.
 
-Usage: python3 account_start.py
+Usage: python3 start.py jar_name [app_dir]
 """
 
 import os
 import sys
 import subprocess
-import time
 import signal
 from pathlib import Path
 from logutil import log
-from account_stop import AccountServiceStopper
+from stop import ServiceStopper
 
-REQUIRED_ENVIRONMENT_VARIABLES =[
-    "SERVER_PORT",
-    "DYNAMODB_TABLE_PREFIX",
-    "DYNAMODB_TABLE_SUFFIX",
-    "JWT_SECRET",
-    "AWS_REGION",
-    "SQS_EMAIL_QUEUE_URL",
-    "SQS_FOLLOWER_NOTIFICATION_QUEUE_URL",
-    "SQS_DEAD_LETTER_QUEUE_URL",
-]
 # JVM options for the Java process
 JAVA_OPTS = [
     "-Xmx512m", # Maximum heap size
@@ -33,11 +22,11 @@ JAVA_OPTS = [
     "-Djava.security.egd=file:/dev/./urandom" # Use a faster entropy source for secure random numbers
 ]
 
-class AccountServiceManager():
-    def __init__(self, app_dir="/opt/app"):
+class ServiceStarter():
+    def __init__(self,  jar_name, app_dir="/opt/app"):
         self.app_dir = Path(app_dir) # Application directory
         self.env = self.app_dir / ".env" # Path to the .env file
-        self.jar = self.app_dir / "fp-account.jar" # Path to the Java JAR file
+        self.jar = self.app_dir / jar_name # Path to the Java JAR file
         self.pid = self.app_dir / "app.pid" # PID file to store the Java process ID
         self.log = self.app_dir / "app.log" # Log file for stdout and stderr
 
@@ -64,35 +53,11 @@ class AccountServiceManager():
                             # After this, the java process started by this script will inherit these env vars
                             # To avoid polluting os.environ, we load into a separate dict first
                             env_vars[key.strip()] = value.strip()
-
-            # Validate required environment variables
-            self._validate_environment_variables(env_vars)
-
             return env_vars
         except Exception as e:
             log.error(f"Fail to load .env file: {e}")
             sys.exit(1)
 
-
-    def _validate_environment_variables(self, env_vars):
-        """Validate the required environment variables are set"""
-        missing_vars = []
-
-        for var in REQUIRED_ENVIRONMENT_VARIABLES:
-            if var not in env_vars or env_vars[var].strip() == "":
-                missing_vars.append(var)
-
-        if missing_vars:
-            log.error(f"Missing required environment variables: {', '.join(missing_vars)}")
-            sys.exit(1)
-
-        # Check JWT_SECRET length
-        jwt_secret = env_vars["JWT_SECRET"]
-        if len(jwt_secret) < 10:
-            log.error("JWT_SECRET is too short, must be at least 10 characters")
-            sys.exit(1)
-
-        log.info("All required environment variables are set.")
 
     def _check_jar_file(self):
         """Check if the java JAR file exists"""
@@ -127,8 +92,6 @@ class AccountServiceManager():
             log.info(f"Started Java application with PID {process.pid}")
             log.info(f"PID written to {self.pid}")
 
-            time.sleep(3)
-
             if process.poll() is None:
                 log.info("Java application is running.")
             else:
@@ -143,7 +106,7 @@ class AccountServiceManager():
         """Handle termination signals to clean up the Java process"""
         log.info(f"Received signal {signum}, terminating Java application...")
         try:
-            stopper = AccountServiceStopper(self.app_dir)
+            stopper = ServiceStopper(self.app_dir)
             stopper.run()
         except Exception as e:
             log.error(f"Error during cleanup: {e}")
@@ -172,9 +135,14 @@ class AccountServiceManager():
 
 def main():
     """Entry point"""
-    app_dir = sys.argv[1] if len(sys.argv) > 1 else "/opt/app"
+    jar_name = sys.argv[1] if len(sys.argv) > 1 else None
+    if not jar_name:
+        print("Usage: python3 start.py jar_name [app_dir]")
+        print("Example: python3 start.py account-service.jar /opt/app")
+        sys.exit(1)
+    app_dir = sys.argv[2] if len(sys.argv) > 2 else "/opt/app"
 
-    manager = AccountServiceManager(app_dir)
+    manager = ServiceStarter(jar_name, app_dir)
     manager.run()
 
 if __name__ == '__main__':
