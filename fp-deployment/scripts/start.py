@@ -115,7 +115,7 @@ class ServiceStarter():
     def run(self):
         """Main execution function"""
         print("*" * 50)
-        print("Financial Pulse Account Service Startup")
+        print("Financial Pulse Service Starter")
         print("*" * 50)
 
         signal.signal(signal.SIGINT, self._cleanup_handler)

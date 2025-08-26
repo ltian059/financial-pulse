@@ -117,7 +117,7 @@ class ServiceStopper:
     def run(self):
         """Main execution function"""
         print("*" * 50)
-        print("Financial Pulse Account Service Stopper")
+        print("Financial Pulse Service Stopper")
         print("*" * 50)
 
         os.chdir(self.app_dir)

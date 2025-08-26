@@ -201,24 +201,43 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub fp-dynamodb-endpoint-${Environment}
-
-  # Security Group for Interface VPC Endpoints
-  CoreVPCEndpointSecurityGroup:
+  # Security Group for VPC Endpoints
+  VPCEndpointSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Security group for core VPC endpoints
+      GroupDescription: Security group for VPC endpoints
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-#          CidrIp: !Ref VPCCidr
-          SourceSecurityGroupId:
-            Fn::ImportValue: !Sub ${SecurityStackName}-ApplicationSecurityGroupId
-          Description: Allow HTTPS from Application Security Group
+          CidrIp: !Ref VPCCidr
+          Description: Allow HTTPS from VPC CIDR
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref VPCCidr
+          Description: Allow SSH from VPC CIDR for Instance Connect
       Tags:
         - Key: Name
           Value: !Sub fp-core-vpc-endpoint-sg-${Environment}
+
+  # EC2 Instance Connect Endpoint
+  EC2InstanceConnectEndpoint:
+    Type: AWS::EC2::InstanceConnectEndpoint
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      SecurityGroupIds:
+        - !Ref VPCEndpointSecurityGroup
+      PreserveClientIp: false
+      Tags:
+        - Key: Name
+          Value: !Sub fp-ec2-instance-connect-endpoint-${Environment}
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: Secure SSH access to EC2 instances
+
 
 Outputs:
   VPCId:
@@ -268,9 +287,14 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-VPCCidr
 
-  CoreVPCEndpointSecurityGroupId:
-    Description: Core VPC Endpoint Security Group ID
-    Value: !Ref CoreVPCEndpointSecurityGroup
+  VPCEndpointSecurityGroupId:
+    Description: VPC Endpoint Security Group ID
+    Value: !Ref VPCEndpointSecurityGroup
     Export:
-      Name: !Sub ${AWS::StackName}-CoreVPCEndpointSecurityGroupId
+      Name: !Sub ${AWS::StackName}-VPCEndpointSecurityGroupId
+  EC2InstanceConnectEndpointId:
+    Description: EC2 Instance Connect Endpoint ID
+    Value: !Ref EC2InstanceConnectEndpoint
+    Export:
+      Name: !Sub ${AWS::StackName}-EC2InstanceConnectEndpointId
 
