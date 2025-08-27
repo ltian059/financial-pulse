@@ -213,7 +213,7 @@ jobs:
               sleep 3
             fi
             
-            if [[ $i -eq 10 ]]; then
+            if [ $i -eq 10 ]; then
               echo "❌ Health check failed after 10 attempts"
               tail -n 50 /opt/app/app.log
               exit 1
