@@ -147,7 +147,7 @@ jobs:
 
       - name: Upload files to S3
         run: |
-          BUCKET_NAME="fp-app-deployments-${ENV_NAME}-${{ vars.AWS_REGION }}"
+          BUCKET_NAME="fp-app-deployments-${{ github.event.inputs.environment || 'dev' }}-${{ vars.AWS_REGION }}"
           JAR_NAME=${{ needs.build.outputs.jar-name }}
           S3_JAR_KEY="account/fp-account-${{ github.sha }}.jar"
           S3_ENV_KEY="account/.env-${{ github.sha }}"
