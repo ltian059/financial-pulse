@@ -20,6 +20,7 @@ JAVA_OPTS = [
     "-Xmx512m", # Maximum heap size
     "-Xms256m", # Initial heap size
     "-Djava.security.egd=file:/dev/./urandom" # Use a faster entropy source for secure random numbers
+    "-Djava.net.preferIPv6Addresses=true -Djava.net.preferIPv4Stack=false" # Prefer IPv6 over IPv4
 ]
 
 class ServiceStarter():

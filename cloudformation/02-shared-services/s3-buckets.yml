@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Financial Pulse S3 Buckets Infrastructure
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, test, prod]
+    Description: Environment name
+
+Resources:
+  # Lambda Deployment Bucket
+  LambdaDeploymentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub fp-lambda-deployments-${Environment}-${AWS::Region}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: lambda-deployments
+
+  # Application Deployment Bucket
+  ApplicationDeploymentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub fp-app-deployments-${Environment}-${AWS::Region}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: application-deployments
+
+Outputs:
+  LambdaDeploymentBucketName:
+    Description: Lambda deployment bucket name
+    Value: !Ref LambdaDeploymentBucket
+    Export:
+      Name: !Sub ${AWS::StackName}-LambdaDeploymentBucket
+
+  ApplicationDeploymentBucketName:
+    Description: Application deployment bucket name
+    Value: !Ref ApplicationDeploymentBucket
+    Export:
+      Name: !Sub ${AWS::StackName}-ApplicationDeploymentBucket

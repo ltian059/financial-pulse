@@ -14,24 +14,6 @@ Parameters:
 
 Resources:
   # Common Application Security Group (for all services)
-  ALBSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Security group for ALB
-      VpcId:
-        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 0.0.0.0/0
-          Description: Public HTTPS access to ALB
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-          Description: 'Public HTTP access to ALB'
-
   ApplicationSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -42,8 +24,8 @@ Resources:
         - IpProtocol: tcp
           FromPort: 8080
           ToPort: 8082
-          SourceSecurityGroupId: !Ref ALBSecurityGroup
-          Description: "HTTP from ALB"
+          CidrIpv6: '::/0'
+          Description: "HTTP from Internet via IPv6 (for API Gateway integration)"
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
@@ -101,8 +83,3 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-DatabaseSecurityGroupId
 
-  ALBSecurityGroupId:
-    Description: ALB Security Group ID
-    Value: !Ref ALBSecurityGroup
-    Export:
-      Name: !Sub ${AWS::StackName}-ALBSecurityGroupId

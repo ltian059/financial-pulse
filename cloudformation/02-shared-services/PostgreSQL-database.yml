@@ -14,7 +14,7 @@ Parameters:
 
   SecurityStackName:
     Type: String
-    Default: fp-security-dev
+    Default: fp-sg-dev
     Description: Security Stack name
 
   MasterUsername:
@@ -67,6 +67,7 @@ Resources:
           Value: !Sub fp-db-subnet-group-${Environment}
 
   # RDS PostgreSQL Instance - Free Tier Optimized
+  #TODO Use Lambda to create tables and initial data
   PostgreSQLDatabase:
     Type: AWS::RDS::DBInstance
     DeletionPolicy: !If [IsProduction, Snapshot, Delete]

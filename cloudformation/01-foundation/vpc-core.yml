@@ -7,15 +7,10 @@ Parameters:
     Default: dev
     AllowedValues: [dev, test, prod]
     Description: Environment name
-  SecurityStackName:
-    Type: String
-    Default: fp-security-dev
-    Description: Security Stack name to import Security Group IDs
   VPCCidr:
     Type: String
     Default: 10.0.0.0/16
     Description: CIDR block for VPC
-
   PublicSubnet1Cidr:
     Type: String
     Default: 10.0.1.0/24
@@ -50,6 +45,13 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
+  # IPv6 CIDR Block for VPC
+  IPv6CidrBlock:
+    Type: AWS::EC2::VPCCidrBlock
+    Properties:
+      VpcId: !Ref VPC
+      AmazonProvidedIpv6CidrBlock: true
+
   # Internet Gateway
   InternetGateway:
     Type: AWS::EC2::InternetGateway
@@ -68,41 +70,50 @@ Resources:
   # Public Subnets
   PublicSubnet1:
     Type: AWS::EC2::Subnet
+    DependsOn: IPv6CidrBlock
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: !Ref PublicSubnet1Cidr
+      Ipv6CidrBlock: !Select [0, !Cidr [!Select [0, !GetAtt VPC.Ipv6CidrBlocks], 4, 64]]
       MapPublicIpOnLaunch: true
+      AssignIpv6AddressOnCreation: true
       Tags:
         - Key: Name
           Value: !Sub fp-public-subnet-1-${Environment}
         - Key: Type
           Value: Public
         - Key: Purpose
-          Value: ALB
+          Value: API-Gateway
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
+    DependsOn: IPv6CidrBlock
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [1, !GetAZs '']
       CidrBlock: !Ref PublicSubnet2Cidr
+      Ipv6CidrBlock: !Select [1, !Cidr [!Select [0, !GetAtt VPC.Ipv6CidrBlocks], 4, 64]]
       MapPublicIpOnLaunch: true
+      AssignIpv6AddressOnCreation: true
       Tags:
         - Key: Name
           Value: !Sub fp-public-subnet-2-${Environment}
         - Key: Type
           Value: Public
         - Key: Purpose
-          Value: ALB
+          Value: API-Gateway
 
   # Private Subnets (for EC2 microservices and RDS)
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
+    DependsOn: IPv6CidrBlock
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: !Ref PrivateSubnet1Cidr
+      Ipv6CidrBlock: !Select [2, !Cidr [!Select [0, !GetAtt VPC.Ipv6CidrBlocks], 4, 64]]
+      AssignIpv6AddressOnCreation: true
       Tags:
         - Key: Name
           Value: !Sub fp-private-subnet-1-${Environment}
@@ -113,10 +124,13 @@ Resources:
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
+    DependsOn: IPv6CidrBlock
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [1, !GetAZs '']
       CidrBlock: !Ref PrivateSubnet2Cidr
+      Ipv6CidrBlock: !Select [3, !Cidr [!Select [0, !GetAtt VPC.Ipv6CidrBlocks], 4, 64]]
+      AssignIpv6AddressOnCreation: true
       Tags:
         - Key: Name
           Value: !Sub fp-private-subnet-2-${Environment}
@@ -148,6 +162,14 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicRouteIPv6:
+    Type: AWS::EC2::Route
+    DependsOn: [InternetGatewayAttachment, IPv6CidrBlock]
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationIpv6CidrBlock: '::/0'
       GatewayId: !Ref InternetGateway
 
 
