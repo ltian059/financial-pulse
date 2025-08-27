@@ -137,9 +137,6 @@ jobs:
           SQS_DEAD_LETTER_QUEUE_URL=${{ vars.SQS_DEAD_LETTER_QUEUE_URL }}
           AWS_SQS_ENABLED=true
           
-          # SES Configuration
-          AWS_SES_FROM_EMAIL=${{ secrets.AWS_SES_FROM_EMAIL }}
-          
           EOF
           
           echo " Environment configuration created"
