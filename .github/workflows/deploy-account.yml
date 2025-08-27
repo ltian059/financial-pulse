@@ -149,8 +149,8 @@ jobs:
         run: |
           BUCKET_NAME="fp-app-deployments-${{ github.event.inputs.environment || 'dev' }}-${{ vars.AWS_REGION }}"
           JAR_NAME=${{ needs.build.outputs.jar-name }}
-          S3_JAR_KEY="account/fp-account-${{ github.sha }}.jar"
-          S3_ENV_KEY="account/.env-${{ github.sha }}"
+          S3_JAR_KEY="account/fp-account.jar"
+          S3_ENV_KEY="account/.env"
           # Copy Python scripts from fp-deployment module and make them executable
           START_SCRIPT_NAME="start.py"
           STOP_SCRIPT_NAME="stop.py"
@@ -169,6 +169,7 @@ jobs:
       - name: Deploy via SSH through EC2 Instance Connect
         run: |
           INSTANCE_ID="${{ vars.EC2_ACCOUNT_INSTANCE_ID }}"
+          BUCKET_NAME="fp-app-deployments-${{ github.event.inputs.environment || 'dev' }}-${{ vars.AWS_REGION }}"
           
           echo "🔗 Connecting to EC2 instance $INSTANCE_ID via Instance Connect Endpoint"
           
@@ -177,8 +178,7 @@ jobs:
           -o ProxyCommand="aws ec2-instance-connect open-tunnel --instance-id $INSTANCE_ID" \
           -o StrictHostKeyChecking=no \
           -o UserKnownHostsFile=/dev/null \
-          << 'SSH_COMMANDS'
-          
+          << SSH_COMMANDS          
           set -e
           
           echo "=== Financial Pulse Deployment Starting ==="
@@ -187,11 +187,11 @@ jobs:
           cd /opt/app
           
           echo "📥 Downloading from S3..."
-          aws s3 cp s3://financial-pulse-deployment-artifacts/account/fp-account-${{ github.sha }}.jar ./fp-account.jar
-          aws s3 cp s3://financial-pulse-deployment-artifacts/account/.env-${{ github.sha }} ./.env
-          aws s3 cp s3://financial-pulse-deployment-artifacts/account/start.py ./
-          aws s3 cp s3://financial-pulse-deployment-artifacts/account/stop.py ./
-          aws s3 cp s3://financial-pulse-deployment-artifacts/account/logutil.py ./
+          aws s3 cp s3://${BUCKET_NAME}/account/fp-account.jar ./fp-account.jar
+          aws s3 cp s3://${BUCKET_NAME}/account/.env ./.env
+          aws s3 cp s3://${BUCKET_NAME}/account/start.py ./
+          aws s3 cp s3://${BUCKET_NAME}/account/stop.py ./
+          aws s3 cp s3://${BUCKET_NAME}/account/logutil.py ./
           
           echo "🔧 Setting permissions..."
           chmod +x start.py stop.py
