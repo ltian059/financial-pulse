@@ -159,11 +159,11 @@ jobs:
           SCRIPT_PATH="fp-deployment/scripts"
           
           echo "📤 Uploading files to S3..."
-          aws s3 cp ./artifacts/account-service-jar/$JAR_NAME s3://$BUCKET_NAME/$S3_JAR_KEY
-          aws s3 cp .env s3://$BUCKET_NAME/$S3_ENV_KEY
-          aws s3 cp $SCRIPT_PATH/$START_SCRIPT_NAME s3://$BUCKET_NAME/account/start.py
-          aws s3 cp $SCRIPT_PATH/$STOP_SCRIPT_NAME s3://$BUCKET_NAME/account/stop.py
-          aws s3 cp $SCRIPT_PATH/$LOGUTIL_SCRIPT_NAME s3://$BUCKET_NAME/account/logutil.py
+          aws s3 cp ./artifacts/account-service-jar/$JAR_NAME s3://$BUCKET_NAME/$S3_JAR_KEY --no-progress
+          aws s3 cp .env s3://$BUCKET_NAME/$S3_ENV_KEY --no-progress
+          aws s3 cp $SCRIPT_PATH/$START_SCRIPT_NAME s3://$BUCKET_NAME/account/start.py --no-progress
+          aws s3 cp $SCRIPT_PATH/$STOP_SCRIPT_NAME s3://$BUCKET_NAME/account/stop.py --no-progress
+          aws s3 cp $SCRIPT_PATH/$LOGUTIL_SCRIPT_NAME s3://$BUCKET_NAME/account/logutil.py --no-progress
           echo "✅ All files uploaded to S3"
 
       - name: Deploy via SSH through EC2 Instance Connect
@@ -187,11 +187,11 @@ jobs:
           cd /opt/app
           
           echo "📥 Downloading from S3..."
-          aws s3 cp s3://${BUCKET_NAME}/account/fp-account.jar ./fp-account.jar
-          aws s3 cp s3://${BUCKET_NAME}/account/.env ./.env
-          aws s3 cp s3://${BUCKET_NAME}/account/start.py ./
-          aws s3 cp s3://${BUCKET_NAME}/account/stop.py ./
-          aws s3 cp s3://${BUCKET_NAME}/account/logutil.py ./
+          aws s3 cp s3://${BUCKET_NAME}/account/fp-account.jar ./fp-account.jar --no-progress
+          aws s3 cp s3://${BUCKET_NAME}/account/.env ./.env --no-progress
+          aws s3 cp s3://${BUCKET_NAME}/account/start.py ./ --no-progress
+          aws s3 cp s3://${BUCKET_NAME}/account/stop.py ./ --no-progress
+          aws s3 cp s3://${BUCKET_NAME}/account/logutil.py ./ --no-progress
           
           echo "🔧 Setting permissions..."
           chmod +x start.py stop.py
@@ -211,7 +211,7 @@ jobs:
               break
             else
               echo "⏳ Health check attempt \$i/10..."
-              sleep 3
+              sleep 6
             fi
             
             if [ \$i -eq 10 ]; then
