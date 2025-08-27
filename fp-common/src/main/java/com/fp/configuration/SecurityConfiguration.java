@@ -7,7 +7,6 @@ import com.fp.auth.CustomAuthenticationEntryPoint;
 import com.fp.auth.filter.JwtTypeValidationFilter;
 import com.fp.auth.strategy.JwtValidationContext;
 import com.fp.constant.UrlConstant;
-import com.fp.util.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -49,6 +48,35 @@ public class SecurityConfiguration {
     }
 
     /**
+     * Web SecurityFilterChain for Swagger, login and static resources
+     * Handles non-API paths with form-based authentication
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "webSecurityFilterChain")
+    @Order(1)
+    public SecurityFilterChain webSecurityFilterChain(
+            HttpSecurity http
+    ) throws Exception {
+        return http
+                .securityMatcher(request -> !request.getRequestURI().startsWith("/api/"))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/webjars/**", "/health", "/actuator/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").authenticated()
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .defaultSuccessUrl("/swagger-ui/index.html", true)
+                        .permitAll()
+                )
+                .logout(logout -> logout.permitAll())
+                .build();
+    }
+
+    /**
      * Default SecurityFilterChain
      * Can be Overridden by defining a bean with the same name.
      * @param http HttpSecurity instance
@@ -57,7 +85,7 @@ public class SecurityConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(name = "defaultJwtSecurityFilterChain")
-    @Order(1)
+    @Order(2)
     public SecurityFilterChain defaultJwtSecurityFilterChain(
             HttpSecurity http,
             JwtDecoder jwtDecoder,
@@ -66,7 +94,7 @@ public class SecurityConfiguration {
             JwtTypeValidationFilter jwtTypeValidationFilter
     ) throws Exception {
         return http
-                .securityMatcher("/api/**") // Only Match all API paths
+                .securityMatcher("/api/**")
                 .csrf(csrf -> csrf.disable())
                 .formLogin(formLogin -> formLogin.disable())
                 .sessionManagement(session ->
@@ -91,30 +119,5 @@ public class SecurityConfiguration {
                 .build();
     }
 
-    /**
-     * 默认 SecurityFilterChain 处理非 API 路径
-     * 优先级较低，处理所有其他路径
-     */
-    @Bean
-    @ConditionalOnMissingBean(name = "formLoginSecurityFilterChain")
-    @Order(10)
-    public SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http) throws Exception {
-        log.info("Creating default SecurityFilterChain for non-API paths");
-        return http
-                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers(HttpUtil::isLocalhostRequest).permitAll()
-                        .requestMatchers(UrlConstant.PUBLIC_PATHS).permitAll()
-                        .anyRequest().authenticated()  // All other paths need to be authenticated by form login
-                )
-                .formLogin(form -> form
-                        // 使用默认登录页面
-                        .defaultSuccessUrl("/swagger-ui/index.html", true)
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/login?logout")
-                )
-                .csrf(csrf -> csrf.disable())
-                .build();
-    }
 
 }

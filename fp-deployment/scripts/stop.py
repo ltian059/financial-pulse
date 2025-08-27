@@ -94,7 +94,7 @@ class ServiceStopper:
             pids = []
             if res.returncode == 0:
                 pids = []
-                for pid in res.stdout.strip().split('\n'):
+                for pid in res.stdout.decode('utf-8').strip().split('\n'):
                     if pid.strip():
                         pids.append(int(pid.strip()))
             if not pids:

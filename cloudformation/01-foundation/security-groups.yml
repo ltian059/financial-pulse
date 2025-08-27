@@ -24,6 +24,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 8080
           ToPort: 8082
+          CidrIp: 0.0.0.0/0
+          Description: "HTTP from Internet (for API Gateway integration)"
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8082
           CidrIpv6: '::/0'
           Description: "HTTP from Internet via IPv6 (for API Gateway integration)"
         - IpProtocol: tcp

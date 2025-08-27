@@ -1,11 +1,27 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # 开放所有管理端点
+  endpoint:
+    health:
+      show-details: always
+  server:
+    port: 10000  # 管理端口
+    address: 127.0.0.1  # 只允许本地访问
+
 server:
   port: 8080
+
+
 
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
     org.springframework.web.client: DEBUG
+    com.fp: ${APP_LOGGING_LEVEL:INFO} # Default to INFO if APP_LOG_LEVEL is not set
+    com.fp.auth.filter.RequestLoggingFilter: ${REQUEST_LOGGING_LEVEL:INFO} # Default to DEBUG if REQUEST_LOGGING_LEVEL is not set
 
 services:
   account:
