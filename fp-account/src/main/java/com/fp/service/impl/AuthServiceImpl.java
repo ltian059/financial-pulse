@@ -96,6 +96,7 @@ public class AuthServiceImpl implements AuthService {
         //1. Validate the verify jwt token
         try {
             Jwt jwt = jwtService.decode(verifyToken);
+            revokedJwtService.revokeJwt(jwt, "auth-service: verifyAccountEmail, token used.");
             String email = jwt.getSubject();
             //2. Check if the account exists
             Account account = accountRepository.findByEmail(email);
@@ -174,7 +175,8 @@ public class AuthServiceImpl implements AuthService {
             </body>
             </html>
             """;
-        } catch (JwtException e) {
+        }
+        catch (JwtException e) {
             throw new InvalidVerifyTokenException(Messages.Error.Auth.INVALID_TOKEN, e);
         }
     }

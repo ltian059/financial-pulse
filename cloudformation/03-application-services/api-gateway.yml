@@ -1,0 +1,179 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Financial Pulse API Gateway for routing requests to microservices'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, test, prod]
+    Description: Environment name
+
+  StageName:
+    Type: String
+    Default: $default
+    Description: Api stage name
+    
+  AccountStackName:
+    Type: String  
+    Default: fp-account-ec2-dev
+    Description: Name of the account service stack containing EC2 instances
+
+Conditions:
+  IsDefaultStage: !Equals [!Ref StageName, "$default"]
+
+Resources:
+  # CloudWatch Log Group for API Gateway Access Logs
+  ApiGatewayLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/apigateway/${AWS::StackName}'
+      RetentionInDays: 14
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Service
+          Value: api-gateway
+
+  # IAM Role for API Gateway to write to CloudWatch Logs
+  ApiGatewayLogsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  # API Gateway HTTP API
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub 'fp-api-gateway-${Environment}'
+      Description: 'Financial Pulse API Gateway for microservices routing'
+      ProtocolType: HTTP
+      IpAddressType: dualstack
+      DisableExecuteApiEndpoint: false
+      CorsConfiguration:
+        AllowCredentials: false
+        AllowHeaders:
+          - '*'
+        AllowMethods:
+          - '*'
+        AllowOrigins:
+          - '*'
+        MaxAge: 86400
+      Tags:
+        Environment: !Ref Environment
+        Service: api-gateway
+
+  # Default Stage
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      Description: '(Default) stage for API Gateway'
+      AccessLogSettings:
+        DestinationArn: !GetAtt ApiGatewayLogGroup.Arn
+        Format: '{"requestId":"$context.requestId","requestTime":"$context.requestTime","httpMethod":"$context.httpMethod","path":"$context.path","routeKey":"$context.routeKey","status":"$context.status","responseLatency":$context.responseLatency,"responseLength":$context.responseLength,"errorMessage":"$context.error.message","errorMessageString":"$context.error.messageString","integrationRequestId":"$context.integration.requestId","integrationStatus":"$context.integration.status","integrationLatency":$context.integration.latency,"integrationResponseStatus":"$context.integrationStatus","ip":"$context.identity.sourceIp","userAgent":"$context.identity.userAgent","principalId":"$context.authorizer.principalId"}'
+      ApiId: !Ref HttpApi
+      AutoDeploy: true
+      DefaultRouteSettings:
+        DetailedMetricsEnabled: true
+        ThrottlingBurstLimit: 1000
+        ThrottlingRateLimit: 5000
+      StageName: !Ref StageName
+      Tags:
+        Environment: !Ref Environment
+        Service: api-gateway
+
+  # Integration to Account Service EC2 Instance
+  AccountServiceIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      Description: 'Integration to Account Service on EC2'
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub
+        - "http://${BaseUrl}:8080/api/account/{proxy}"
+        - BaseUrl:
+            Fn::ImportValue: !Sub '${AccountStackName}-PublicIp'
+      PayloadFormatVersion: '1.0'
+      TimeoutInMillis: 29000
+
+  AuthServiceIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      Description: 'Integration to Auth Service.'
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub
+        - "http://${BaseUrl}:8080/api/auth/{proxy}"
+        - BaseUrl:
+            Fn::ImportValue: !Sub '${AccountStackName}-PublicIp'
+      PayloadFormatVersion: '1.0'
+      TimeoutInMillis: 29000
+
+  # Route for /api/account/{proxy+}
+  AccountServiceRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /api/account/{proxy+}'
+      Target: !Sub 'integrations/${AccountServiceIntegration}'
+
+  # Route for /api/auth/{proxy+}  
+  AuthServiceRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /api/auth/{proxy+}'
+      Target: !Sub 'integrations/${AuthServiceIntegration}'
+
+
+  # CloudWatch Account Configuration (required for API Gateway logging)
+  ApiGatewayAccount:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn: !GetAtt ApiGatewayLogsRole.Arn
+
+Outputs:
+  ApiId:
+    Description: 'API Gateway ID'
+    Value: !Ref HttpApi
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiId'
+
+  ApiUrl:
+    Description: 'API Gateway URL'
+    Value: !If
+      - IsDefaultStage
+      - !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+      - !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiUrl'
+
+  ApiDomainName:
+    Description: 'API Gateway Domain Name'
+    Value: !Sub '${HttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+    Export:
+      Name: !Sub '${AWS::StackName}-DomainName'
+
+  LogGroupArn:
+    Description: 'CloudWatch Log Group ARN for API Gateway'
+    Value: !GetAtt ApiGatewayLogGroup.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LogGroupArn'
+
+  LogGroupName:
+    Description: 'CloudWatch Log Group Name for API Gateway'
+    Value: !Ref ApiGatewayLogGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-LogGroupName'
