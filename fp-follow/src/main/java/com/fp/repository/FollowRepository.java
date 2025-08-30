@@ -2,6 +2,7 @@ package com.fp.repository;
 
 import com.fp.entity.Follow;
 import com.fp.entity.FollowId;
+import com.fp.dto.follow.response.FollowProjection;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -29,13 +30,13 @@ public interface FollowRepository extends JpaRepository<Follow, FollowId> {
      */
     @Query(
             """
-            SELECT f FROM Follow f
+            SELECT f.followerId as accountId, f.createdAt as createdAt FROM Follow f
             WHERE f.followeeId = :accountId
             AND (f.createdAt < :cursorTimestamp OR (f.createdAt = :cursorTimestamp AND f.followerId < :cursorFollowerId))
             ORDER BY f.createdAt DESC, f.followerId DESC
             """
     )
-    List<Follow> findAllFollowersWithCursorDesc(
+    List<FollowProjection> findAllFollowersWithCursorDesc(
             @Param("accountId") String accountId,
             @Param("cursorTimestamp") Instant cursorTimestamp,
             @Param("cursorFollowerId") String cursorFollowerId,
@@ -44,13 +45,13 @@ public interface FollowRepository extends JpaRepository<Follow, FollowId> {
 
     @Query(
             """
-            SELECT f FROM Follow f
+            SELECT f.followerId as accountId, f.createdAt as createdAt FROM Follow f
                     WHERE f.followeeId = :accountId
                     AND (f.createdAt > :cursorTimestamp OR (f.createdAt = :cursorTimestamp AND f.followerId > :cursorFollowerId))
                     ORDER BY f.createdAt ASC, f.followerId ASC
             """
     )
-    List<Follow> findAllFollowersWithCursorAsc(
+    List<FollowProjection> findAllFollowersWithCursorAsc(
             @Param("accountId") String accountId,
             @Param("cursorTimestamp") Instant cursorTimestamp,
             @Param("cursorFollowerId") String cursorFollowerId,
@@ -61,21 +62,21 @@ public interface FollowRepository extends JpaRepository<Follow, FollowId> {
     /// This method retrieves the first page of followers for a given account ID using descending order.
     ///
     @Query("""
-            SELECT f FROM Follow f
+            SELECT f.followerId as accountId, f.createdAt as createdAt FROM Follow f
             WHERE f.followeeId = :accountId
             ORDER BY f.createdAt DESC, f.followerId DESC
     """)
-    List<Follow> findFirstPageFollowersDesc(
+    List<FollowProjection> findFirstPageFollowersDesc(
             @Param("accountId") String accountId,
             Pageable pageable
     );
 
     @Query("""
-            SELECT f FROM Follow f
+            SELECT f.followerId as accountId, f.createdAt as createdAt FROM Follow f
             WHERE f.followeeId = :accountId
             ORDER BY f.createdAt ASC, f.followerId ASC
     """)
-    List<Follow> findFirstPageFollowersAsc(
+    List<FollowProjection> findFirstPageFollowersAsc(
             @Param("accountId") String accountId,
             Pageable pageable
     );
@@ -86,28 +87,28 @@ public interface FollowRepository extends JpaRepository<Follow, FollowId> {
     /// # Find Followings(followees) of an account
     ///
     @Query("""
-            SELECT f FROM Follow f
+            SELECT f.followeeId as accountId, f.createdAt as createdAt FROM Follow f
             WHERE f.followerId = :accountId
             ORDER BY f.createdAt DESC, f.followeeId DESC
     """)
-    List<Follow> findFirstPageFolloweesDesc(@Param("accountId") String accountId, Pageable pageable);
+    List<FollowProjection> findFirstPageFolloweesDesc(@Param("accountId") String accountId, Pageable pageable);
 
     @Query("""
-            SELECT f FROM Follow f
+            SELECT f.followeeId as accountId, f.createdAt as createdAt FROM Follow f
             WHERE f.followerId = :accountId
             ORDER BY f.createdAt ASC, f.followeeId ASC
     """)
-    List<Follow> findFirstPageFolloweesAsc(@Param("accountId") String accountId, Pageable pageable);
+    List<FollowProjection> findFirstPageFolloweesAsc(@Param("accountId") String accountId, Pageable pageable);
 
     @Query(
             """
-            SELECT f FROM Follow f
+            SELECT f.followeeId as accountId, f.createdAt as createdAt FROM Follow f
             WHERE f.followerId = :accountId
             AND (f.createdAt < :cursorTimestamp OR (f.createdAt = :cursorTimestamp AND f.followeeId < :cursorFolloweeId))
             ORDER BY f.createdAt DESC, f.followeeId DESC
             """
     )
-    List<Follow> findAllFolloweesWithCursorDesc(
+    List<FollowProjection> findAllFolloweesWithCursorDesc(
             @Param("accountId") String accountId,
             @Param("cursorTimestamp") Instant cursorTimestamp,
             @Param("cursorFolloweeId") String cursorFolloweeId,
@@ -116,13 +117,13 @@ public interface FollowRepository extends JpaRepository<Follow, FollowId> {
 
     @Query(
             """
-            SELECT f FROM Follow f
+            SELECT f.followeeId as accountId, f.createdAt as createdAt FROM Follow f
             WHERE f.followerId = :accountId
             AND (f.createdAt < :cursorTimestamp OR (f.createdAt = :cursorTimestamp AND f.followeeId < :cursorFolloweeId))
             ORDER BY f.createdAt ASC, f.followeeId ASC
             """
     )
-    List<Follow> findAllFolloweesWithCursorAsc(
+    List<FollowProjection> findAllFolloweesWithCursorAsc(
             @Param("accountId") String accountId,
             @Param("cursorTimestamp") Instant cursorTimestamp,
             @Param("cursorFolloweeId") String cursorFolloweeId,

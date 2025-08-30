@@ -11,8 +11,7 @@ import java.time.Instant;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FollowResponseDTO {
-    private String followeeId;
-    private String followerId;
+public class FollowResponseDTO implements FollowProjection {
+    private String accountId;
     private Instant createdAt;
 }

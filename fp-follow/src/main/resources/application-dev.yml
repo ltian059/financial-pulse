@@ -1,5 +1,18 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  server:
+    port: 10001
+    address: 127.0.0.1
+
+
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}
 
 
 
@@ -30,6 +43,8 @@ logging:
     org.hibernate.SQL: INFO
 #    org.hibernate.orm.jdbc.bind: TRACE
     org.springframework.web.client: INFO
+    com.fp: DEBUG
+    com.fp.auth.filter: INFO
 
 
 
