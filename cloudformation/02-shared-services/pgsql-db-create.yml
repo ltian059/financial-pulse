@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'RDS PostgreSQL Database - Creation Only'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+  
+  VPCStackName:
+    Type: String
+    Default: fp-vpc-dev
+  
+  SecurityStackName:
+    Type: String
+    Default: fp-sg-dev
+  
+  MasterPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+
+Resources:
+  # DB Subnet Group
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${VPCStackName}-PublicSubnet1Id
+        - Fn::ImportValue: !Sub ${VPCStackName}-PublicSubnet2Id
+
+  # RDS Database - Fast deletion optimized
+  PostgreSQLDB:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      DBInstanceIdentifier: !Sub fp-postgres-${Environment}
+      DBInstanceClass: db.t3.micro
+      Engine: postgres
+      EngineVersion: '17.4'
+      AllocatedStorage: 20
+      StorageType: gp2
+      DBName: postgres
+      MasterUsername: postgres
+      MasterUserPassword: !Ref MasterPassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VPCSecurityGroups:
+        - Fn::ImportValue: !Sub ${SecurityStackName}-DatabaseSecurityGroupId
+      PubliclyAccessible: true
+      BackupRetentionPeriod: 0
+      DeletionProtection: false
+      MultiAZ: false
+      StorageEncrypted: false
+
+Outputs:
+  DBEndpoint:
+    Description: RDS PostgreSQL endpoint
+    Value: !GetAtt PostgreSQLDB.Endpoint.Address
+    Export:
+      Name: !Sub ${AWS::StackName}-DBEndpoint
+  
+  DBPort:
+    Description: RDS PostgreSQL port
+    Value: !GetAtt PostgreSQLDB.Endpoint.Port
+    Export:
+      Name: !Sub ${AWS::StackName}-DBPort
+      
+  MasterUsername:
+    Description: Master username
+    Value: postgres
+    Export:
+      Name: !Sub ${AWS::StackName}-MasterUsername
+      
+  DatabaseName:
+    Description: Default database name
+    Value: postgres
+    Export:
+      Name: !Sub ${AWS::StackName}-DatabaseName

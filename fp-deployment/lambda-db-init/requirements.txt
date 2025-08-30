@@ -1,0 +1,3 @@
+# Requirements for database initialization Lambda function
+cfnresponse
+psycopg2-binary

@@ -2,13 +2,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"  # 开放所有管理端点
+        include: "*"  # Expose all management endpoints
   endpoint:
     health:
       show-details: always
   server:
-    port: 10000  # 管理端口
-    address: 127.0.0.1  # 只允许本地访问
+    port: 10000  # management port
+    address: 127.0.0.1  # Only bind to localhost for security
 
 server:
   port: 8080
@@ -24,8 +24,9 @@ logging:
     com.fp.auth.filter.RequestLoggingFilter: ${REQUEST_LOGGING_LEVEL:INFO} # Default to DEBUG if REQUEST_LOGGING_LEVEL is not set
 
 services:
-  account:
-    enabled: false # Disable external account service calls in dev environment
+  follow:
+    enabled: true
+    url: ${FOLLOW_SERVICE_URL:http://localhost:8081}
 
 
 springdoc:

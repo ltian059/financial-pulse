@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'PostgreSQL Database Schema Initialization'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+  
+  DatabaseStackName:
+    Type: String
+    Default: fp-rds-pg-dev
+    Description: Name of the database stack to reference
+  
+  S3StackName:
+    Type: String
+    Default: fp-s3-buckets-dev
+  S3Key:
+    Type: String
+    Default: lambda-db-init.zip
+    Description: S3 key for the Lambda deployment package
+  MasterPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    Description: Same password used in database stack
+  Runtime:
+    Type: String
+    Default: python3.13
+    Description: Lambda runtime environment
+
+
+Resources:
+  # Lambda execution role
+  DBInitRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # Lambda function
+  DBInitFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-db-init"
+      Runtime: !Ref Runtime
+      Handler: lambda-db-initialize.lambda_handler
+      Role: !GetAtt DBInitRole.Arn
+      Timeout: 300
+      Code:
+        S3Bucket:
+          Fn::ImportValue: !Sub '${S3StackName}-LambdaDeploymentBucket'
+        S3Key: !Ref S3Key
+
+  # Custom Resource - References external database stack
+  DBInit:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceTimeout: 120
+      ServiceToken: !GetAtt DBInitFunction.Arn
+      DBHost:
+        Fn::ImportValue: !Sub '${DatabaseStackName}-DBEndpoint'
+      DBPort:
+        Fn::ImportValue: !Sub '${DatabaseStackName}-DBPort'
+      DBName:
+        Fn::ImportValue: !Sub '${DatabaseStackName}-DatabaseName'
+      DBUsername:
+        Fn::ImportValue: !Sub '${DatabaseStackName}-MasterUsername'
+      DBPassword: !Ref MasterPassword
+      FollowSchemaName: fp_follow_dev
+      ContentSchemaName: fp_content_dev
+
+Outputs:
+  InitializationStatus:
+    Description: Database initialization status
+    Value: !Ref DBInit
+    
+  LambdaFunctionArn:
+    Description: Database initialization Lambda function ARN
+    Value: !GetAtt DBInitFunction.Arn

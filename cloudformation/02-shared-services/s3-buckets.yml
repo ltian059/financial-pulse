@@ -55,9 +55,20 @@ Outputs:
     Value: !Ref LambdaDeploymentBucket
     Export:
       Name: !Sub ${AWS::StackName}-LambdaDeploymentBucket
+  LambdaDeploymentBucketArn:
+    Description: Lambda deployment bucket ARN
+    Value: !GetAtt LambdaDeploymentBucket.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-LambdaDeploymentBucketArn
 
   ApplicationDeploymentBucketName:
     Description: Application deployment bucket name
     Value: !Ref ApplicationDeploymentBucket
     Export:
       Name: !Sub ${AWS::StackName}-ApplicationDeploymentBucket
+
+  ApplicationDeploymentBucketArn:
+    Description: Application deployment bucket ARN
+    Value: !GetAtt ApplicationDeploymentBucket.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-ApplicationDeploymentBucketArn
