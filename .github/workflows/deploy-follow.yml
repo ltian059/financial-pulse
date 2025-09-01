@@ -18,6 +18,10 @@ on:
           - test
           - prod
 
+concurrency:
+  group: deploy-to-ec2
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
