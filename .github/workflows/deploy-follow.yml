@@ -132,17 +132,18 @@ jobs:
           FOLLOW_DB_URL=${{ secrets.FOLLOW_DB_URL }}
           FOLLOW_DB_USERNAME=${{ secrets.FOLLOW_DB_USERNAME }}
           FOLLOW_DB_PASSWORD=${{ secrets.FOLLOW_DB_PASSWORD }}
-          
+          DYNAMODB_TABLE_PREFIX=${{ vars.DYNAMODB_TABLE_PREFIX }}
+          DYNAMODB_TABLE_SUFFIX=${{ vars.DYNAMODB_TABLE_SUFFIX }}
           # SQS Configuration
           SQS_EMAIL_QUEUE_URL=${{ vars.SQS_EMAIL_QUEUE_URL }}
-          SQS_FOLLOWER_NOTIFICATION_QUEUE_URL=${{ vars.SQS_FOLLOWER_NOTIFICATION_QUEUE }}
+          SQS_FOLLOWER_NOTIFICATION_QUEUE_URL=${{ vars.SQS_FOLLOWER_NOTIFICATION_QUEUE_URL }}
           SQS_DEAD_LETTER_QUEUE_URL=${{ vars.SQS_DEAD_LETTER_QUEUE_URL }}
           
           # External Services Configuration
           EOF
 
           echo "Environment configuration created"
-
+          
 
       - name: Upload file to S3
         run: |
