@@ -6,7 +6,7 @@ public class UrlConstant {
      */
     public static final String[] PUBLIC_PATHS = {
             "/api/auth/**",
-            "/health",  // 简单的健康检查端点
+            "/health",
             "/actuator/**"
     };
 

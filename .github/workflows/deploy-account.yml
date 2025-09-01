@@ -206,7 +206,7 @@ jobs:
           echo " Performing health check..."
           i=1
           while [ \$i -le 10 ]; do
-            if curl -f http://localhost:8080/health >/dev/null 2>&1; then
+            if curl -f http://localhost:8080/account/health >/dev/null 2>&1; then
               echo "✅ Health check passed!"
               break
             else

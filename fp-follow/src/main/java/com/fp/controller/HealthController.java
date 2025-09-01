@@ -13,26 +13,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/account")
+@RequestMapping("/follow")
 public class HealthController {
-    
+
     @Autowired
     private HealthEndpoint healthEndpoint;
-    
+
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
         SystemHealth actuatorHealth = (SystemHealth) healthEndpoint.health();
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("status", actuatorHealth.getStatus().getCode());
         response.put("timestamp", LocalDateTime.now());
-        response.put("service", "fp-account");
-        
+        response.put("service", "fp-follow");
+
         // 包含详细的健康检查信息
         if (actuatorHealth.getComponents() != null && !actuatorHealth.getComponents().isEmpty()) {
             response.put("components", actuatorHealth.getComponents());
         }
-        
+
         return ResponseEntity.ok(response);
     }
 }

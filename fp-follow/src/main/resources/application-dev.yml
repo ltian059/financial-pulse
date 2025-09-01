@@ -44,7 +44,7 @@ logging:
 #    org.hibernate.orm.jdbc.bind: TRACE
     org.springframework.web.client: INFO
     com.fp: DEBUG
-    com.fp.auth.filter: INFO
+    com.fp.auth.filter: DEBUG
 
 
 

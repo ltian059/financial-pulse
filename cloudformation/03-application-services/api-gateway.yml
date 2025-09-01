@@ -93,11 +93,11 @@ Resources:
         Service: api-gateway
 
   # Integration to Account Service EC2 Instance
-  AccountServiceIntegration:
+  AccountServiceAPIIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApi
-      Description: 'Integration to Account Service on EC2'
+      Description: 'Integration to Account Service APIs'
       IntegrationType: HTTP_PROXY
       IntegrationMethod: ANY
       IntegrationUri: !Sub
@@ -107,11 +107,11 @@ Resources:
       PayloadFormatVersion: '1.0'
       TimeoutInMillis: 29000
 
-  AuthServiceIntegration:
+  AuthServiceAPIIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApi
-      Description: 'Integration to Auth Service.'
+      Description: 'Integration to Auth Service APIs.'
       IntegrationType: HTTP_PROXY
       IntegrationMethod: ANY
       IntegrationUri: !Sub
@@ -121,23 +121,85 @@ Resources:
       PayloadFormatVersion: '1.0'
       TimeoutInMillis: 29000
 
+  FollowServiceAPIIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      Description: 'Integration to Follow Service APIs.'
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub
+        - "http://${BaseUrl}:8081/api/follow/{proxy}"
+        - BaseUrl:
+            Fn::ImportValue: !Sub '${AccountStackName}-PublicIp'
+      PayloadFormatVersion: '1.0'
+      TimeoutInMillis: 29000
+
+
+  AccountServiceIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      Description: 'Integration to Account Service'
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub
+        - "http://${BaseUrl}:8080/account/{proxy}"
+        - BaseUrl:
+            Fn::ImportValue: !Sub '${AccountStackName}-PublicIp'
+      PayloadFormatVersion: '1.0'
+      TimeoutInMillis: 29000
+
+  FollowServiceIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      Description: 'Integration to Follow Service'
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub
+        - "http://${BaseUrl}:8081/follow/{proxy}"
+        - BaseUrl:
+            Fn::ImportValue: !Sub '${AccountStackName}-PublicIp'
+      PayloadFormatVersion: '1.0'
+      TimeoutInMillis: 29000
+
   # Route for /api/account/{proxy+}
-  AccountServiceRoute:
+  AccountServiceAPIRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: 'ANY /api/account/{proxy+}'
-      Target: !Sub 'integrations/${AccountServiceIntegration}'
+      Target: !Sub 'integrations/${AccountServiceAPIIntegration}'
 
   # Route for /api/auth/{proxy+}  
-  AuthServiceRoute:
+  AuthServiceAPIRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: 'ANY /api/auth/{proxy+}'
-      Target: !Sub 'integrations/${AuthServiceIntegration}'
+      Target: !Sub 'integrations/${AuthServiceAPIIntegration}'
 
+  FollowServiceAPIRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /api/follow/{proxy+}'
+      Target: !Sub 'integrations/${FollowServiceAPIIntegration}'
 
+  AccountServiceRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /account/{proxy+}'
+      Target: !Sub 'integrations/${AccountServiceIntegration}'
+
+  FollowServiceRoute:
+      Type: AWS::ApiGatewayV2::Route
+      Properties:
+          ApiId: !Ref HttpApi
+          RouteKey: 'ANY /follow/{proxy+}'
+          Target: !Sub 'integrations/${FollowServiceIntegration}'
   # CloudWatch Account Configuration (required for API Gateway logging)
   ApiGatewayAccount:
     Type: AWS::ApiGateway::Account

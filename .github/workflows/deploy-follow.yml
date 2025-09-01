@@ -204,7 +204,7 @@ jobs:
           echo " Performing health check..."
           i=1
           while [[ \$i -le 10 ]]; do
-            if curl -f http://localhost:10001/health >/dev/null 2>&1; then
+            if curl -f http://localhost:10001/follow/health >/dev/null 2>&1; then
               echo " Health check passed!"
               break
             else
@@ -213,6 +213,7 @@ jobs:
             fi
             if [[ \$i -eq 10 ]]; then
                 echo "❌ Health check failed after 10 attempts, exiting."
+                tail app.log
                 exit 1
             fi
             i=\$((i + 1))

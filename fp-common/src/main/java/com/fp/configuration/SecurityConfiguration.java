@@ -12,18 +12,30 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @Slf4j
-@ConditionalOnClass(JwtDecoder.class)
-@Order(2)
+@Order(Ordered.HIGHEST_PRECEDENCE + 1)
 public class SecurityConfiguration {
+    @Bean
+    @ConditionalOnMissingBean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public ObjectMapper objectMapper() {
@@ -35,6 +47,7 @@ public class SecurityConfiguration {
     public CustomAuthenticationEntryPoint customAuthenticationEntryPoint(ObjectMapper objectMapper) {
         return new CustomAuthenticationEntryPoint(objectMapper);
     }
+
     @Bean
     @ConditionalOnMissingBean
     public CustomAccessDeniedHandler customAccessDeniedHandler(ObjectMapper objectMapper) {
@@ -43,6 +56,7 @@ public class SecurityConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnClass(JwtDecoder.class)
     public JwtTypeValidationFilter jwtTokenTypeValidationFilter(ObjectMapper objectMapper, JwtValidationContext jwtValidationContext) {
         return new JwtTypeValidationFilter(objectMapper, jwtValidationContext);
     }
@@ -57,21 +71,29 @@ public class SecurityConfiguration {
     public SecurityFilterChain webSecurityFilterChain(
             HttpSecurity http
     ) throws Exception {
+        log.info("Creating webSecurityFilterChain for non-API paths");
         return http
-                .securityMatcher(request -> !request.getRequestURI().startsWith("/api/"))
+                .securityMatcher(request -> {
+                    String uri = request.getRequestURI();
+                    boolean matches = !uri.startsWith("/api/");
+                    return matches;
+                })
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/webjars/**", "/health", "/actuator/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").authenticated()
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(auth -> {
+                    auth
+                            .requestMatchers("/health").permitAll()
+                            .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/webjars/**", "/actuator/**").permitAll()
+                            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").authenticated()
+                            .anyRequest().authenticated();
+                })
                 .formLogin(form -> form
                         .defaultSuccessUrl("/swagger-ui/index.html", true)
                         .permitAll()
                 )
+                .httpBasic(basic -> basic.disable())
                 .logout(logout -> logout.permitAll())
                 .build();
     }
@@ -79,12 +101,14 @@ public class SecurityConfiguration {
     /**
      * Default SecurityFilterChain
      * Can be Overridden by defining a bean with the same name.
-     * @param http HttpSecurity instance
+     *
+     * @param http       HttpSecurity instance
      * @param jwtDecoder JwtDecoder instance for decoding JWT tokens
      * @return SecurityFilterChain
      */
     @Bean
     @ConditionalOnMissingBean(name = "defaultJwtSecurityFilterChain")
+    @ConditionalOnClass(JwtDecoder.class)
     @Order(2)
     public SecurityFilterChain defaultJwtSecurityFilterChain(
             HttpSecurity http,
@@ -93,6 +117,7 @@ public class SecurityConfiguration {
             CustomAccessDeniedHandler customAccessDeniedHandler,
             JwtTypeValidationFilter jwtTypeValidationFilter
     ) throws Exception {
+        log.info("Creating defaultJwtSecurityFilterChain for API paths");
         return http
                 .securityMatcher("/api/**")
                 .csrf(csrf -> csrf.disable())
@@ -119,5 +144,34 @@ public class SecurityConfiguration {
                 .build();
     }
 
+    @Bean
+    public UserDetailsService userDetailsService() {
+        UserDetails admin = User.builder()
+                .username("admin")
+                .password(passwordEncoder().encode("admin123"))
+                .roles("ADMIN")
+                .authorities("ROLE_ADMIN", "ADMIN")  // 可以设置多个权限
+                .build();
+
+        UserDetails dev = User.builder()
+                .username("developer")
+                .password(passwordEncoder().encode("dev2024!"))
+                .roles("USER")
+                .authorities("ROLE_USER", "USER")
+                .build();
+
+        UserDetails viewer = User.builder()
+                .username("viewer")
+                .password(passwordEncoder().encode("view123"))
+                .roles("VIEWER")
+                .authorities("ROLE_VIEWER")
+                .accountLocked(false)           // 账户未锁定
+                .accountExpired(false)          // 账户未过期
+                .credentialsExpired(false)      // 密码未过期
+                .disabled(false)                // 账户未禁用
+                .build();
+
+        return new InMemoryUserDetailsManager(admin, dev, viewer);
+    }
 
 }
