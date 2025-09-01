@@ -164,6 +164,21 @@ Resources:
       PayloadFormatVersion: '1.0'
       TimeoutInMillis: 29000
 
+  # Direct integration for /api/follow (no proxy)
+  FollowServiceDirectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      Description: 'Direct integration to Follow Service root'
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub
+        - "http://${BaseUrl}:8081/api/follow"
+        - BaseUrl:
+            Fn::ImportValue: !Sub '${AccountStackName}-PublicIp'
+      PayloadFormatVersion: '1.0'
+      TimeoutInMillis: 29000
+
   # Route for /api/account/{proxy+}
   AccountServiceAPIRoute:
     Type: AWS::ApiGatewayV2::Route
@@ -186,6 +201,21 @@ Resources:
       ApiId: !Ref HttpApi
       RouteKey: 'ANY /api/follow/{proxy+}'
       Target: !Sub 'integrations/${FollowServiceAPIIntegration}'
+
+  # Direct route for /api/follow (POST/DELETE operations)
+  FollowServiceDirectPostRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'POST /api/follow'
+      Target: !Sub 'integrations/${FollowServiceDirectIntegration}'
+
+  FollowServiceDirectDeleteRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'DELETE /api/follow'
+      Target: !Sub 'integrations/${FollowServiceDirectIntegration}'
 
   AccountServiceRoute:
     Type: AWS::ApiGatewayV2::Route
