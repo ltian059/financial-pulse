@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Financial Pulse Account Service Stop Script
+Financial Pulse Service Stop Script
 
 Usage: python3 stop.py jar_name [app_dir]
 """
@@ -15,7 +15,7 @@ from pathlib import Path
 from logutil import log
 
 class ServiceStopper:
-    def __init__(self, jar_name, app_dir="/opt/app"):
+    def __init__(self, jar_name, app_dir):
         self.app_dir = Path(app_dir)
         self.pid = self.app_dir / "app.pid"
         self.jar = jar_name
@@ -127,20 +127,24 @@ class ServiceStopper:
             stopped = self._stop_by_process_search()
 
         if stopped:
-            log.info("Account Service stopped successfully")
+            log.info(f"{self.jar} Service stopped successfully")
             sys.exit(0)
         else:
-            log.error("Failed to stop Account Service")
+            log.error(f"Failed to stop {self.jar} Service")
             sys.exit(1)
 
 
 def main():
     jar_name = sys.argv[1] if len(sys.argv) > 1 else None
     if not jar_name:
-        print("Usage: python3 stop.py jar_name [app_dir]")
-        print("Example: python3 stop.py fp-account.jar /opt/app")
+        print("Usage: python3 stop.py <jar_name> <app_dir>")
+        print("Example: python3 stop.py fp-account.jar /opt/app/account")
         sys.exit(1)
-    app_dir = sys.argv[2] if len(sys.argv) > 2 else "/opt/app"
+    app_dir = sys.argv[2] if len(sys.argv) > 2 else None
+    if not app_dir:
+        print("Usage: python3 stop.py <jar_name> <app_dir>")
+        print("Example: python3 stop.py fp-account.jar /opt/app/account")
+        sys.exit(1)
     stopper = ServiceStopper(jar_name, app_dir)
     stopper.run()
 

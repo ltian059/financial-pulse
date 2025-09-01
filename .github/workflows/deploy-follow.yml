@@ -196,10 +196,10 @@ jobs:
           chmod 644 .env fp-follow.jar
           
           echo " Stopping existing service..."
-          python3 stop.py fp-follow.jar || true
+          python3 stop.py fp-follow.jar /opt/app/follow || true
           
           echo " Starting new service..."
-          python3 start.py fp-follow.jar
+          python3 start.py fp-follow.jar /opt/app/follow
           
           echo " Performing health check..."
           i=1

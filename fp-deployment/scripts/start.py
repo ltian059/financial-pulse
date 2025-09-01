@@ -2,7 +2,7 @@
 
 
 """
-Financial Pulse Account Service java process start script.
+Financial Pulse Service java process start script.
 
 Usage: python3 start.py jar_name [app_dir]
 """
@@ -24,7 +24,7 @@ JAVA_OPTS = [
 ]
 
 class ServiceStarter():
-    def __init__(self,  jar_name, app_dir="/opt/app"):
+    def __init__(self,  jar_name, app_dir):
         self.app_dir = Path(app_dir) # Application directory
         self.env = self.app_dir / ".env" # Path to the .env file
         self.jar = self.app_dir / jar_name # Path to the Java JAR file
@@ -138,11 +138,14 @@ def main():
     """Entry point"""
     jar_name = sys.argv[1] if len(sys.argv) > 1 else None
     if not jar_name:
-        print("Usage: python3 start.py jar_name [app_dir]")
-        print("Example: python3 start.py account-service.jar /opt/app")
+        print("Usage: python3 start.py <jar_name> <app_dir>")
+        print("Example: python3 start.py account-service.jar /opt/app/account")
         sys.exit(1)
-    app_dir = sys.argv[2] if len(sys.argv) > 2 else "/opt/app"
-
+    app_dir = sys.argv[2] if len(sys.argv) > 2 else None
+    if not app_dir:
+        print("Usage: python3 start.py <jar_name> <app_dir>")
+        print("Example: python3 start.py account-service.jar /opt/app/account")
+        sys.exit(1)
     manager = ServiceStarter(jar_name, app_dir)
     manager.run()
 

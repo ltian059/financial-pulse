@@ -183,8 +183,8 @@ jobs:
           
           echo "=== Financial Pulse Deployment Starting ==="
           sudo chown -R ec2-user:ec2-user /opt/app
-          
-          cd /opt/app
+          mkdir -p /opt/app/account
+          cd /opt/app/account
           
           echo "📥 Downloading from S3..."
           aws s3 cp s3://${BUCKET_NAME}/account/fp-account.jar ./fp-account.jar --no-progress
@@ -198,10 +198,10 @@ jobs:
           chmod 644 .env fp-account.jar
           
           echo " Stopping existing service..."
-          python3 stop.py fp-account.jar || true
+          python3 stop.py fp-account.jar /opt/app/account || true
           
           echo " Starting new service..."
-          python3 start.py fp-account.jar
+          python3 start.py fp-account.jar /opt/app/account
           
           echo " Performing health check..."
           i=1
