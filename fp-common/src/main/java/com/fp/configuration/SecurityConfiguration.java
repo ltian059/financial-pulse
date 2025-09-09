@@ -26,6 +26,12 @@ import org.springframework.security.oauth2.server.resource.web.authentication.Be
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.security.SecureRandom;
+
 @Configuration
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
@@ -145,33 +151,38 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
+    public UserDetailsService userDetailsService() throws IOException {
+        String randomPasswd = generateRandomPassword(16);
+        // Save the generated password to a file
+        Files.write(
+                Paths.get("user-passwords.txt"),
+                ("admin=" + randomPasswd + "\n").getBytes(),
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING
+        );
         UserDetails admin = User.builder()
                 .username("admin")
-                .password(passwordEncoder().encode("admin123"))
+                .password(passwordEncoder().encode(randomPasswd))
                 .roles("ADMIN")
                 .authorities("ROLE_ADMIN", "ADMIN")  // 可以设置多个权限
                 .build();
 
-        UserDetails dev = User.builder()
-                .username("developer")
-                .password(passwordEncoder().encode("dev2024!"))
-                .roles("USER")
-                .authorities("ROLE_USER", "USER")
-                .build();
+        return new InMemoryUserDetailsManager(admin);
+    }
+    private String generateRandomPassword(int length) {
+        String upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String lower = "abcdefghijklmnopqrstuvwxyz";
+        String digits = "0123456789";
+        String specials = "!@#$%^&*()-_=+[]{}<>?";
+        String all = upper + lower + digits + specials;
 
-        UserDetails viewer = User.builder()
-                .username("viewer")
-                .password(passwordEncoder().encode("view123"))
-                .roles("VIEWER")
-                .authorities("ROLE_VIEWER")
-                .accountLocked(false)           // 账户未锁定
-                .accountExpired(false)          // 账户未过期
-                .credentialsExpired(false)      // 密码未过期
-                .disabled(false)                // 账户未禁用
-                .build();
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(length);
 
-        return new InMemoryUserDetailsManager(admin, dev, viewer);
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(all.length());
+            sb.append(all.charAt(index));
+        }
+        return sb.toString();
     }
 
 }
