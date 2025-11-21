@@ -1,8 +1,6 @@
 package com.fp.aspect;
 
-import com.fp.annotation.RevokeJwt;
 import com.fp.auth.service.JwtService;
-import com.fp.auth.service.RevokedJwtService;
 import com.fp.constant.Messages;
 import com.fp.exception.business.JwtContextException;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;

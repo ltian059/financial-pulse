@@ -1,6 +1,5 @@
 package com.fp.sqs.impl;
 
-import org.springframework.stereotype.Component;
 
 public class MessageFactory {
     public static VerificationEmailMessage createVerificationEmailMessage(

@@ -208,16 +208,16 @@ Resources:
           MetricValue: "1"
           DefaultValue: 0
 
-  ApplicationStartFilter:
-    Type: AWS::Logs::MetricFilter
-    Properties:
-      LogGroupName: !Ref FinancialPulseApplicationLogGroup
-      FilterPattern: '"Started FpAccountApplication"'
-      MetricTransformations:
-        - MetricNamespace: Financial-Pulse/Application
-          MetricName: ApplicationStarts
-          MetricValue: "1"
-          DefaultValue: 0
+  # ApplicationStartFilter:
+  #   Type: AWS::Logs::MetricFilter
+  #   Properties:
+  #     LogGroupName: !Ref FinancialPulseApplicationLogGroup
+  #     FilterPattern: '"Started FpAccountApplication"'
+  #     MetricTransformations:
+  #       - MetricNamespace: Financial-Pulse/Application
+  #         MetricName: ApplicationStarts
+  #         MetricValue: "1"
+  #         DefaultValue: 0
 
   HighErrorCountAlarm:
     Type: AWS::CloudWatch::Alarm

@@ -1,6 +1,5 @@
 package com.fp.dto.follow.request;
 
-import com.fp.constant.PageConstant;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
