@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -23,7 +24,7 @@ import javax.crypto.spec.SecretKeySpec;
 @Slf4j
 @ConditionalOnProperty(prefix = "fp.jwt", name = "enabled", havingValue = "true", matchIfMissing = true)
 @ConditionalOnClass(JwtDecoder.class)
-@Order(1)
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class JwtConfiguration {
     private final JwtProperties jwtProperties;
     /**

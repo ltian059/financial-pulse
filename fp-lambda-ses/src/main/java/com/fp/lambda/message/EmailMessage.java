@@ -3,7 +3,6 @@ package com.fp.lambda.message;
 import com.fp.lambda.enumeration.EmailType;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 
-import java.util.HashMap;
 import java.util.Map;
 
 

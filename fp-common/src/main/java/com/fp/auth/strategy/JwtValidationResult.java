@@ -1,6 +1,5 @@
 package com.fp.auth.strategy;
 
-import com.fp.util.UnauthorizedAuthClassifier;
 import lombok.Getter;
 import org.springframework.http.HttpStatusCode;
 

@@ -7,12 +7,10 @@ Parameters:
     Default: dev
     AllowedValues: [dev, test, prod]
     Description: Environment name
-
   VPCCidr:
     Type: String
     Default: 10.0.0.0/16
     Description: CIDR block for VPC
-
   PublicSubnet1Cidr:
     Type: String
     Default: 10.0.1.0/24
@@ -47,6 +45,13 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
+  # IPv6 CIDR Block for VPC
+  IPv6CidrBlock:
+    Type: AWS::EC2::VPCCidrBlock
+    Properties:
+      VpcId: !Ref VPC
+      AmazonProvidedIpv6CidrBlock: true
+
   # Internet Gateway
   InternetGateway:
     Type: AWS::EC2::InternetGateway
@@ -61,57 +66,78 @@ Resources:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
 
+
   # Public Subnets
   PublicSubnet1:
     Type: AWS::EC2::Subnet
+    DependsOn: IPv6CidrBlock
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: !Ref PublicSubnet1Cidr
+      Ipv6CidrBlock: !Select [0, !Cidr [!Select [0, !GetAtt VPC.Ipv6CidrBlocks], 4, 64]]
       MapPublicIpOnLaunch: true
+      AssignIpv6AddressOnCreation: true
       Tags:
         - Key: Name
           Value: !Sub fp-public-subnet-1-${Environment}
         - Key: Type
           Value: Public
+        - Key: Purpose
+          Value: API-Gateway
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
+    DependsOn: IPv6CidrBlock
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [1, !GetAZs '']
       CidrBlock: !Ref PublicSubnet2Cidr
+      Ipv6CidrBlock: !Select [1, !Cidr [!Select [0, !GetAtt VPC.Ipv6CidrBlocks], 4, 64]]
       MapPublicIpOnLaunch: true
+      AssignIpv6AddressOnCreation: true
       Tags:
         - Key: Name
           Value: !Sub fp-public-subnet-2-${Environment}
         - Key: Type
           Value: Public
+        - Key: Purpose
+          Value: API-Gateway
 
-  # Private Subnets (for RDS)
+  # Private Subnets (for EC2 microservices and RDS)
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
+    DependsOn: IPv6CidrBlock
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: !Ref PrivateSubnet1Cidr
+      Ipv6CidrBlock: !Select [2, !Cidr [!Select [0, !GetAtt VPC.Ipv6CidrBlocks], 4, 64]]
+      AssignIpv6AddressOnCreation: true
       Tags:
         - Key: Name
           Value: !Sub fp-private-subnet-1-${Environment}
         - Key: Type
           Value: Private
+        - Key: Purpose
+          Value: Microservices
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
+    DependsOn: IPv6CidrBlock
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [1, !GetAZs '']
       CidrBlock: !Ref PrivateSubnet2Cidr
+      Ipv6CidrBlock: !Select [3, !Cidr [!Select [0, !GetAtt VPC.Ipv6CidrBlocks], 4, 64]]
+      AssignIpv6AddressOnCreation: true
       Tags:
         - Key: Name
           Value: !Sub fp-private-subnet-2-${Environment}
         - Key: Type
           Value: Private
+        - Key: Purpose
+          Value: Microservices
 
   # Route Tables
   PublicRouteTable:
@@ -138,6 +164,16 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
+  PublicRouteIPv6:
+    Type: AWS::EC2::Route
+    DependsOn: [InternetGatewayAttachment, IPv6CidrBlock]
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationIpv6CidrBlock: '::/0'
+      GatewayId: !Ref InternetGateway
+
+
+
   PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -161,6 +197,69 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet2
+
+
+  # S3 VPC Endpoint (Gateway Endpoint)
+  S3VPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - !Ref PrivateRouteTable1
+      Tags:
+        - Key: Name
+          Value: !Sub fp-s3-endpoint-${Environment}
+
+  DynamoDbVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.dynamodb
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - !Ref PrivateRouteTable1
+      Tags:
+        - Key: Name
+          Value: !Sub fp-dynamodb-endpoint-${Environment}
+  # Security Group for VPC Endpoints
+  VPCEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for VPC endpoints
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref VPCCidr
+          Description: Allow HTTPS from VPC CIDR
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref VPCCidr
+          Description: Allow SSH from VPC CIDR for Instance Connect
+      Tags:
+        - Key: Name
+          Value: !Sub fp-core-vpc-endpoint-sg-${Environment}
+
+  # EC2 Instance Connect Endpoint
+  EC2InstanceConnectEndpoint:
+    Type: AWS::EC2::InstanceConnectEndpoint
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      SecurityGroupIds:
+        - !Ref VPCEndpointSecurityGroup
+      PreserveClientIp: false
+      Tags:
+        - Key: Name
+          Value: !Sub fp-ec2-instance-connect-endpoint-${Environment}
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: Secure SSH access to EC2 instances
+
 
 Outputs:
   VPCId:
@@ -209,3 +308,15 @@ Outputs:
     Value: !Ref VPCCidr
     Export:
       Name: !Sub ${AWS::StackName}-VPCCidr
+
+  VPCEndpointSecurityGroupId:
+    Description: VPC Endpoint Security Group ID
+    Value: !Ref VPCEndpointSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-VPCEndpointSecurityGroupId
+  EC2InstanceConnectEndpointId:
+    Description: EC2 Instance Connect Endpoint ID
+    Value: !Ref EC2InstanceConnectEndpoint
+    Export:
+      Name: !Sub ${AWS::StackName}-EC2InstanceConnectEndpointId
+

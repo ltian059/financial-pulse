@@ -8,10 +8,10 @@ Parameters:
     AllowedValues: [dev, test, prod]
     Description: Environment name
 
-  LambdaCodeBucket:
+  S3BucketStackName:
     Type: String
-    Description: S3 bucket containing Lambda deployment package
-    Default: fp-lambda-deployments
+    Description: S3 bucket Stack name to import bucket name
+    Default: fp-s3-buckets-dev
 
   LambdaCodeKey:
     Type: String
@@ -34,9 +34,9 @@ Parameters:
     Description: SES from name
     Default: Financial Pulse
 
-  ServicesAccountUrl:
+  APIGatewayUrl:
     Type: String
-    Description: Account service URL
+    Description: API Gateway base URL
     Default: http://localhost:8080
 
   LogLevel:
@@ -110,7 +110,8 @@ Resources:
       Handler: com.fp.lambda.EmailProcessorHandler
       Role: !GetAtt LambdaEmailProcessorRole.Arn
       Code:
-        S3Bucket: !Ref LambdaCodeBucket
+        S3Bucket:
+          Fn::ImportValue: !Sub ${S3BucketStackName}-LambdaDeploymentBucket
         S3Key: !Ref LambdaCodeKey
       Timeout: 300
       MemorySize: 512
@@ -120,7 +121,7 @@ Resources:
           SES_FROM_NAME: !Ref SESFromName
           LOG_LEVEL: !Ref LogLevel
           ROOT_LOG_LEVEL: !Ref RootLogLevel
-          SERVICES_ACCOUNT_URL: !Ref ServicesAccountUrl
+          GATEWAY_URL: !Ref APIGatewayUrl
           SQS_EMAIL_QUEUE_URL:
             Fn::ImportValue: !Sub ${SQSStackName}-EmailQueueUrl
           SQS_DEAD_LETTER_QUEUE_URL:

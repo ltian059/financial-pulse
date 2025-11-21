@@ -1,15 +1,32 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # Expose all management endpoints
+  endpoint:
+    health:
+      show-details: always
+  server:
+    port: 10000  # management port
+    address: 127.0.0.1  # Only bind to localhost for security
+
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
+
+
 
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
     org.springframework.web.client: DEBUG
+    com.fp: ${APP_LOGGING_LEVEL:INFO} # Default to INFO if APP_LOG_LEVEL is not set
+    com.fp.auth.filter.RequestLoggingFilter: ${REQUEST_LOGGING_LEVEL:INFO} # Default to DEBUG if REQUEST_LOGGING_LEVEL is not set
 
 services:
-  account:
-    enabled: false # Disable external account service calls in dev environment
+  follow:
+    enabled: true
+    url: ${FOLLOW_SERVICE_URL:http://localhost:8081}
 
 
 springdoc:
@@ -32,11 +49,6 @@ fp:
       region: ${AWS_REGION}
       table-prefix: ${DYNAMODB_TABLE_PREFIX}
       table-suffix: ${DYNAMODB_TABLE_SUFFIX}
-    ses:
-      region: ${AWS_REGION}
-      app-base-url: ${SERVICES_ACCOUNT_URL}
-      from-email: ${AWS_SES_FROM_EMAIL}
-      from-name: Financial Pulse
     sqs:
       region: ${AWS_REGION}
       email-queue:

@@ -1,6 +1,5 @@
 package com.fp.dto.follow.request;
 
-import com.fp.constant.PageConstant;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
@@ -17,7 +16,7 @@ public class ListFollowingsRequestDTO {
      * The number of followerIds to return for each page.
      */
     @Min(1) @Max(100)
-    private Integer limit = PageConstant.DEFAULT_PAGE_SIZE;
+    private Integer limit;
 
     ///
     /// # Cursor for pagination, indicating the position to start fetching followers.

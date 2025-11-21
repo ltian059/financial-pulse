@@ -1,7 +1,6 @@
 package com.fp.exception;
 
 import lombok.Getter;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
 /// # BusinessException

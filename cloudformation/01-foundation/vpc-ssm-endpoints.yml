@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'VPC Endpoints for Financial Pulse - Development Only'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    Description: Environment name
+  
+  VPCStackName:
+    Type: String
+    Default: fp-vpc-dev
+    Description: VPC Stack name to import VPC resources
+
+Resources:
+  # SSM VPC Endpoints (Interface Endpoints)
+  SSMVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: 
+        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.ssm
+      VpcEndpointType: Interface
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet1Id
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet2Id
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub ${VPCStackName}-CoreVPCEndpointSecurityGroupId
+      PrivateDnsEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub fp-ssm-endpoint-${Environment}
+
+  SSMMessagesVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: 
+        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.ssmmessages
+      VpcEndpointType: Interface
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet1Id
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet2Id
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub ${VPCStackName}-CoreVPCEndpointSecurityGroupId
+      PrivateDnsEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub fp-ssmmessages-endpoint-${Environment}
+
+  EC2MessagesVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: 
+        Fn::ImportValue: !Sub ${VPCStackName}-VPCId
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.ec2messages
+      VpcEndpointType: Interface
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet1Id
+        - Fn::ImportValue: !Sub ${VPCStackName}-PrivateSubnet2Id
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub ${VPCStackName}-CoreVPCEndpointSecurityGroupId
+      PrivateDnsEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub fp-ec2messages-endpoint-${Environment}
+
+# No outputs needed - using shared security group from vpc-core

@@ -47,3 +47,7 @@ build/
 
 
 **/**.env
+/.claude/**
+**/**.zip
+/test_follow_api_en.py
+user-passwords.txt

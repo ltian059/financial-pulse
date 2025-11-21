@@ -1,8 +1,8 @@
 package com.fp.account;
 
-import com.fp.properties.JwtProperties;
-import com.fp.auth.service.JwtService;
-import lombok.extern.slf4j.Slf4j;
+import java.time.Instant;
+import java.util.Base64;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,8 +10,10 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 
-import java.time.Instant;
-import java.util.Base64;
+import com.fp.auth.service.JwtService;
+import com.fp.properties.JwtProperties;
+
+import lombok.extern.slf4j.Slf4j;
 
 @SpringBootTest
 @Slf4j
@@ -23,49 +25,50 @@ class FpAccountApplicationTests {
 	private JwtProperties jwtProperties;
 	@Autowired
 	private JwtDecoder jwtDecoder;
+
 	@Test
 	void contextLoads() {
 	}
 
 	@Test
-	public void testJWTUtil(){
-
+	public void testJWTUtil() {
 
 	}
 
 	@Test
-	public void testJwtVerfProcess(){
+	public void testJwtVerfProcess() {
 		String token = jwtUtil.generateAccessToken("12ssss", "test@exmaple.com", "test");
 		log.info("Generated JWT Token: {}", token);
 
-		//手动解析jwt结构
+		// 手动解析jwt结构
 		String[] parts = token.split("\\.");
 		assert parts.length == 3 : "Invalid JWT structure";
 
-		//解码header和payload
+		// 解码header和payload
 		var header = new String(Base64.getUrlDecoder().decode(parts[0]));
 		var payload = new String(Base64.getUrlDecoder().decode(parts[1]));
 		log.info("JWT Header: {}", header);
 		log.info("JWT Payload: {}", payload);
 
-		//使用jwtDecoder验证
-        try {
-            Jwt jwt = jwtDecoder.decode(token);
-            log.info("jwt验证成功");
-        	log.info("jwt subject :{}", jwt.getSubject());
+		// 使用jwtDecoder验证
+		try {
+			Jwt jwt = jwtDecoder.decode(token);
+			log.info("jwt验证成功");
+			log.info("jwt subject :{}", jwt.getSubject());
 			log.info("jwt claims :{}", jwt.getClaims());
 
-        } catch (JwtException e) {
+		} catch (JwtException e) {
 			log.error("JWT verification failed: {}", e.getMessage());
 
-        }
+		}
 
 	}
+
 	@Test
-	public void testTokenValidAfterRestart(){
+	public void testTokenValidAfterRestart() {
 		String token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0aWFubGkwOTI3QGdtYWlsLmNvbSIsImF1ZCI6ImZpbmFuY2lhbC1wdWxzZS1hcGkiLCJhY2NvdW50SWQiOjYsIm5hbWUiOiJ0aWFubGkiLCJleHAiOjE3NTA0NDE3MDUsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTA0NDE3MDR9.vBloW49uBbZ5bFLOZZ-YAfx0pHCC1BNucyeKFju6TSs";
 
-		try{
+		try {
 			Jwt jwt = jwtDecoder.decode(token);
 			log.info("✅ 重启后token仍然有效");
 			log.info("过期时间: {}", jwt.getExpiresAt());
@@ -76,7 +79,7 @@ class FpAccountApplicationTests {
 			} else {
 				log.warn("⚠️ Token已过期但验证通过 - 这是个问题!");
 			}
-		}catch (JwtException e){
+		} catch (JwtException e) {
 			log.info("❌ Token验证失败: {}", e.getMessage());
 		}
 

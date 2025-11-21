@@ -13,7 +13,7 @@ Parameters:
   AmiId:
     Description: The Amazon Linux 2 AMI ID
     Type: AWS::EC2::Image::Id
-    Default: ami-0c3391e886cc52a28
+    Default: ami-00ca32bbc84273381
   LatestAmiId:
     Description: The latest Amazon Linux 2 AMI from the Parameter Store
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
@@ -33,19 +33,14 @@ Parameters:
 
   SecurityStackName:
     Type: String
-    Default: fp-security-dev
+    Default: fp-sg-dev
     Description: Security Stack name
 
   DynamoDBStackName:
     Type: String
-    Default: fp-dynamodb-dev
+    Default: fp-dynamo-dev
     Description: DynamoDB Tables Stack name
 
-  #EIP AllocationId
-  ElasticIPAllocationId:
-    Type: String
-    Description: Allocation ID of existing Elastic IP (e.g., eipalloc-1234567890abcdef0)
-    Default: eipalloc-00306762fa828833d
 
 Resources:
   AccountServiceRole:
@@ -59,8 +54,7 @@ Resources:
               Service: ec2.amazonaws.com
             Action: sts:AssumeRole
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
-        - arn:aws:iam::aws:policy/AmazonSESFullAccess
+        - arn:aws:iam::aws:policy/PowerUserAccess
       Tags:
         - Key: Name
           Value: !Sub fp-account-role-${Environment}
@@ -90,8 +84,25 @@ Resources:
           # Update system
           yum update -y
           
-          # Install Java 17
-          yum install -y java-17-amazon-corretto-headless wget
+          # Install Java 17, AWS CLI v2, and SSM
+          yum install -y java-17-amazon-corretto-headless wget unzip
+          
+          # Install AWS CLI v2
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
+          
+          # Install and start SSM Agent
+          yum install -y amazon-ssm-agent
+          systemctl enable amazon-ssm-agent
+          systemctl start amazon-ssm-agent
+          
+          # Install CloudWatch Agent
+          yum install -y amazon-cloudwatch-agent
+          # Start CloudWatch Agent with SSM parameter
+          /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c ssm:AmazonCloudWatch-account-service-dev -s
+          # Enable and start CloudWatch Agent service
+          systemctl enable amazon-cloudwatch-agent
           
           # Create app directory
           mkdir -p /opt/app
@@ -118,13 +129,7 @@ Resources:
 
       Tags:
         - Key: Name
-          Value: fp-account-service-${Environment}
-  # Associate Elastic IP with Instance
-  AccountServiceEIPAssociation:
-    Type: AWS::EC2::EIPAssociation
-    Properties:
-      AllocationId: !Ref ElasticIPAllocationId
-      InstanceId: !Ref AccountServiceInstance
+          Value: !Sub fp-account-service-${Environment}
 
 Outputs:
   InstanceId:
@@ -133,24 +138,20 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-InstanceId
 
-  InstancePublicIP:
-    Description: Public IP of the EC2 instance
+  PublicIp:
+    Description: Public IPv4 address of the EC2 instance
     Value: !GetAtt AccountServiceInstance.PublicIp
     Export:
-      Name: !Sub ${AWS::StackName}-PublicIP
+      Name: !Sub ${AWS::StackName}-PublicIp
 
-  PrivateIP:
-    Description: Private IP of the EC2 instance
+  PrivateIp:
+    Description: Private IPv4 address of the EC2 instance
     Value: !GetAtt AccountServiceInstance.PrivateIp
     Export:
-      Name: !Sub ${AWS::StackName}-PrivateIP
-
-  SSHCommand:
-    Description: SSH command to connect to the instance
-    Value: !Sub "ssh -i fp-keypair.pem ec2-user@${AccountServiceInstance.PublicIp}"
+      Name: !Sub ${AWS::StackName}-PrivateIp
 
   ServiceEndpoint:
-    Description: Service endpoint
+    Description: Internal service endpoint (IPv4 for now)
     Value: !Sub "http://${AccountServiceInstance.PublicIp}:8080"
     Export:
       Name: !Sub ${AWS::StackName}-ServiceEndpoint

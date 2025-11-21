@@ -1,6 +1,5 @@
 package com.fp.sqs.service;
 
-import com.fp.sqs.email.EmailMessage;
 import com.fp.sqs.Message;
 
 /**

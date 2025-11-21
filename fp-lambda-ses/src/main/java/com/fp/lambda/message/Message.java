@@ -1,6 +1,5 @@
 package com.fp.lambda.message;
 
-import com.amazonaws.services.lambda.runtime.events.SNSEvent;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 
 import java.util.Map;

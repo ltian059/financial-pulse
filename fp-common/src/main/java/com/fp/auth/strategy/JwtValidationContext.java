@@ -1,11 +1,9 @@
 package com.fp.auth.strategy;
 
 import com.fp.constant.JwtClaimsKey;
-import com.fp.enumeration.jwt.JwtType;
 import com.fp.pattern.core.strategy.Strategy;
 import com.fp.pattern.core.strategy.StrategyContext;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 

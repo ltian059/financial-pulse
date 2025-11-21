@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Financial Pulse S3 Buckets Infrastructure
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, test, prod]
+    Description: Environment name
+
+Resources:
+  # Lambda Deployment Bucket
+  LambdaDeploymentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub fp-lambda-deployments-${Environment}-${AWS::Region}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: lambda-deployments
+
+  # Application Deployment Bucket
+  ApplicationDeploymentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub fp-app-deployments-${Environment}-${AWS::Region}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: application-deployments
+
+Outputs:
+  LambdaDeploymentBucketName:
+    Description: Lambda deployment bucket name
+    Value: !Ref LambdaDeploymentBucket
+    Export:
+      Name: !Sub ${AWS::StackName}-LambdaDeploymentBucket
+  LambdaDeploymentBucketArn:
+    Description: Lambda deployment bucket ARN
+    Value: !GetAtt LambdaDeploymentBucket.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-LambdaDeploymentBucketArn
+
+  ApplicationDeploymentBucketName:
+    Description: Application deployment bucket name
+    Value: !Ref ApplicationDeploymentBucket
+    Export:
+      Name: !Sub ${AWS::StackName}-ApplicationDeploymentBucket
+
+  ApplicationDeploymentBucketArn:
+    Description: Application deployment bucket ARN
+    Value: !GetAtt ApplicationDeploymentBucket.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-ApplicationDeploymentBucketArn

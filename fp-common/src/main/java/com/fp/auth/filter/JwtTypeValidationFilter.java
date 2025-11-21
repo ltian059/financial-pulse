@@ -1,28 +1,28 @@
 package com.fp.auth.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fp.auth.strategy.JwtValidationContext;
-import com.fp.auth.strategy.JwtValidationRequest;
-import com.fp.auth.strategy.JwtValidationResult;
-import com.fp.constant.Messages;
-import com.fp.dto.auth.response.AuthResponseDTO;
-import com.fp.util.UnauthorizedAuthClassifier;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import static com.fp.util.HttpUtil.isPublicPath;
+
+import java.io.IOException;
+import java.time.Instant;
+
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.time.Instant;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fp.auth.strategy.JwtValidationContext;
+import com.fp.auth.strategy.JwtValidationRequest;
+import com.fp.auth.strategy.JwtValidationResult;
+import com.fp.dto.auth.response.AuthResponseDTO;
 
-import static com.fp.util.HttpUtil.isPublicPath;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /// Filter to validate JWT token type for different endpoints.
 ///
@@ -40,24 +40,24 @@ public class JwtTypeValidationFilter extends OncePerRequestFilter {
     private final JwtValidationContext jwtValidationContext;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String requestURI = request.getRequestURI();
-        if(isPublicPath(requestURI)) {
+        if (isPublicPath(requestURI)) {
             filterChain.doFilter(request, response);
             return;
         }
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication instanceof JwtAuthenticationToken jwtAuth){
+        if (authentication instanceof JwtAuthenticationToken jwtAuth) {
             Jwt jwt = jwtAuth.getToken();
             // Strategy to validate JWT type based on request URI
             JwtValidationResult jwtValidationResult = jwtValidationContext.executeValidationStrategy(
                     JwtValidationRequest.builder()
                             .jwt(jwt)
                             .requestURI(requestURI)
-                            .build()
-            );
-            if (!jwtValidationResult.isValid()){
-                handleInvalidTokenError(response, jwtValidationResult,requestURI);
+                            .build());
+            if (!jwtValidationResult.isValid()) {
+                handleInvalidTokenError(response, jwtValidationResult, requestURI);
                 return;
             }
         }
@@ -66,7 +66,8 @@ public class JwtTypeValidationFilter extends OncePerRequestFilter {
 
     }
 
-    private void handleInvalidTokenError(HttpServletResponse response, JwtValidationResult validationResult, String requestURI) throws IOException {
+    private void handleInvalidTokenError(HttpServletResponse response, JwtValidationResult validationResult,
+            String requestURI) throws IOException {
         if (response.isCommitted()) {
             log.warn("Cannot write error response - response already committed for URI: {}", requestURI);
             return;
@@ -99,6 +100,5 @@ public class JwtTypeValidationFilter extends OncePerRequestFilter {
         }
 
     }
-
 
 }
