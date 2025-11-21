@@ -19,8 +19,9 @@ from stop import ServiceStopper
 JAVA_OPTS = [
     "-Xmx128m", # Maximum heap size
     "-Xms64m", # Initial heap size
-    "-Djava.security.egd=file:/dev/./urandom" # Use a faster entropy source for secure random numbers
-    "-Djava.net.preferIPv6Addresses=true -Djava.net.preferIPv4Stack=false" # Prefer IPv6 over IPv4
+    "-Djava.security.egd=file:/dev/./urandom", # Use a faster entropy source for secure random numbers
+    "-Djava.net.preferIPv6Addresses=true", # Prefer IPv6 over IPv4
+    "-Djava.net.preferIPv4Stack=false", # Prefer IPv6 over IPv4
 ]
 
 class ServiceStarter():

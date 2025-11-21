@@ -120,10 +120,16 @@ public class LambdaEmailServiceImpl implements LambdaEmailService {
     }
 
     private String buildVerifyURL(String verifyToken) {
+        if (gatewayUrl == null || gatewayUrl.isBlank()) {
+            throw new IllegalStateException("Gateway URL must be configured and non-null.");
+        }
         return gatewayUrl + "/api/auth/verify?token=" + verifyToken;
     }
 
     private String buildPasswordResetURL(String resetPasswordToken) {
+        if (gatewayUrl == null || gatewayUrl.isBlank()) {
+            throw new IllegalStateException("Gateway URL must be configured and non-null.");
+        }
         return gatewayUrl + "/api/auth/reset-password?token=" + resetPasswordToken;
     }
 

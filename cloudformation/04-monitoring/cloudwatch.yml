@@ -65,7 +65,7 @@ Resources:
               "properties": {
                 "metrics": [
                   [ "AWS/EC2", "CPUUtilization", "InstanceId", "${AccountServiceInstanceId}" ],
-                  [ "CWAgent", "cpu_usage_user", "InstanceId", "${AccountServiceInstanceId}'"]
+                  [ "CWAgent", "cpu_usage_user", "InstanceId", "${AccountServiceInstanceId}"]
                 ],
                 "view": "timeSeries",
                 "stacked": false,

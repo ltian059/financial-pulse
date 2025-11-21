@@ -160,7 +160,7 @@ public class ApplicationConfig {
             if (envValue != null) {
                 return envValue;
             } else {
-                return defaultValue; // If env var is not set, use default (which may be null)
+                return defaultValue != null ? defaultValue : value; // If env var is not set, use default, else return original placeholder
             }
         }
 
