@@ -1,10 +1,12 @@
-package com.fp;
+package com.fp.repository_tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,5 +114,22 @@ public class PostRepositoryTests {
         assertEquals(status, updated.getStatus());
     }
 
+    /**
+     * Test inserting differnet statuses
+     */
+    @Test
+    void save_withDifferentStatuses_shouldPersistCorrectly() {
+        for (Post.Status status : Post.Status.values()) {
+            var post = Post.builder()
+                    .content("<p>status test</p>")
+                    .accountId("acc-status")
+                    .status(status)
+                    .build();
+            assertNull(post.getId());
+            Post saved = postRepository.save(post);
+            assertNotNull(saved.getId());
+            assertEquals(status, saved.getStatus());
+        }
+    }
 
 }

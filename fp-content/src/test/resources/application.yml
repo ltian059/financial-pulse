@@ -1,0 +1,15 @@
+spring:
+    datasource:
+        username: ${CONTENT_DB_USERNAME}
+        password: ${CONTENT_DB_PASSWORD}
+        url: ${CONTENT_DB_URL}
+        driver-class-name: org.postgresql.Driver
+    jpa:
+        hibernate:
+            ddl-auto: none
+            naming:
+                physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    flyway:
+        enabled: true
+        clean-disabled: false
+        locations: classpath:db/migration
