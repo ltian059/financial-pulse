@@ -7,6 +7,8 @@ spring:
     password: ${CONTENT_DB_PASSWORD}
     url: ${CONTENT_DB_URL}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
   jpa:
     hibernate:
       naming:
@@ -17,11 +19,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  flyway:
+    clean-disabled: false
+
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.SQL: INFO
+    org.hibernate.orm.jdbc.bind: INFO
     org.springframework.web.client: DEBUG
 
 springdoc:

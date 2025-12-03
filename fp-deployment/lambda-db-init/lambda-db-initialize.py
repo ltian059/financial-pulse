@@ -109,27 +109,99 @@ def _create_content_service_tables(cursor, schema_name: str):
                            (
                                "id"          BIGSERIAL PRIMARY KEY,
                                "content"     text                     NOT NULL,
-                               "created_at"  timestamp WITH TIME ZONE NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
-                               "modified_at" timestamp,
-                               "image_links" varchar,
-                               "likes"       bigint                   NOT NULL DEFAULT (0),
-                               "views"       bigint                   NOT NULL DEFAULT (0),
+                               "account_id"  varchar                  NOT NULL,
+                               "created_at"  timestamptz          NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
+                               "modified_at" timestamptz,
+                               "image_links" text,
                                "labels"      text,
-                               "account_id"  varchar                  NOT NULL
+                               "like_count"       bigint               NOT NULL DEFAULT (0),
+                               "view_count"       bigint               NOT NULL DEFAULT (0),
+                               "comment_count" bigint                  NOT NULL DEFAULT (0),
+                               "repost_count" bigint                  NOT NULL DEFAULT (0),
+                               "status"      varchar                  NOT NULL DEFAULT 'active',
+                               CONSTRAINT chk_posts_status CHECK (status IN ('active', 'deleted', 'hidden'))
                            ); \
  \
-                           CREATE TABLE "comments"
+                            COMMENT ON TABLE  posts                    IS 'Financial Pulse user posts';
+                            COMMENT ON COLUMN posts.content            IS 'Rich text HTML content';
+                            COMMENT ON COLUMN posts.account_id         IS 'Author account id';
+                            COMMENT ON COLUMN posts.image_links        IS 'Comma-separated or JSON-serialized image URLs/keys';
+                            COMMENT ON COLUMN posts.labels             IS 'Tags/labels (consider jsonb for structure)';
+                            COMMENT ON COLUMN posts.like_count              IS 'Cached like count';
+                            COMMENT ON COLUMN posts.view_count              IS 'Cached view count';
+                            COMMENT ON COLUMN posts.comment_count      IS 'Cached comment count';
+                            COMMENT ON COLUMN posts.repost_count       IS 'Cached repost/quote count';
+                            COMMENT ON COLUMN posts.status             IS 'active/deleted/hidden (soft delete)';
+
+                           CREATE TABLE IF NOT EXISTS "comments"
                            (
-                               "id"                BIGSERIAL PRIMARY KEY,
-                               "content"           text                     NOT NULL,
-                               "post_id"           bigint,
-                               "created_at"        timestamp WITH TIME ZONE NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
-                               "modified_at"       timestamp,
-                               "parent_comment_id" bigint
+                               "id"                BIGSERIAL            PRIMARY KEY,
+                               "content"           text                 NOT NULL,
+                               "post_id"           bigint               NOT NULL,
+                               "account_id"        varchar              NOT NULL,
+                               "created_at"        timestamptz          NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
+                               "modified_at"       timestamptz,
+                               "status"            varchar              NOT NULL DEFAULT 'active',
+                               "like_count"        bigint               NOT NULL DEFAULT (0),
+                               "reply_count"       bigint               NOT NULL DEFAULT (0),
+                               "parent_comment_id" bigint,
+                               CONSTRAINT fk_comments_post FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE,
+                               CONSTRAINT fk_comments_parent FOREIGN KEY (parent_comment_id) REFERENCES comments (id) ON DELETE SET NULL,
+                               CONSTRAINT chk_comments_status CHECK (status IN ('active', 'deleted'))
                            );
+                            COMMENT ON TABLE  comments                     IS 'Comments on posts (one-level threading via parent_comment_id)';
+                            COMMENT ON COLUMN comments.post_id             IS 'FK to posts.id';
+                            COMMENT ON COLUMN comments.account_id          IS 'Author account id';
+                            COMMENT ON COLUMN comments.status              IS 'active/deleted/hidden';
+                            COMMENT ON COLUMN comments.like_count               IS 'Cached like count';
+                            COMMENT ON COLUMN comments.reply_count             IS 'Cached direct reply count';
+                            COMMENT ON COLUMN comments.parent_comment_id   IS 'Nullable parent for replies';
+
+                            CREATE TABLE IF NOT EXISTS post_reactions (
+  post_id    bigint      NOT NULL,
+  account_id varchar     NOT NULL,
+  type       varchar     NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
+  PRIMARY KEY (post_id, account_id, type),
+  CONSTRAINT fk_post_reactions_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  CONSTRAINT chk_post_reactions_type CHECK (type IN ('LIKE','REPOST','QUOTE'))
+);
+
+CREATE TABLE IF NOT EXISTS comment_reactions (
+  comment_id bigint      NOT NULL,
+  account_id varchar     NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
+  PRIMARY KEY (comment_id, account_id),
+  CONSTRAINT fk_comment_reactions FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS post_views(
+	id BIGSERIAL PRIMARY KEY,
+	post_id  bigint NOT NULL,
+	account_id varchar NULL,
+	client_hash varchar NULL,
+	created_at timestamptz NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
+	CONSTRAINT uq_post_views_account UNIQUE(post_id, account_id),
+	CONSTRAINT uq_post_views_client UNIQUE(post_id, client_hash),
+	CONSTRAINT fk_post_views_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);
                            """
         cursor.execute(CREATE_TABLE_SQL)
         log.info("Content Service tables created successfully.")
+        # Create indexes
+        log.info("Creating indexes for Content Service tables...")
+        CREATE_INDEX_SQL = """
+                CREATE INDEX IF NOT EXISTS idx_posts_account_created
+                    ON posts (account_id, created_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_posts_created
+                    ON posts (created_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_comments_post_created
+                    ON comments (post_id, created_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_comments_parent_created
+                    ON comments (parent_comment_id, created_at DESC);
+                    """
+        cursor.execute(CREATE_INDEX_SQL)
+        log.info("Indexes for Content Service tables created successfully.")
 
     except Exception as e:
         log.error(f"Failed to create Content Service tables: {str(e)}")
