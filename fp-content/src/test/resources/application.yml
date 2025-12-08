@@ -1,8 +1,8 @@
 spring:
     datasource:
-        username: ${CONTENT_DB_USERNAME}
-        password: ${CONTENT_DB_PASSWORD}
-        url: ${CONTENT_DB_URL}
+        username: postgres
+        password: 8866
+        url: jdbc:postgresql://localhost:5432/postgres?currentSchema=fp_content_test
         driver-class-name: org.postgresql.Driver
     jpa:
         hibernate:

@@ -1,4 +1,4 @@
-package com.fp.repository_tests;
+package com.fp.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -6,8 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Instant;
-import java.util.List;
 
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -15,7 +16,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import com.fp.entity.Post;
-import com.fp.repository.PostRepository;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -23,13 +23,14 @@ public class PostRepositoryTests {
     @Autowired
     private PostRepository postRepository;
 
-    // @Autowired
-    // private Flyway flyway;
+     @Autowired
+     private Flyway flyway;
 
-    // @BeforeEach
-    // void initDb() { 
-    //     flyway.migrate();
-    // }
+     @BeforeEach
+     void initDb() {
+         flyway.clean();
+         flyway.migrate();
+     }
 
     /**
      * Verify default values and auto-generated fields are populated.

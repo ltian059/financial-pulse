@@ -1,25 +1,28 @@
-package com.fp.repository_tests;
+package com.fp.repository;
 
 import com.fp.entity.Post;
-import com.fp.repository.CommentRepository;
-import com.fp.repository.PostRepository;
 import com.fp.service.CommentReactionService;
+import com.fp.service.impl.CommentReactionServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@SpringBootTest
-@ActiveProfiles("dev")
+@DataJpaTest
 @Slf4j
+@Import({CommentReactionServiceImpl.class})
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class CommentReactionConcurrencyTests {
 
     @Autowired
@@ -38,7 +41,17 @@ public class CommentReactionConcurrencyTests {
         flyway.migrate();
     }
     // Test: save multiple comment reactions concurrently should increment reaction count correctly
+
+    /**
+     *
+     * <li>By default, @DataJpaTest runs each test method within a transaction that is rolled back after the test. </li>
+     * <li>To accurately test concurrent behavior, we need to disable this transactional behavior for the test method </li>
+     * <li>If not doing so, the concurrent threads may not see the committed state of the database, leading to inconsistent results.</li>
+     * <li>the @Transactional(propagation = Propagation.NOT_SUPPORTED) annotation is used to disable transaction management for this test method, resulting in each operation being committed immediately.</li>
+     * @throws InterruptedException
+     */
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void concurrentReactions_shouldIncrementReactionCountCorrectly() throws InterruptedException {
         // Implementation would be similar to PostReactionConcurrencyTests
         // Create a post and a comment

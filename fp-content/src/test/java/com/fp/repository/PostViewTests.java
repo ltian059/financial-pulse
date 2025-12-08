@@ -1,9 +1,9 @@
-package com.fp.repository_tests;
+package com.fp.repository;
 
 import com.fp.entity.Post;
 import com.fp.entity.PostView;
-import com.fp.repository.PostRepository;
-import com.fp.repository.PostViewRepository;
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -18,6 +18,13 @@ public class PostViewTests {
     @Autowired
     private PostViewRepository postViewRepository;
 
+    @Autowired
+    private Flyway flyway;
+    @BeforeEach
+    void initDb() {
+        flyway.clean();
+        flyway.migrate();
+    }
 
 
     @Test

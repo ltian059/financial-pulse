@@ -1,26 +1,33 @@
-package com.fp.repository_tests;
+package com.fp.repository;
 
 import com.fp.entity.Post;
 import com.fp.entity.PostReaction;
-import com.fp.repository.PostRepository;
 import com.fp.service.PostReactionService;
+import com.fp.service.impl.PostReactionServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.AssertionErrors;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@SpringBootTest
+@DataJpaTest
 @Slf4j
-@ActiveProfiles("dev")
+@Import({PostReactionServiceImpl.class})
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 public class PostReactionConcurrencyTests {
 
     @Autowired

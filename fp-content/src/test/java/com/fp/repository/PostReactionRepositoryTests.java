@@ -1,11 +1,10 @@
-package com.fp.repository_tests;
+package com.fp.repository;
 
 import com.fp.entity.Post;
 import com.fp.entity.PostReaction;
-import com.fp.repository.PostReactionRepository;
-import com.fp.repository.PostRepository;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,23 +25,35 @@ public class PostReactionRepositoryTests {
     private PostRepository postRepository;
     @Autowired
     private EntityManager entityManager;
+    @Autowired
+    private Flyway flyway;
 
+    @BeforeEach
+    void clearDatabase() {
+        flyway.clean();
+        flyway.migrate();
+    }
     /**
      * 1. Test Insertion
      */
     @Test
     void save_shouldPersistPostReaction() {
-        var postReaction = PostReaction.builder()
-                .postId(1L)
+        var post = Post.builder()
+                .content("Sample Post</p>")
                 .accountId("acc-1")
+                .build();
+        post = postRepository.saveAndFlush(post);
+
+        var postReaction = PostReaction.builder()
+                .postId(post.getId())
+                .accountId("acc-3")
                 .type(com.fp.entity.PostReaction.Type.LIKE)
                 .build();
-
         PostReaction saved = postReactionRepository.save(postReaction);
         assertNotNull(saved);
         assertNotNull(saved.getPostId());
-        assertEquals(1L, saved.getPostId());
-        assertEquals("acc-1", saved.getAccountId());
+        assertEquals("acc-3", saved.getAccountId());
+        assertEquals(post.getId(), saved.getPostId());
         assertEquals(com.fp.entity.PostReaction.Type.LIKE, saved.getType());
     }
 
