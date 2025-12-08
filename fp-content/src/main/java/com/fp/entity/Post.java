@@ -75,5 +75,6 @@ public class Post {
         ACTIVE,
         DELETED,
         HIDDEN,
+        DRAFT
     }
 }
