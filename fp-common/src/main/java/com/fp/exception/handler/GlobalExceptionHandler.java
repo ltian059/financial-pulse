@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 @Slf4j
@@ -47,13 +48,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(build);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ExceptionResponseDTO> handleGenericException(Exception ex) {
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ExceptionResponseDTO> handle(MethodArgumentTypeMismatchException ex){
         ExceptionResponseDTO build = ExceptionResponseDTO.builder()
-                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .code(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
                 .build();
-        log.error("Unexpected error: ", ex);
-        return ResponseEntity.status(500).body(build);
+        log.error("Method argument type mismatch: ", ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(build);
     }
+
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ExceptionResponseDTO> handleGenericException(Exception ex) {
+//        ExceptionResponseDTO build = ExceptionResponseDTO.builder()
+//                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
+//                .message(ex.getMessage())
+//                .build();
+//        log.error("Unexpected error: ", ex);
+//        return ResponseEntity.status(500).body(build);
+//    }
 }

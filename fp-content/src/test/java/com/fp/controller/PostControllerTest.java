@@ -4,21 +4,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fp.dto.content.PostRequestDTO;
 import com.fp.dto.content.PostResponseDTO;
 import com.fp.entity.Post;
+import com.fp.exception.business.PostNotFoundException;
 import com.fp.service.PostService;
+import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Slf4j
 @WebMvcTest(PostController.class)
 @AutoConfigureMockMvc(addFilters = false)
 public class PostControllerTest {
@@ -94,5 +99,45 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.message").value(Matchers.containsString("Post Account ID cannot be blank")))
                 .andExpect(jsonPath("$.message").value(Matchers.containsString("Create a post status must be ACTIVE, or DRAFT")))
         ;
+    }
+
+    @Test
+    public void getPostById_withValidRequest_shouldReturn200AndResponseBody() throws Exception {
+        int reqId = 1;
+        // Stub service response dto
+        PostResponseDTO resp = new PostResponseDTO();
+        Post post = new Post();
+        BeanUtils.copyProperties(post, resp);
+        resp.setId((long) reqId);
+        resp.setContent("Sample post content");
+        resp.setAccountId("acc-123");
+        resp.setStatus("ACTIVE");
+        resp.setImageLinks("img1.jpg,img2.jpg");
+
+        when(postService.getPostById((long) reqId)).thenReturn(resp);
+
+        mockMvc.perform(get("/api/content/posts/{reqId}", reqId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(reqId))
+                .andExpect(jsonPath("$.content").value("Sample post content"))
+                .andExpect(jsonPath("$.accountId").value("acc-123"))
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.imageLinks").value("img1.jpg,img2.jpg"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void getPostById_withNotExistingIdRequest_shouldReturn404AndThrowException() throws Exception {
+        int reqId = 999;
+        when(postService.getPostById((long) reqId)).thenThrow(new PostNotFoundException(HttpStatus.NOT_FOUND, "Post with ID " + reqId + " not found"));
+        mockMvc.perform(get("/api/content/posts/{reqId}", reqId).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void getPostById_WithInvalidRequest_shouldReturn400() throws Exception {
+        String reqId = "invalid_id";
+        mockMvc.perform(get("/api/content/posts/{reqId}", reqId).contentType(MediaType.APPLICATION_JSON))
+                .andDo(result -> log.error("Result: {}", result.getResponse().getContentAsString()))
+                .andExpect(status().isBadRequest());
     }
 }

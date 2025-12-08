@@ -3,17 +3,17 @@ package com.fp.service.impl;
 import com.fp.dto.content.PostRequestDTO;
 import com.fp.dto.content.PostResponseDTO;
 import com.fp.entity.Post;
+import com.fp.exception.business.PostNotFoundException;
 import com.fp.repository.PostRepository;
-import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.parameters.P;
+
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -130,4 +130,47 @@ public class PostServiceImplTest {
         verify(postRepository, never()).save(any(Post.class));
     }
 
+
+    @Test
+    public void getPostById_withValidId_shouldReturnResponse(){
+        Long postId = 1L;
+        Post post = Post.builder()
+                .id(postId)
+                .status(Post.Status.DRAFT)
+                .content("test content <b>bold</b>")
+                .accountId("acc-123")
+                .build();
+        // Stubbing
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+
+        // Call the service method
+        PostResponseDTO responseDTO = postServiceImpl.getPostById(postId);
+
+        // Verify repository findById method called once
+        verify(postRepository, times(1)).findById(postId);
+
+        // Assert the response DTO fields.
+        assertNotNull(responseDTO);
+        assertEquals(postId, responseDTO.getId());
+        assertEquals("test content <b>bold</b>", responseDTO.getContent());
+        assertEquals("acc-123", responseDTO.getAccountId());
+        assertNotNull(responseDTO.getCreatedAt());
+        assertEquals(0L, responseDTO.getLikeCount());
+        assertEquals(Post.Status.DRAFT.name(), responseDTO.getStatus());
+    }
+
+    @Test
+    public void getPostById_withInvalidId_shouldThrowException(){
+        Long postId = 999L;
+        // Stubbing
+        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+
+        // Call the service method and expect an exception
+        Exception exception = assertThrows(PostNotFoundException.class, () -> {
+            postServiceImpl.getPostById(postId);
+        });
+
+        // Verify repository findById method called once
+        verify(postRepository, times(1)).findById(postId);
+    }
 }

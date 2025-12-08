@@ -5,10 +5,12 @@ import com.fp.dto.content.ListPostsRequestDTO;
 import com.fp.dto.content.PostRequestDTO;
 import com.fp.dto.content.PostResponseDTO;
 import com.fp.entity.Post;
+import com.fp.exception.business.PostNotFoundException;
 import com.fp.repository.PostRepository;
 import com.fp.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -44,7 +46,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostResponseDTO getPostById(Long postId) {
-        return null;
+        Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(HttpStatus.NOT_FOUND, "Post with ID " + postId + " not found"));
+        return  buildResponseDTO(post);
     }
 
     @Override

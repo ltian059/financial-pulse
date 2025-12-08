@@ -27,4 +27,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying
     @Query("UPDATE Post p SET p.quoteCount = p.quoteCount + 1 WHERE p.id = :id")
     void incrementQuoteCount(@Param("id") Long id);
+
 }
