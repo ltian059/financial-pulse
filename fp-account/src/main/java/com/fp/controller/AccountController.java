@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class AccountController {
     private final AccountService accountService;
 
+    //TODO: refactor APIs to comply with restful conventions
     @GetMapping("/by-email")
     @Operation(summary = "Get account by email")
     public ResponseEntity<AccountResponseDTO> getAccountByEmail(@RequestParam String email) {

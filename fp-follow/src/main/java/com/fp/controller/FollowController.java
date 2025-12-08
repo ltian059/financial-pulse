@@ -19,6 +19,7 @@ public class FollowController {
 
     private final FollowService followService;
 
+    //TODO: refactor APIs to follow RESTful conventions
     @GetMapping("/count-follower")
     @Operation(summary = "get the number of followers for an account")
     public ResponseEntity<Long> getFollowerCountByAccountId(@RequestParam String accountId) {
