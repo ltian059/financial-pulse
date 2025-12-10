@@ -31,7 +31,7 @@ import java.util.Optional;
 public class AutoJwtContextValidationAspect {
     private final JwtService jwtService;
 
-
+    //TODO: Refactor to support validation in all controllers
     /**
      * Pointcut for all write operations in controllers.
      * Matches methods annotated with @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping

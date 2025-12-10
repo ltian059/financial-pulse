@@ -1,11 +1,8 @@
-package com.fp.repository_tests;
+package com.fp.repository;
 
 import com.fp.entity.Comment;
 import com.fp.entity.CommentReaction;
 import com.fp.entity.Post;
-import com.fp.repository.CommentReactionRepository;
-import com.fp.repository.CommentRepository;
-import com.fp.repository.PostRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -18,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CommentReactionRepositoryTests {
     @Autowired
     private CommentReactionRepository commentReactionRepository;
-
     @Autowired
     private PostRepository postRepository;
     @Autowired

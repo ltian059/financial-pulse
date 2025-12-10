@@ -1,10 +1,12 @@
-package com.fp.repository_tests;
+package com.fp.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -17,11 +19,6 @@ import com.fp.entity.Post;
 import com.fp.entity.PostReaction;
 import com.fp.entity.PostReaction.Type;
 import com.fp.entity.PostView;
-import com.fp.repository.CommentReactionRepository;
-import com.fp.repository.CommentRepository;
-import com.fp.repository.PostReactionRepository;
-import com.fp.repository.PostRepository;
-import com.fp.repository.PostViewRepository;
 
 import jakarta.persistence.EntityManager;
 
@@ -44,6 +41,14 @@ class PostRepositoryCascadeTests {
     private PostViewRepository postViewRepository;
     @Autowired
     private EntityManager entityManager;
+    @Autowired
+    private Flyway flyway;
+
+    @BeforeEach
+    void clearDatabase() {
+        flyway.clean();
+        flyway.migrate();
+    }
 
     @Test
     void save_and_findById_shouldReturnSameContent() {
