@@ -16,4 +16,5 @@ public interface PostService {
 
     PostResponseDTO updatePost(Long postId, PostRequestDTO postRequestDTO);
 
+    PageResponseDTO<PostResponseDTO> getAccountPosts(String accountId);
 }

@@ -16,9 +16,14 @@ public class ListPostsRequestDTO {
     @Builder.Default
     private Integer limit = 20;
 
-    /// Cursor for pagination, indicating the position to start fetching posts.
-    /// cursor format: createdAt Instant timestamp#postId
-    /// Example: 2025-06-29-11:50:3233545Z#19
+    /// - Cursor for pagination, indicating the position to start fetching posts.
+    ///
+    /// - Post sorting rule: if modifiedAt is not null, sort by modifiedAt desc; else sort by createdAt desc. Always use **descending** order.
+    ///
+    /// - cursor format: `effectiveAt#postId`
+    ///
+    /// - `effectiveAt` is either `modifiedAt` or `createdAt` based on the sorting rule.
+    /// - Example: `2025-06-29-11:50:3233545Z#19`
     private String cursor;
 
     // The keyword to filter posts by content.

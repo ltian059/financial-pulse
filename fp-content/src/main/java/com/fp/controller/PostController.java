@@ -1,7 +1,5 @@
 package com.fp.controller;
 
-import com.fp.dto.common.PageResponseDTO;
-import com.fp.dto.content.ListPostsRequestDTO;
 import com.fp.dto.content.PostRequestDTO;
 import com.fp.dto.content.PostResponseDTO;
 import com.fp.service.PostService;
@@ -42,13 +40,6 @@ public class PostController {
         return ResponseEntity.ok(resp);
     }
 
-    @GetMapping
-    public ResponseEntity<PageResponseDTO<PostResponseDTO>> listPosts(
-            ListPostsRequestDTO listPostsRequestDTO
-            ) {
-        PageResponseDTO<PostResponseDTO> resp = postService.listPosts(listPostsRequestDTO);
-        return ResponseEntity.ok(resp);
-    }
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<String> deletePost(@PathVariable Long postId) {
